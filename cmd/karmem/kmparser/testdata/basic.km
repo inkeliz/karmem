@@ -1,0 +1,21 @@
+karmem demo;
+
+enum UserRegion uint32 {
+    Undefined; Asia; Africa; NorthAmerica; SouthAmerica; Europe; Oceania;
+}
+
+struct Point inline {
+    X float32;
+    Y float32;
+}
+
+struct User table {
+    Username   [<128]char;
+    PublicKey  [256]byte;
+    Region     UserRegion;
+    Locations  [<32]Point;
+    AcceptToS  bool;
+}
+
+
+

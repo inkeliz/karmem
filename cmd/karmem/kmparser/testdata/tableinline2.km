@@ -1,0 +1,9 @@
+karmem demo;
+
+struct SharedCustomTypeTable table {
+    Slice []uint8;
+}
+
+struct CustomTypeInline inline {
+    TableSliceTest [8]SharedCustomTypeTable;
+}

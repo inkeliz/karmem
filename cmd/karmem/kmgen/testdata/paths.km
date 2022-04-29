@@ -1,0 +1,20 @@
+karmem demo;
+
+struct Vec3 inline {
+    X float32;
+    Y float32;
+    Z float32;
+}
+
+struct User table {
+    Path []Vec3;
+}
+
+struct UserData inline {
+    ID uint32;
+    Data User;
+}
+
+struct Users table {
+    Users UserData;
+}

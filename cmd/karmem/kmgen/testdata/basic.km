@@ -1,0 +1,16 @@
+karmem demo @golang.package(demo);
+
+struct SimpleNumbers table {
+    N8 uint8;
+    N16 uint16;
+    N32 uint32;
+    N64 uint64;
+
+    M8 int8;
+    M16 int16;
+    M32 int32;
+    M64 int64;
+
+    OF32 float32;
+    OF64 float64;
+}

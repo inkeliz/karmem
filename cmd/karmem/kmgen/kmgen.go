@@ -58,6 +58,7 @@ func (x *ValueTypeTranslator) TranslateTypes(p *kmparser.File) {
 	for pi, v := range p.Struct {
 		for vi, v := range v.Fields {
 			p.Struct[pi].Fields[vi].Type = x.translate(v.ValueType, v.IsEnum(), v.BackgroundType)
+			p.Struct[pi].Fields[vi].BackgroundType = x.translate(kmparser.ValueType(v.BackgroundType), v.IsEnum(), v.BackgroundType)
 			p.Struct[pi].Fields[vi].PlainType = x.translate(kmparser.ValueType(v.ValueType.PlainType()), v.IsEnum(), v.BackgroundType)
 		}
 	}

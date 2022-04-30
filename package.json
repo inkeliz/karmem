@@ -1,0 +1,28 @@
+{
+  "name": "karmem",
+  "description": "Karmem: fast serialization format.",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "node assemblyscript/tests",
+    "asbuild:debug": "asc assemblyscript/karmem.ts --target debug",
+    "asbuild:release": "asc assemblyscript/karmem.ts --target release",
+    "asbuild": "npm run asbuild:debug && npm run asbuild:release",
+    "start": "npx serve assemblyscript"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/inkeliz/karmem"
+  },
+  "author": "inkeliz",
+  "license": "MIT",
+  "devDependencies": {
+    "assemblyscript": "0.20.6"
+  },
+  "exports": {
+    ".": {
+      "import": "./build/release.js",
+      "types": "./build/release.d.ts"
+    }
+  }
+}

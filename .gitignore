@@ -1,5 +1,5 @@
-assemblyscript/build
-assemblyscript/node_modules
+build
+node_modules
 tests
 benchmark/testdata/wasi
 .idea

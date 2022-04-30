@@ -187,6 +187,9 @@
                         {{- else}}
                             copy(x.{{$field.Name}}, __{{$field.Name}}Slice)
                         {{- end}}
+                        for i := __{{$field.Name}}Len; i < len(x.{{$field.Name}}); i++ {
+                        x.{{$field.Name}}[i] = {{$field.Default}}
+                        }
                     {{- else}}
                         for i := range x.{{$field.Name}} {
                         if i >= __{{$field.Name}}Len {

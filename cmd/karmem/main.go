@@ -30,6 +30,8 @@ func (l Language) Generator() kmgen.Generator {
 	switch l {
 	case LanguageGolang:
 		return kmgen.GolangGenerator()
+	case LanguageAssemblyScript:
+		return kmgen.AssemblyScriptGenerator()
 	default:
 		return nil
 	}

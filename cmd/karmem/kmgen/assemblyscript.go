@@ -79,11 +79,21 @@ func (gen *AssemblyScript) Start(file *kmparser.File) error {
 
 func (gen *AssemblyScript) start() error {
 	pkg := gen.Header.Name
-	if p := gen.Header.GetTag("assemblyScript.package"); p != nil {
+	if p := gen.Header.GetTag("assemblyscript.package"); p != nil {
 		pkg = p.Value
 	}
 
-	return gen.template.ExecuteTemplate(gen.buf, `header`, pkg)
+	imports := "karmem/assemblyscript/karmem"
+	if p := gen.Header.GetTag("assemblyscript.import"); p != nil {
+		imports = p.Value
+	}
+
+	return gen.template.ExecuteTemplate(gen.buf, `header`, struct {
+		Package, Import string
+	}{
+		Package: pkg,
+		Import:  imports,
+	})
 }
 
 func (gen *AssemblyScript) enums() error {

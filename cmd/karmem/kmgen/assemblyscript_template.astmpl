@@ -1,5 +1,5 @@
 {{- define "header"}}
-import * as karmem from 'karmem/assemblyscript/karmem'
+import * as karmem from '{{.Import}}'
 {{- end}}
 {{define "enums"}}
 {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}

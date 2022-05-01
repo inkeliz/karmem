@@ -111,7 +111,7 @@
                 {{- else}}
                     {{- if $field.IsSlice}}
                         {{- if $field.IsString}}
-                            writer.WriteAt(__{{$field.Name}}Offset, *(*[]byte)(unsafe.Pointer(&x.{{$field.Name}})))
+                            writer.WriteAt(__{{$field.Name}}Offset, []byte(x.{{$field.Name}}))
                         {{- else}}
                             __{{$field.Name}}Slice := *(*[3]uint)(unsafe.Pointer(&x.{{$field.Name}}))
                             __{{$field.Name}}Slice[1] *= {{$field.AllocSize}}
@@ -233,6 +233,10 @@
         if x == nil {
         return 0xFFFFFFFF
         }
+        return x.size()
+        }
+
+        func (x *{{$root.Name}}Viewer) size() uint32 {
         {{- if $root.IsTable}}
             return *(*uint32)(unsafe.Pointer(&x._data))
         {{- else}}
@@ -242,7 +246,7 @@
 
         {{- range $field := $root.Fields }}
             func (x *{{$root.Name}}Viewer) {{$field.Name}}({{- if not $field.IsInline}}reader *karmem.Reader{{- end}}) (v {{$field.ViewerType}}) {
-            if x == nil  {{- if $root.IsTable}} || {{$field.Offset}} + {{$field.Size}} > x.Size() {{- end}} {
+            if x == nil  {{- if $root.IsTable}} || {{$field.Offset}} + {{$field.Size}} > x.size() {{- end}} {
             {{- if or (and $field.IsBasic $field.IsNative) $field.IsEnum }}
                 return v
             {{- else}}
@@ -254,9 +258,9 @@
                 {{- if not $field.IsArray}}
                     {{- if or $field.IsNative $field.IsEnum }}
                         return *(*{{$field.ViewerType}})(unsafe.Add(unsafe.Pointer(&x._data), {{$field.Offset}}))
-                    {{else}}
+                    {{- else}}
                         return ({{$field.ViewerType}})(unsafe.Add(unsafe.Pointer(&x._data), {{$field.Offset}}))
-                    {{end}}
+                    {{- end}}
                 {{- else}}
                     slice := [3]uintptr{
                     uintptr(unsafe.Add(unsafe.Pointer(&x._data), {{$field.Offset}})), {{$field.Length}}, {{$field.Length}},
@@ -280,7 +284,7 @@
                     return nil
                     }
                     v = ({{$field.ViewerType}})(unsafe.Add(reader.Pointer, offset))
-                    if !reader.IsValidOffset(offset, v.Size()) {
+                    if !reader.IsValidOffset(offset, v.size()) {
                     return nil
                     }
                     return v

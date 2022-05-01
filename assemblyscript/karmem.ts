@@ -48,6 +48,10 @@ export function NewWriter(capacity: u32): Writer {
     return new Writer(array, false);
 }
 
+export function NewFixedWriter(array: Array<u8>): Writer {
+    return new Writer(array, true);
+}
+
 export class Reader {
     Memory: StaticArray<u8>;
     Pointer: usize;

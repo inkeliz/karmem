@@ -117,14 +117,18 @@ pub const {{$root.Name}} = struct {
         karmem.Writer.WriteAt(writer, offset+{{$field.Offset}}+4, @ptrCast([*]const u8, &__{{$field.Name}}Size), 4);
     {{- end }}
     {{- if or $field.IsNative $field.IsEnum }}
-        {{- if or $field.IsArray (and $field.IsSlice (not $field.IsString)) }}
-        karmem.Writer.WriteAt(writer, __{{$field.Name}}Offset, @ptrCast(*[]const u8, &x.{{$field.Name}}).ptr, __{{$field.Name}}Size);
-        {{- else }}
-        {{- if $field.IsString }}
+        {{- if $field.IsSlice }}
+            {{- if $field.IsString }}
         karmem.Writer.WriteAt(writer, __{{$field.Name}}Offset, x.{{$field.Name}}.ptr, __{{$field.Name}}Size);
+            {{- else }}
+        karmem.Writer.WriteAt(writer, __{{$field.Name}}Offset, @ptrCast(*[]const u8, &x.{{$field.Name}}).ptr, __{{$field.Name}}Size);
+            {{- end }}
         {{- else }}
+            {{- if $field.IsArray }}
+        karmem.Writer.WriteAt(writer, __{{$field.Name}}Offset, @ptrCast([*]const u8, &x.{{$field.Name}}), __{{$field.Name}}Size);
+            {{- else }}
         karmem.Writer.WriteAt(writer, __{{$field.Name}}Offset, @ptrCast([*]const u8, &x.{{$field.Name}}), {{$field.AllocSize}});
-        {{- end }}
+            {{- end }}
         {{- end }}
     {{- else }}
         {{- if $field.IsBasic}}

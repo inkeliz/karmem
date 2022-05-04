@@ -2,7 +2,7 @@ export class Writer {
     private Memory: Array<u8>;
     private isFixed: boolean;
 
-    constructor(array: Array<u8>, fixed: boolean) {
+    @inline constructor(array: Array<u8>, fixed: boolean) {
         this.Memory = array;
         this.isFixed = fixed;
     }
@@ -42,13 +42,13 @@ export class Writer {
     }
 }
 
-export function NewWriter(capacity: u32): Writer {
+@inline export function NewWriter(capacity: u32): Writer {
     let array = new Array<u8>(capacity)
     array.length = 0
     return new Writer(array, false);
 }
 
-export function NewFixedWriter(array: Array<u8>): Writer {
+@inline export function NewFixedWriter(array: Array<u8>): Writer {
     return new Writer(array, true);
 }
 
@@ -67,35 +67,35 @@ export class Reader {
         this.Max = usize(u64(this.Pointer) + this.Size);
     }
 
-    IsValidOffset(ptr: u32, size: u32): boolean {
+    @inline IsValidOffset(ptr: u32, size: u32): boolean {
         return this.Size >= u64(ptr) + u64(size)
     }
 }
 
-export function NewReader(array: StaticArray<u8>): Reader {
+@inline export function NewReader(array: StaticArray<u8>): Reader {
     return new Reader(array)
 }
 
 export class Slice<T> {
     [key: number]: T;
 
-    readonly ptr: usize;
+    readonly ptr: i32;
     readonly length: i32;
     private readonly size: i32;
 
-    constructor(ptr: usize, length: u32, size: u32) {
-        this.ptr = ptr;
+    @inline constructor(ptr: usize, length: u32, size: u32) {
+        this.ptr = <i32>ptr;
         this.length = <i32>length;
         this.size = <i32>size;
     }
 
-    @operator("[]") Get(index: i32): T {
+    @operator("[]") @inline Get(index: i32): T {
         if (index >= this.length) {
             throw new RangeError("Out of range on index:" + index.toString() + "with limit:" + this.length.toString());
         }
         if (isFloat<T>() || isBoolean<T>() || isInteger<T>()) {
             return load<T>(this.ptr + (this.size * index));
         }
-        return changetype<T>(this.ptr + usize(this.size * index));
+        return changetype<T>(this.ptr + (this.size * index));
     }
 }

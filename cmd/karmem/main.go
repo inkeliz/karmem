@@ -32,6 +32,8 @@ func (l Language) Generator() kmgen.Generator {
 		return kmgen.GolangGenerator()
 	case LanguageAssemblyScript:
 		return kmgen.AssemblyScriptGenerator()
+	case LanguageZig:
+		return kmgen.ZigGenerator()
 	default:
 		return nil
 	}

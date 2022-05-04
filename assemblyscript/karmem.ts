@@ -72,11 +72,7 @@ export class Reader {
     }
 }
 
-export function NewReader(array: Array<u8>): Reader {
-    return new Reader(changetype<StaticArray<u8>>(array.dataStart))
-}
-
-export function NewFixedReader(array: StaticArray<u8>): Reader {
+export function NewReader(array: StaticArray<u8>): Reader {
     return new Reader(array)
 }
 

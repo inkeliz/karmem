@@ -38,10 +38,9 @@ export class {{$root.Name}} {
         let __{{$field.Name}}Len = x.{{$field.Name}}.length;
         for (let i = 0; i < __{{$field.Name}}Len; i++) {
             {{- if not $field.IsNative}}
-            {{$field.PlainType}}.
-            Reset(x.{{$field.Name}}[i]);
+            {{$field.PlainType}}.Reset(x.{{$field.Name}}[i]);
             {{- else}}
-            x.{{$field.Name}} = {{$field.Default}};
+            x.{{$field.Name}}[i] = {{$field.Default}};
             {{- end}}
         }
         {{- end }}
@@ -78,7 +77,9 @@ export class {{$root.Name}} {
             }
         }
 
+        {{- if $root.IsTable }}
         writer.WriteAt<u32>(offset, size);
+        {{- end }}
 
         {{- range $field := $root.Fields }}
         {{- if not $field.IsInline}}
@@ -275,7 +276,7 @@ export class {{$root.Name}}Viewer {
     {{$field.Name}}({{- if not $field.IsInline}}reader: karmem.Reader{{- end}}): {{$field.ViewerType}} {{- if (and (not $field.IsEnum) (and (not $field.IsNative) (and (not $field.IsArray) (not $field.IsSlice))))}} | null {{- end}} {
         const x = this;
         if (x == null  {{- if $root.IsTable}} || u32({{$field.Offset}} + {{$field.Size}}) > x.SizeOf() {{- end}}) {
-            {{- if (or (and $field.IsNative $field.IsInline) (or $field.IsString $field.IsEnum)) }}
+            {{- if (or (and $field.IsNative $field.IsBasic) (or $field.IsString $field.IsEnum)) }}
             return {{$field.Default}}
             {{- else}}
             {{- if or $field.IsSlice $field.IsArray }}

@@ -66,7 +66,6 @@ export class {{$root.Name}} {
         this.Write(x, writer, 0);
     }
 
-    @inline
     static Write(x: {{$root.Name}}, writer: karmem.Writer, start: u32): boolean {
         let offset = start;
         const size: u32 = {{$root.Size}};
@@ -260,12 +259,8 @@ export class {{$root.Name}}Viewer {
 
     @inline
     SizeOf(): u32 {
-        const x = this;
-        if (x == null) {
-            return 0xFFFFFFFF;
-        }
         {{- if $root.IsTable}}
-        return load<u32>(changetype<usize>(x));
+        return load<u32>(changetype<usize>(this));
         {{- else}}
         return {{ $root.Size }};
         {{- end }}
@@ -274,8 +269,8 @@ export class {{$root.Name}}Viewer {
     {{- range $field := $root.Fields }}
     @inline
     {{$field.Name}}({{- if not $field.IsInline}}reader: karmem.Reader{{- end}}): {{$field.ViewerType}} {{- if (and (not $field.IsEnum) (and (not $field.IsNative) (and (not $field.IsArray) (not $field.IsSlice))))}} | null {{- end}} {
-        const x = this;
-        if (x == null  {{- if $root.IsTable}} || u32({{$field.Offset}} + {{$field.Size}}) > x.SizeOf() {{- end}}) {
+    {{- if $root.IsTable}}
+        if ((<u32>{{$field.Offset}} + <u32>{{$field.Size}}) > this.SizeOf()) {
             {{- if (or (and $field.IsNative $field.IsBasic) (or $field.IsString $field.IsEnum)) }}
             return {{$field.Default}}
             {{- else}}
@@ -286,20 +281,21 @@ export class {{$root.Name}}Viewer {
             {{- end}}
             {{- end}}
         }
+    {{- end}}
 
         {{- if $field.IsInline}}
         {{- if not $field.IsArray}}
         {{- if or $field.IsNative $field.IsEnum}}
-        return load<{{$field.ViewerType}}>(changetype<usize>(x) + {{$field.Offset}});
+        return load<{{$field.ViewerType}}>(changetype<usize>(this) + {{$field.Offset}});
         {{- else}}
-        return changetype<{{$field.ViewerType}}>(changetype<usize>(x) + {{$field.Offset}});
+        return changetype<{{$field.ViewerType}}>(changetype<usize>(this) + {{$field.Offset}});
         {{- end}}
         {{- else}}
-        return new {{$field.ViewerType}}(changetype<usize>(x) + {{$field.Offset}}, {{$field.Length}}, {{$field.AllocSize}});
+        return new {{$field.ViewerType}}(changetype<usize>(this) + {{$field.Offset}}, {{$field.Length}}, {{$field.AllocSize}});
         {{- end}}
         {{- else}}
-        let offset: u32 = load<u32>(changetype<usize>(x) + {{$field.Offset}});
-        let size: u32 = load<u32>(changetype<usize>(x) + {{$field.Offset}} +4);
+        let offset: u32 = load<u32>(changetype<usize>(this) + {{$field.Offset}});
+        let size: u32 = load<u32>(changetype<usize>(this) + {{$field.Offset}} +4);
         {{- if $field.IsSlice}}
         {{- if $field.IsString}}
         if (!reader.IsValidOffset(offset, size)) {
@@ -327,7 +323,7 @@ export class {{$root.Name}}Viewer {
     {{- end}}
 }
 
-export function New{{$root.Name}}Viewer(reader: karmem.Reader, offset: u32): {{$root.Name}}Viewer | null {
+@inline export function New{{$root.Name}}Viewer(reader: karmem.Reader, offset: u32): {{$root.Name}}Viewer | null {
     if (!reader.IsValidOffset(offset, {{$root.MinSize}})) {
         return null
     }

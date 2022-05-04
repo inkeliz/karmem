@@ -85,7 +85,9 @@
         }
         }
 
-        writer.WriteAt(offset, (*[4]byte)(unsafe.Pointer(&size))[:])
+        {{- if $root.IsTable}}
+            writer.WriteAt(offset, (*[4]byte)(unsafe.Pointer(&size))[:])
+        {{- end}}
 
         {{- range $field := $root.Fields }}
             {{- if not $field.IsInline}}
@@ -109,18 +111,14 @@
                 {{- if $field.IsInline}}
                     writer.WriteAt(__{{$field.Name}}Offset, (*[{{$field.Size}}]byte)(unsafe.Pointer(&x.{{$field.Name}}))[:])
                 {{- else}}
-                    {{- if $field.IsSlice}}
-                        {{- if $field.IsString}}
-                            writer.WriteAt(__{{$field.Name}}Offset, []byte(x.{{$field.Name}}))
-                        {{- else}}
-                            __{{$field.Name}}Slice := *(*[3]uint)(unsafe.Pointer(&x.{{$field.Name}}))
-                            __{{$field.Name}}Slice[1] *= {{$field.AllocSize}}
-                            __{{$field.Name}}Slice[2] *= {{$field.AllocSize}}
-                            writer.WriteAt(__{{$field.Name}}Offset, *(*[]byte)(unsafe.Pointer(&__{{$field.Name}}Slice)))
-                        {{- end}}
+                    if len(x.{{$field.Name}}) > 0 {
+                    {{- if not $field.IsString}}
+                        __{{$field.Name}}Slice := [3]uint{uint(uintptr(unsafe.Pointer(&x.{{$field.Name}}[0]))), __{{$field.Name}}Size, __{{$field.Name}}Size}
                     {{- else}}
-                        writer.WriteAt(__{{$field.Name}}Offset, x.{{$field.Name}}[:])
+                        __{{$field.Name}}Slice := [3]uint{*(*uint)(unsafe.Pointer(&x.{{$field.Name}})), __{{$field.Name}}Size, __{{$field.Name}}Size}
                     {{- end}}
+                    writer.WriteAt(__{{$field.Name}}Offset, *(*[]byte)(unsafe.Pointer(&__{{$field.Name}}Slice)))
+                    }
                 {{- end}}
             {{- else }}
                 {{- if $field.IsBasic}}

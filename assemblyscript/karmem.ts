@@ -70,6 +70,17 @@ export class Reader {
     @inline IsValidOffset(ptr: u32, size: u32): boolean {
         return this.Size >= u64(ptr) + u64(size)
     }
+
+    @inline SetSize(size: u32): boolean {
+        if (size > <u32>this.Memory.length) {
+            return false;
+        }
+        this.Pointer = changetype<usize>(this.Memory);
+        this.Size = u64(size);
+        this.Min = this.Pointer;
+        this.Max = usize(u64(this.Pointer) + this.Size);
+        return true;
+    }
 }
 
 @inline export function NewReader(array: StaticArray<u8>): Reader {

@@ -76,16 +76,27 @@ pub fn NewFixedWriter(slice: []u8) Writer {
 
 pub const Reader = struct {
     memory: []u8,
+    length: u64,
     allocator: Allocator,
 
     pub fn IsValidOffset(x: *Reader, offset: u32, size: u32) bool {
-        return @intCast(u64, x.memory.len) > (@intCast(u64, offset) + @intCast(u64, size));
+        return x.length >= (@intCast(u64, offset) + @intCast(u64, size));
     }
+
+    pub fn SetSize(x: *Reader, size: u32) bool {
+        if (size > x.memory.len) {
+            return false;
+        }
+        x.length = @intCast(u64, size);
+        return true;
+    }
+
 };
 
 pub fn NewReader(allocator: Allocator, memory: []u8) Reader {
     return Reader {
         .memory = memory,
+        .length = @intCast(u64, memory.len),
         .allocator = allocator,
     };
 }

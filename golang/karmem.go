@@ -89,17 +89,27 @@ func NewReader(mem []byte) *Reader {
 	if len(mem) == 0 {
 		return &Reader{}
 	}
-	return &Reader{
-		Memory:  mem,
-		Size:    uint64(len(mem)),
-		Pointer: unsafe.Pointer(&mem[0]),
-		Min:     uintptr(unsafe.Pointer(&mem[0])),
-		Max:     uintptr(unsafe.Pointer(&mem[len(mem)-1])),
-	}
+	r := &Reader{Memory: mem}
+	r.SetSize(uint32(len(mem)))
+	return r
 }
 
 // IsValidOffset check if the current offset and size is valid
 // and accessible within the bounds.
 func (m *Reader) IsValidOffset(ptr, size uint32) bool {
 	return m.Size >= uint64(ptr)+uint64(size)
+}
+
+// SetSize re-defines the bounds of the slice, useful when the
+// backend slice is being re-used for multiples contents.
+func (m *Reader) SetSize(size uint32) bool {
+	if size > uint32(cap(m.Memory)) {
+		return false
+	}
+	m.Memory = m.Memory[:size]
+	m.Size = uint64(size)
+	m.Pointer = unsafe.Pointer(&m.Memory[0])
+	m.Min = uintptr(unsafe.Pointer(&m.Memory[0]))
+	m.Max = uintptr(unsafe.Pointer(&m.Memory[size-1]))
+	return true
 }

@@ -244,7 +244,7 @@
 
         {{- range $field := $root.Fields }}
             func (x *{{$root.Name}}Viewer) {{$field.Name}}({{- if not $field.IsInline}}reader *karmem.Reader{{- end}}) (v {{$field.ViewerType}}) {
-            if x == nil  {{- if $root.IsTable}} || {{$field.Offset}} + {{$field.Size}} > x.size() {{- end}} {
+            if x == nil  {{- if $root.IsTable}} || {{$field.Offset}} + {{$field.Size}} >= x.size() {{- end}} {
             {{- if or (and $field.IsBasic $field.IsNative) $field.IsEnum }}
                 return v
             {{- else}}

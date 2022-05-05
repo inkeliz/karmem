@@ -53,35 +53,35 @@ func NewValueTypeFormatter(s string) ValueTypeFormatter {
 
 func (x *ValueTypeTranslator) TranslateTypes(p *kmparser.File) {
 	for pi, v := range p.Enum {
-		p.Enum[pi].Type = x.translate(v.ValueType, false, "")
+		p.Enum[pi].Type = x.translate(v.ValueType, false)
 	}
 	for pi, v := range p.Struct {
 		for vi, v := range v.Fields {
-			p.Struct[pi].Fields[vi].Type = x.translate(v.ValueType, v.IsEnum(), v.BackgroundType)
-			p.Struct[pi].Fields[vi].BackgroundType = x.translate(kmparser.ValueType(v.BackgroundType), v.IsEnum(), v.BackgroundType)
-			p.Struct[pi].Fields[vi].PlainType = x.translate(kmparser.ValueType(v.ValueType.PlainType()), v.IsEnum(), v.BackgroundType)
+			p.Struct[pi].Fields[vi].Type = x.translate(v.ValueType, v.IsEnum())
+			p.Struct[pi].Fields[vi].BackgroundType = x.translate(kmparser.ValueType(v.BackgroundType), v.IsEnum())
+			p.Struct[pi].Fields[vi].PlainType = x.translate(kmparser.ValueType(v.ValueType.PlainType()), v.IsEnum())
 		}
 	}
 }
 
 func (x *ValueTypeTranslator) TranslateViewerTypes(p *kmparser.File) {
 	for pi, v := range p.Enum {
-		p.Enum[pi].Type = x.translate(v.ValueType, false, "")
+		p.Enum[pi].Type = x.translate(v.ValueType, false)
 	}
 	for pi, v := range p.Struct {
 		for vi, v := range v.Fields {
 			v.IsBool()
 			viewer := v.ValueType
-			if !v.IsNative() {
+			if !v.IsNative() && !v.IsEnum() {
 				viewer = v.ValueType + "Viewer"
 			}
-			p.Struct[pi].Fields[vi].ViewerType = x.translate(viewer, v.IsEnum(), v.BackgroundType)
-			p.Struct[pi].Fields[vi].PlainViewerType = x.translate(kmparser.ValueType(viewer.PlainType()), v.IsEnum(), v.BackgroundType)
+			p.Struct[pi].Fields[vi].ViewerType = x.translate(viewer, v.IsEnum())
+			p.Struct[pi].Fields[vi].PlainViewerType = x.translate(kmparser.ValueType(viewer.PlainType()), v.IsEnum())
 		}
 	}
 }
 
-func (x *ValueTypeTranslator) translate(v kmparser.ValueType, isEnum bool, bg string) string {
+func (x *ValueTypeTranslator) translate(v kmparser.ValueType, isEnum bool) string {
 	t := v.PlainType()
 	switch t {
 	case "byte":
@@ -114,7 +114,7 @@ func (x *ValueTypeTranslator) translate(v kmparser.ValueType, isEnum bool, bg st
 
 	if v.IsBasic() && isEnum && x.Enum.Template != nil {
 		var s strings.Builder
-		if err := x.Enum.Execute(&s, kmparser.ValueType(fmt.Sprintf("%s", bg))); err != nil {
+		if err := x.Enum.Execute(&s, kmparser.ValueType(fmt.Sprintf("%s", t))); err != nil {
 			panic("invalid enum format on translator")
 		}
 		return s.String()

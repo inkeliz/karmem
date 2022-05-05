@@ -9,20 +9,15 @@ const mem = @import("std").mem;
 {{define "enums"}}
     {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
     {{- range $root := .}}
-pub const {{$root.Name}} = enum({{$root.Type}}) {
+
+pub const Enum{{$root.Name}} = enum({{$root.Type}}) {
   {{- range $field := $root.Fields }}
     {{$field.Name}} = {{$field.Value}},
   {{- end }}
 };
 
-pub fn New{{$root.Name}}(v: usize) {{$root.Name}} {
-    return switch (v) {
-        {{- range $field := $root.Fields }}
-        {{$field.Value}} => {{$root.Name}}.{{$field.Name}},
-        {{- end }}
-        else => {{$root.Name}}.{{ (index $root.Fields 0).Name }},
-    };
-}
+const DefaultEnum{{$root.Name}} = Enum{{$root.Name}}.{{(index $root.Fields 0).Name}};
+
     {{- end}}
 {{end}}
 
@@ -52,7 +47,7 @@ pub const {{$root.Name}} = struct {
 {{- if $field.IsBasic }}
     {{- if or $field.IsNative $field.IsEnum }}
         {{- if $field.IsEnum}}
-        x.{{ $field.Name }} = New{{$field.Type}}({{$field.Default}});
+        x.{{ $field.Name }} = Default{{$field.Type}};
         {{- else }}
         x.{{ $field.Name }} = {{$field.Default}};
         {{- end}}
@@ -162,14 +157,10 @@ pub const {{$root.Name}} = struct {
         {{- range $field := $root.Fields }}
 
 {{- if $field.IsBasic}}
-    {{- if $field.IsEnum}}
-        x.{{$field.Name}} = New{{$field.Type}}({{$root.Name}}Viewer.{{$field.Name}}(viewer));
-    {{- else}}
-    {{- if $field.IsNative}}
+    {{- if (or $field.IsEnum $field.IsNative) }}
         x.{{$field.Name}} = {{$root.Name}}Viewer.{{$field.Name}}(viewer);
     {{- else}}
         try {{$field.PlainType}}.Read(&x.{{$field.Name}}, {{$root.Name}}Viewer.{{$field.Name}}(viewer, {{- if not $field.IsInline}}reader{{- end}}), reader);
-    {{- end}}
     {{- end}}
 {{- else}}
     {{- if $field.IsBasic}}
@@ -246,7 +237,7 @@ pub const {{$root.Name}} = struct {
 pub fn New{{$root.Name}}() {{$root.Name}} {
     return {{$root.Name}} {
 {{- range $field := $root.Fields }}
-    .{{$field.Name}} ={{- if or (and $field.IsBasic $field.IsNative) $field.IsEnum }}{{- if $field.IsEnum}} New{{$field.Type}}({{$field.Default}}){{- else }} {{$field.Default}}{{- end}}{{- else}}{{- if $field.IsBasic }} New{{$field.Type}}(){{- else}} {{- if $field.IsArray}} [_]{{$field.PlainType}}{ {{- if $field.IsNative}}{{$field.Default}}{{- else }}New{{$field.PlainType}}(){{- end}}} ** {{$field.Length}}{{- else}} {{- if $field.IsString}} &[_]u8{} {{- else }} &[_]{{$field.PlainType}}{}{{- end}}{{- end}}{{- end }}{{- end}},
+    .{{$field.Name}} ={{- if or (and $field.IsBasic $field.IsNative) $field.IsEnum }}{{- if $field.IsEnum}} Default{{$field.Type}} {{- else }} {{$field.Default}}{{- end}}{{- else}}{{- if $field.IsBasic }} New{{$field.Type}}(){{- else}} {{- if $field.IsArray}} [_]{{$field.PlainType}}{ {{- if $field.IsNative}}{{$field.Default}}{{- else }}New{{$field.PlainType}}(){{- end}}} ** {{$field.Length}}{{- else}} {{- if $field.IsString}} &[_]u8{} {{- else }} &[_]{{$field.PlainType}}{}{{- end}}{{- end}}{{- end }}{{- end}},
     {{- if $field.IsSlice }}
     ._{{ $field.Name }}Capacity = 0,
     {{- end }}
@@ -279,7 +270,11 @@ pub const {{$root.Name}}Viewer = struct {
     pub fn {{$field.Name}}(x: *const {{$root.Name}}Viewer{{- if not $field.IsInline}}, reader: *karmem.Reader{{- end}}) {{$field.ViewerType}} {
         if (x == undefined) {
        {{- if or (and $field.IsBasic $field.IsNative) $field.IsEnum }}
+                {{- if $field.IsEnum}}
+            return Default{{$field.Type}};
+                {{- else}}
             return {{$field.Default}};
+                {{- end}}
         {{- else}}
         {{- if or $field.IsSlice $field.IsArray }}
         {{- if $field.IsNative}}
@@ -299,7 +294,11 @@ pub const {{$root.Name}}Viewer = struct {
         {{- if $root.IsTable}}
         if (({{$field.Offset}} + {{$field.Size}}) >= {{$root.Name}}Viewer.Size(x)) {
         {{- if or (and $field.IsBasic $field.IsNative) $field.IsEnum }}
+                {{- if $field.IsEnum}}
+            return Default{{$field.Type}};
+                {{- else}}
             return {{$field.Default}};
+                {{- end}}
         {{- else}}
         {{- if or $field.IsSlice $field.IsArray }}
         {{- if $field.IsNative}}

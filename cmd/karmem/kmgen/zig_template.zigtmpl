@@ -281,15 +281,39 @@ pub const {{$root.Name}}Viewer = struct {
        {{- if or (and $field.IsBasic $field.IsNative) $field.IsEnum }}
             return {{$field.Default}};
         {{- else}}
-            return undefined;
+        {{- if or $field.IsSlice $field.IsArray }}
+        {{- if $field.IsNative}}
+            return {{- if $field.IsString}} &[_]u8{}{{- else }} &[_]{{$field.PlainType}}{}{{- end}};
+        {{- else }}
+            return &[_]{{$field.PlainType}}Viewer{};
+        {{- end }}
+        {{- else }}
+        {{- if $field.IsNative}}
+            return {{$field.Default}};
+        {{- else }}
+            return &Null{{$field.PlainType}}Viewer;
+        {{- end }}
+        {{- end }}
         {{- end}}
         }
         {{- if $root.IsTable}}
-        if (({{$field.Offset}} + {{$field.Size}}) > {{$root.Name}}Viewer.Size(x)) {
+        if (({{$field.Offset}} + {{$field.Size}}) >= {{$root.Name}}Viewer.Size(x)) {
         {{- if or (and $field.IsBasic $field.IsNative) $field.IsEnum }}
             return {{$field.Default}};
         {{- else}}
-            return undefined;
+        {{- if or $field.IsSlice $field.IsArray }}
+        {{- if $field.IsNative}}
+            return {{- if $field.IsString}} &[_]u8{}{{- else }} &[_]{{$field.PlainType}}{}{{- end}};
+        {{- else }}
+            return &[_]{{$field.PlainType}}Viewer{};
+        {{- end }}
+        {{- else }}
+        {{- if $field.IsNative}}
+            return {{$field.Default}};
+        {{- else }}
+            return &Null{{$field.PlainType}}Viewer;
+        {{- end }}
+        {{- end }}
         {{- end}}
         }
         {{- end}}
@@ -315,17 +339,29 @@ pub const {{$root.Name}}Viewer = struct {
     {{- if $field.IsSlice}}
         var size = @ptrCast(*align(1) const u32, x._data[{{$field.Offset}}+4..{{$field.Offset}}+4+4]).*;
         if (!karmem.Reader.IsValidOffset(reader, offset, size)) {
-            return undefined;
+        {{- if $field.IsNative}}
+            return {{- if $field.IsString}}&[_]u8{}{{- else }}&[_]{{$field.PlainType}}{}{{- end}};
+        {{- else }}
+            return &[_]{{$field.PlainType}}Viewer{};
+        {{- end }}
         }
         var slice = [2]usize{@ptrToInt(reader.memory.ptr)+offset, size / {{$field.AllocSize}}};
         return @ptrCast(*{{$field.ViewerType}}, &slice).*;
     {{- else}}
         if (!karmem.Reader.IsValidOffset(reader, offset, {{$field.MinSize}})) {
-            return undefined;
+        {{- if $field.IsNative}}
+            return {{$field.Default}};
+        {{- else }}
+            return &Null{{$field.PlainType}}Viewer;
+        {{- end }}
         }
         var v = @ptrCast(*align(1) const {{$field.PlainType}}Viewer, reader.memory[offset..offset+{{$field.MinSize}}]);
         if (!karmem.Reader.IsValidOffset(reader, offset, {{$field.PlainType}}Viewer.Size(v))) {
-            return undefined;
+        {{- if $field.IsNative}}
+            return {{$field.Default}};
+        {{- else }}
+            return &Null{{$field.PlainType}}Viewer;
+        {{- end }}
         }
         return v;
 {{- end}}
@@ -335,14 +371,18 @@ pub const {{$root.Name}}Viewer = struct {
 
 };
 
+var Null{{$root.Name}}Viewer = {{$root.Name}}Viewer {
+    ._data = [_]u8{0} ** {{$root.Size}}
+};
+
 pub fn New{{$root.Name}}Viewer(reader: *karmem.Reader, offset: u32) *const {{$root.Name}}Viewer {
     if (!karmem.Reader.IsValidOffset(reader, offset, {{$root.MinSize}})) {
-        return undefined;
+        return &Null{{$root.Name}}Viewer;
     }
     var v = @ptrCast(*align(1) const {{$root.Name}}Viewer, reader.memory[offset..offset+{{$root.MinSize}}]);
     {{- if $root.IsTable}}
     if (!karmem.Reader.IsValidOffset(reader, offset, {{$root.Name}}Viewer.Size(v))) {
-        return undefined;
+        return &Null{{$root.Name}}Viewer;
     }
     {{- end}}
     return v;

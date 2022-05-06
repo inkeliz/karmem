@@ -292,7 +292,7 @@ pub const {{$root.Name}}Viewer = struct {
         {{- end}}
         }
         {{- if $root.IsTable}}
-        if (({{$field.Offset}} + {{$field.Size}}) >= {{$root.Name}}Viewer.Size(x)) {
+        if (({{$field.Offset}} + {{$field.Size}}) > {{$root.Name}}Viewer.Size(x)) {
         {{- if or (and $field.IsBasic $field.IsNative) $field.IsEnum }}
                 {{- if $field.IsEnum}}
             return Default{{$field.Type}};

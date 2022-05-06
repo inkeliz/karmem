@@ -270,7 +270,7 @@ export class {{$root.Name}}Viewer {
     @inline
     {{$field.Name}}({{- if not $field.IsInline}}reader: karmem.Reader{{- end}}): {{$field.ViewerType}} {{- if (and (not $field.IsEnum) (and (not $field.IsNative) (and (not $field.IsArray) (not $field.IsSlice))))}} | null {{- end}} {
     {{- if $root.IsTable}}
-        if ((<u32>{{$field.Offset}} + <u32>{{$field.Size}}) >= this.SizeOf()) {
+        if ((<u32>{{$field.Offset}} + <u32>{{$field.Size}}) > this.SizeOf()) {
             {{- if (or (and $field.IsNative $field.IsBasic) (or $field.IsString $field.IsEnum)) }}
             return {{$field.Default}}
             {{- else}}

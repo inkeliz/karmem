@@ -108,15 +108,6 @@
                 {{- if $field.IsInline}}
                     writer.WriteAt(__{{$field.Name}}Offset, (*[{{$field.Size}}]byte)(unsafe.Pointer(&x.{{$field.Name}}))[:])
                 {{- else}}
-                    if len(x.{{$field.Name}}) > 0 {
-                    {{- if not $field.IsString}}
-                        __{{$field.Name}}Slice := [3]uint{uint(uintptr(unsafe.Pointer(&x.{{$field.Name}}[0]))), __{{$field.Name}}Size, __{{$field.Name}}Size}
-                    {{- else}}
-                        __{{$field.Name}}Slice := *(*[3]uint)(unsafe.Pointer(&x.{{$field.Name}}))
-                        __{{$field.Name}}Slice[2] = __{{$field.Name}}Slice[1]
-                    {{- end}}
-                    writer.WriteAt(__{{$field.Name}}Offset, *(*[]byte)(unsafe.Pointer(&__{{$field.Name}}Slice)))
-                    }
                     {{- if $field.IsSlice}}
                         {{- if $field.IsString}}
                             __{{$field.Name}}Slice := [3]uint{*(*uint)(unsafe.Pointer(&x.{{$field.Name}})), __{{$field.Name}}Size, __{{$field.Name}}Size}
@@ -251,7 +242,7 @@
         {{- range $field := $root.Fields }}
             func (x *{{$root.Name}}Viewer) {{$field.Name}}({{- if not $field.IsInline}}reader *karmem.Reader{{- end}}) (v {{$field.ViewerType}}) {
             {{- if $root.IsTable}}
-                if {{$field.Offset}} + {{$field.Size}} >= x.size() {
+                if {{$field.Offset}} + {{$field.Size}} > x.size() {
                 {{- if or (and $field.IsBasic $field.IsNative) $field.IsEnum }}
                     return v
                 {{- else}}

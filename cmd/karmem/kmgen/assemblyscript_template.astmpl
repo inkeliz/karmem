@@ -284,31 +284,37 @@ export class {{$root.Name}}Viewer {
     {{- end}}
 
         {{- if $field.IsInline}}
-        {{- if not $field.IsArray}}
-        {{- if or $field.IsNative $field.IsEnum}}
+    {{- if not $field.IsArray}}
+            {{- if or $field.IsNative $field.IsEnum}}
         return load<{{$field.ViewerType}}>(changetype<usize>(this) + {{$field.Offset}});
-        {{- else}}
+            {{- else}}
         return changetype<{{$field.ViewerType}}>(changetype<usize>(this) + {{$field.Offset}});
-        {{- end}}
-        {{- else}}
+            {{- end}}
+    {{- else}}
         return new {{$field.ViewerType}}(changetype<usize>(this) + {{$field.Offset}}, {{$field.Length}}, {{$field.AllocSize}});
-        {{- end}}
+    {{- end}}
         {{- else}}
         let offset: u32 = load<u32>(changetype<usize>(this) + {{$field.Offset}});
         let size: u32 = load<u32>(changetype<usize>(this) + {{$field.Offset}} +4);
-        {{- if $field.IsSlice}}
-        {{- if $field.IsString}}
+            {{- if $field.IsSlice}}
+    {{- if $field.IsString}}
         if (!reader.IsValidOffset(offset, size)) {
             return "";
         }
         return String.UTF8.decodeUnsafe(reader.Pointer + offset, size, false);
-        {{- else}}
+    {{- else}}
         if (!reader.IsValidOffset(offset, size)) {
             return new {{$field.ViewerType}}(0, 0, 0);
         }
-        return new {{$field.ViewerType}}(reader.Pointer + offset, size / {{$field.AllocSize}}, {{$field.AllocSize}});
-        {{- end}}
-        {{- else}}
+        let length = size / {{$field.AllocSize}};
+        {{- if $field.IsLimited }}
+        if (length > {{$field.Length}}) {
+            length = {{$field.Length}};
+        }
+        {{- end }}
+        return new {{$field.ViewerType}}(reader.Pointer + offset, length, {{$field.AllocSize}});
+    {{- end}}
+            {{- else}}
         if (!reader.IsValidOffset(offset, {{$field.MinSize}})) {
             return null;
         }
@@ -317,7 +323,7 @@ export class {{$root.Name}}Viewer {
             return null;
         }
         return v
-        {{- end}}
+            {{- end}}
         {{- end}}
     }
     {{- end}}

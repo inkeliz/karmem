@@ -276,6 +276,11 @@
                     return {{$field.ViewerType}}{}
                     }
                     length := uintptr(size / {{$field.AllocSize}})
+                    {{- if $field.IsLimited }}
+                    if length > {{$field.Length}} {
+                    length = {{$field.Length}}
+                    }
+                    {{- end }}
                     slice := [3]uintptr{
                     uintptr(unsafe.Add(reader.Pointer, offset)), length, length,
                     }

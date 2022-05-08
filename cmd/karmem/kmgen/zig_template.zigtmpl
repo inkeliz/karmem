@@ -344,7 +344,13 @@ pub const {{$root.Name}}Viewer = struct {
             return &[_]{{$field.PlainType}}Viewer{};
         {{- end }}
         }
-        var slice = [2]usize{@ptrToInt(reader.memory.ptr)+offset, size / {{$field.AllocSize}}};
+        var length = size / {{$field.AllocSize}};
+        {{- if $field.IsLimited }}
+        if (length > {{$field.Length}}) {
+            length = {{$field.Length}};
+        }
+        {{- end }}
+        var slice = [2]usize{@ptrToInt(reader.memory.ptr)+offset, length};
         return @ptrCast(*{{$field.ViewerType}}, &slice).*;
     {{- else}}
         if (!karmem.Reader.IsValidOffset(reader, offset, {{$field.MinSize}})) {

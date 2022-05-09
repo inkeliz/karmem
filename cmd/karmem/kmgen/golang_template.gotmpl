@@ -102,7 +102,11 @@
                 return 0, err
                 }
                 writer.WriteAt(offset+{{$field.Offset}}, (*[4]byte)(unsafe.Pointer(&__{{$field.Name}}Offset))[:])
+                    {{- if $field.IsSlice}}
                 writer.WriteAt(offset+{{$field.Offset}} + 4, (*[4]byte)(unsafe.Pointer(&__{{$field.Name}}Size))[:])
+                __{{$field.Name}}SizeEach := uint({{$field.AllocSize}})
+                writer.WriteAt(offset+{{$field.Offset}} + 4 + 4, (*[4]byte)(unsafe.Pointer(&__{{$field.Name}}SizeEach))[:])
+                    {{- end }}
             {{- end }}
             {{- if or $field.IsNative $field.IsEnum }}
                 {{- if $field.IsInline}}

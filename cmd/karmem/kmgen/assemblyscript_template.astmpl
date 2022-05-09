@@ -96,7 +96,10 @@ export class {{$root.Name}} {
             return false;
         }
         writer.WriteAt<u32>(offset +{{$field.Offset}}, __{{$field.Name}}Offset);
+        {{- if $field.IsSlice}}
         writer.WriteAt<u32>(offset +{{$field.Offset}} +4, __{{$field.Name}}Size);
+        writer.WriteAt<u32>(offset + {{$field.Offset}} + 4 + 4, {{$field.AllocSize}})
+        {{- end}}
         {{- end }}
         {{- if or $field.IsNative $field.IsEnum }}
         {{- if $field.IsInline}}
@@ -295,14 +298,14 @@ export class {{$root.Name}}Viewer {
     {{- end}}
         {{- else}}
         let offset: u32 = load<u32>(changetype<usize>(this) + {{$field.Offset}});
-        let size: u32 = load<u32>(changetype<usize>(this) + {{$field.Offset}} +4);
             {{- if $field.IsSlice}}
-    {{- if $field.IsString}}
+        let size: u32 = load<u32>(changetype<usize>(this) + {{$field.Offset}} +4);
+                {{- if $field.IsString}}
         if (!reader.IsValidOffset(offset, size)) {
             return "";
         }
         return String.UTF8.decodeUnsafe(reader.Pointer + offset, size, false);
-    {{- else}}
+                {{- else}}
         if (!reader.IsValidOffset(offset, size)) {
             return new {{$field.ViewerType}}(0, 0, 0);
         }
@@ -313,7 +316,7 @@ export class {{$root.Name}}Viewer {
         }
         {{- end }}
         return new {{$field.ViewerType}}(reader.Pointer + offset, length, {{$field.AllocSize}});
-    {{- end}}
+                {{- end}}
             {{- else}}
         if (!reader.IsValidOffset(offset, {{$field.MinSize}})) {
             return null;

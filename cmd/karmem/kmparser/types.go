@@ -67,14 +67,14 @@ func (s *Struct) Save(p *File) bool {
 	if s.IsTable() {
 		s.Size = 4
 	}
-	s.MinSize = s.Size
+	s.MinSize = 8
 	for i, v := range s.Fields {
 		s.Fields[i].offset = s.Size
 		s.Size += v.size
 		s.ContentSize += v.size
 	}
 
-	s.Padding = 16 - (s.Size % 16)
+	s.Padding = 8 - (s.Size % 8)
 	s.Size += s.Padding
 	s.SizeGroup = make([]struct{}, s.Size/8)
 
@@ -165,9 +165,7 @@ func (x *StructField) Save(p *File) error {
 			if tn == e.Name {
 				size, ok = e.Size, true
 				x.inline = e.Class.IsInline()
-				if !x.inline {
-					minSize = 16
-				}
+				minSize = x.minSize
 				break
 			}
 		}
@@ -229,8 +227,8 @@ var valueSize = map[ValueType]uint32{
 	"float32": 4,
 	"float64": 8,
 
-	"*":  8, // Pointer
-	"[]": 8, // Slice
+	"*":  4,     // Pointer
+	"[]": 4 * 3, // Slice
 }
 
 // IsValidNumeric returns true if it's integers.

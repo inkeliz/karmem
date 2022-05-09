@@ -109,7 +109,11 @@ pub const {{$root.Name}} = struct {
         var __{{$field.Name}}Offset = try writer.Alloc(__{{$field.Name}}Size);
 
         karmem.Writer.WriteAt(writer, offset+{{$field.Offset}}, @ptrCast([*]const u8, &__{{$field.Name}}Offset), 4);
+        {{- if $field.IsSlice}}
         karmem.Writer.WriteAt(writer, offset+{{$field.Offset}}+4, @ptrCast([*]const u8, &__{{$field.Name}}Size), 4);
+        var __{{$field.Name}}SizeEach : u32 = {{$field.AllocSize}};
+        karmem.Writer.WriteAt(writer, offset+{{$field.Offset}}+4+4, @ptrCast([*]const u8, &__{{$field.Name}}SizeEach), 4);
+        {{- end }}
     {{- end }}
     {{- if or $field.IsNative $field.IsEnum }}
         {{- if $field.IsSlice }}

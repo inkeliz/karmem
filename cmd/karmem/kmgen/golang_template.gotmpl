@@ -83,7 +83,7 @@
         }
 
         {{- if $root.IsTable}}
-            writer.WriteAt(offset, (*[4]byte)(unsafe.Pointer(&size))[:])
+            writer.Write4At(offset, uint32(size))
         {{- end}}
 
         {{- range $field := $root.Fields }}
@@ -101,16 +101,30 @@
                 if err != nil {
                 return 0, err
                 }
-                writer.WriteAt(offset+{{$field.Offset}}, (*[4]byte)(unsafe.Pointer(&__{{$field.Name}}Offset))[:])
-                    {{- if $field.IsSlice}}
-                writer.WriteAt(offset+{{$field.Offset}} + 4, (*[4]byte)(unsafe.Pointer(&__{{$field.Name}}Size))[:])
-                __{{$field.Name}}SizeEach := uint({{$field.AllocSize}})
-                writer.WriteAt(offset+{{$field.Offset}} + 4 + 4, (*[4]byte)(unsafe.Pointer(&__{{$field.Name}}SizeEach))[:])
-                    {{- end }}
+                writer.Write4At(offset+{{$field.Offset}}, uint32(__{{$field.Name}}Offset))
+                {{- if $field.IsSlice}}
+                    writer.Write4At(offset+{{$field.Offset}} + 4, uint32(__{{$field.Name}}Size))
+                    writer.Write4At(offset+{{$field.Offset}} + 4 + 4, {{$field.AllocSize}})
+                {{- end }}
             {{- end }}
             {{- if or $field.IsNative $field.IsEnum }}
                 {{- if $field.IsInline}}
-                    writer.WriteAt(__{{$field.Name}}Offset, (*[{{$field.Size}}]byte)(unsafe.Pointer(&x.{{$field.Name}}))[:])
+                    {{- if $field.IsArray }}
+                        writer.WriteAt(__{{$field.Name}}Offset, (*[{{$field.Size}}]byte)(unsafe.Pointer(&x.{{$field.Name}}))[:])
+                    {{- else }}
+                        {{- if eq $field.AllocSize 1}}
+                            writer.Write1At(__{{$field.Name}}Offset, *(*uint8)(unsafe.Pointer(&x.{{$field.Name}})))
+                        {{- end}}
+                        {{- if eq $field.AllocSize 2}}
+                            writer.Write2At(__{{$field.Name}}Offset, *(*uint16)(unsafe.Pointer(&x.{{$field.Name}})))
+                        {{- end}}
+                        {{- if eq $field.AllocSize 4}}
+                            writer.Write4At(__{{$field.Name}}Offset, *(*uint32)(unsafe.Pointer(&x.{{$field.Name}})))
+                        {{- end}}
+                        {{- if eq $field.AllocSize 8}}
+                            writer.Write8At(__{{$field.Name}}Offset, *(*uint64)(unsafe.Pointer(&x.{{$field.Name}})))
+                        {{- end}}
+                    {{- end}}
                 {{- else}}
                     {{- if $field.IsSlice}}
                         {{- if $field.IsString}}
@@ -281,9 +295,9 @@
                     }
                     length := uintptr(size / {{$field.AllocSize}})
                     {{- if $field.IsLimited }}
-                    if length > {{$field.Length}} {
-                    length = {{$field.Length}}
-                    }
+                        if length > {{$field.Length}} {
+                        length = {{$field.Length}}
+                        }
                     {{- end }}
                     slice := [3]uintptr{
                     uintptr(unsafe.Add(reader.Pointer, offset)), length, length,

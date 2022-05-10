@@ -57,6 +57,26 @@ func (w *Writer) WriteAt(offset uint, data []byte) {
 	copy(w.Memory[offset:], data)
 }
 
+// Write1At copies the given one-byte data into the Writer memory.
+func (w *Writer) Write1At(offset uint, data uint8) {
+	*(*uint8)(unsafe.Pointer(&w.Memory[offset])) = data
+}
+
+// Write2At copies the given two-byte data into the Writer memory.
+func (w *Writer) Write2At(offset uint, data uint16) {
+	*(*uint16)(unsafe.Pointer(&w.Memory[offset])) = data
+}
+
+// Write4At copies the given four-byte data into the Writer memory.
+func (w *Writer) Write4At(offset uint, data uint32) {
+	*(*uint32)(unsafe.Pointer(&w.Memory[offset])) = data
+}
+
+// Write8At copies the given eight-byte data into the Writer memory.
+func (w *Writer) Write8At(offset uint, data uint64) {
+	*(*uint64)(unsafe.Pointer(&w.Memory[offset])) = data
+}
+
 // Reset will reset the memory length, but keeps the memory capacity.
 func (w *Writer) Reset() {
 	if len(w.Memory) == 0 {
@@ -103,7 +123,7 @@ func (m *Reader) IsValidOffset(ptr, size uint32) bool {
 // SetSize re-defines the bounds of the slice, useful when the
 // backend slice is being re-used for multiples contents.
 func (m *Reader) SetSize(size uint32) bool {
-	if size > uint32(cap(m.Memory)) {
+	if size == 0 || size > uint32(cap(m.Memory)) {
 		return false
 	}
 	m.Memory = m.Memory[:size]

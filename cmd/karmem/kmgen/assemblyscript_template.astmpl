@@ -30,8 +30,7 @@ export class {{$root.Name}} {
         {{- if or $field.IsNative $field.IsEnum }}
         x.{{ $field.Name }} = {{$field.Default}};
         {{- else}}
-        {{$field.PlainType}}.
-        Reset(x.{{ $field.Name }});
+        {{$field.PlainType}}.Reset(x.{{ $field.Name }});
         {{- end}}
         {{- end }}
         {{- if $field.IsArray }}
@@ -51,8 +50,7 @@ export class {{$root.Name}} {
         {{- if not $field.IsNative}}
         let __{{$field.Name}}Len = x.{{$field.Name}}.length;
         for (let i = 0; i < __{{$field.Name}}Len; i++) {
-            {{$field.PlainType}}.
-            Reset(x.{{$field.Name}}[i]);
+            {{$field.PlainType}}.Reset(x.{{$field.Name}}[i]);
         }
         {{- end}}
         x.{{$field.Name}}.length = 0;
@@ -85,7 +83,12 @@ export class {{$root.Name}} {
         {{- if $field.IsBasic}}
         const __{{$field.Name}}Size: u32 = {{$field.AllocSize}};
         {{- else}}
+        {{- if $field.IsString }}
+        const __{{$field.Name}}String : Uint8Array = Uint8Array.wrap(String.UTF8.encode(x.{{$field.Name}}, false))
+        const __{{$field.Name}}Size: u32 = {{$field.AllocSize}} * __{{$field.Name}}String.length;
+        {{- else }}
         const __{{$field.Name}}Size: u32 = {{$field.AllocSize}} * x.{{$field.Name}}.length;
+        {{- end }}
         {{- end}}
         {{- end }}
         {{- if $field.IsInline }}
@@ -115,7 +118,7 @@ export class {{$root.Name}} {
         {{- else}}
         {{- if $field.IsSlice}}
         {{- if $field.IsString}}
-        writer.WriteSliceAt<Uint8Array>(__{{$field.Name}}Offset, Uint8Array.wrap(String.UTF8.encode(x.{{$field.Name}}, false)));
+        writer.WriteSliceAt<Uint8Array>(__{{$field.Name}}Offset, __{{$field.Name}}String);
         {{- else}}
         writer.WriteSliceAt<{{$field.Type}}>(__{{$field.Name}}Offset, x.{{$field.Name}});
         {{- end}}
@@ -241,9 +244,13 @@ export function New{{$root.Name}}(): {{$root.Name}} {
     {{- end}}
     }
     {{- range $field := $root.Fields }}
-    {{- if (and $field.IsArray (not $field.IsNative))}}
+    {{- if (and $field.IsArray)}}
     for (let i = 0; i < x.{{$field.Name}}.length; i++) {
+        {{- if (not $field.IsNative)}}
         x.{{$field.Name}}[i] = New{{$field.PlainType}}();
+        {{- else}}
+        x.{{$field.Name}}[i] = {{$field.Default}};
+        {{- end}}
     }
     {{- end}}
     {{- end}}

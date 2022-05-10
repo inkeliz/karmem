@@ -88,11 +88,19 @@ func (gen *AssemblyScript) start() error {
 		imports = p.Value
 	}
 
+	largest := uint32(0)
+	for _, s := range gen.File.Struct {
+		if s.Size > largest {
+			largest = s.Size
+		}
+	}
 	return gen.template.ExecuteTemplate(gen.buf, `header`, struct {
 		Package, Import string
+		Largest         uint32
 	}{
 		Package: pkg,
 		Import:  imports,
+		Largest: largest,
 	})
 }
 

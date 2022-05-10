@@ -1,5 +1,8 @@
 {{- define "header"}}
 import * as karmem from '{{.Import}}'
+
+let _Null = new StaticArray<u8>({{.Largest}})
+
 {{- end}}
 {{define "enums"}}
 {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
@@ -152,14 +155,7 @@ export class {{$root.Name}} {
     }
 
     @inline
-    static Read(x: {{$root.Name}}, viewer: {{$root.Name}}Viewer | null, reader: karmem.Reader) : void {
-    if (x == null) {
-        return;
-    }
-    if (viewer == null) {
-        this.Reset(x)
-        return;
-    }
+    static Read(x: {{$root.Name}}, viewer: {{$root.Name}}Viewer, reader: karmem.Reader) : void {
     {{- range $field := $root.Fields }}
     {{- if $field.IsBasic}}
     {{- if $field.IsEnum}}
@@ -181,17 +177,28 @@ export class {{$root.Name}} {
     {{- if $field.IsSlice}}
     let __{{$field.Name}}Slice = viewer.{{$field.Name}}(reader);
     let __{{$field.Name}}Len = __{{$field.Name}}Slice.length;
-    if ( __{{$field.Name}}Len > x.{{$field.Name}}.length) {
-        x.{{$field.Name}}.length = __{{$field.Name}}Len;
-        {{- if (not $field.IsNative)}}
-        for (let i = 0; i < x.{{$field.Name}}.length; i++) {
-            x.{{$field.Name}}[i] = New{{$field.PlainType}}();
+    let __{{$field.Name}}DestLen = x.{{$field.Name}}.length;
+    if (__{{$field.Name}}Len > __{{$field.Name}}DestLen) {
+        x.{{$field.Name}}.length = __{{$field.Name}}Len
+        x.{{$field.Name}}.length = __{{$field.Name}}DestLen
+        for (let i = __{{$field.Name}}DestLen; i < __{{$field.Name}}Len; i++) {
+            {{- if $field.IsNative }}
+            x.{{$field.Name}}.push({{$field.Default}});
+            {{- else }}
+            x.{{$field.Name}}.push(New{{$field.PlainType}}());
+            {{- end }}
         }
-        {{- end}}
     }
     {{- else}}
     let __{{$field.Name}}Slice = viewer.{{$field.Name}}();
     let __{{$field.Name}}Len = __{{$field.Name}}Slice.length;
+    for (let i = x.{{$field.Name}}.length; i < __{{$field.Name}}Len; i++) {
+        {{- if $field.IsNative }}
+        x.{{$field.Name}}[i] = {{$field.Default}};
+        {{- else }}
+        x.{{$field.Name}}[i] = New{{$field.PlainType}}();
+        {{- end }}
+    }
     {{- end }}
     {{- if $field.IsNative}}
     for (let i = 0; i < x.{{$field.Name}}.length; i++) {
@@ -264,7 +271,7 @@ export function New{{$root.Name}}(): {{$root.Name}} {
 @unmanaged
 export class {{$root.Name}}Viewer {
     {{- range $key, $padding := $root.SizeGroup }}
-    _{{$key}}: u64;
+    private _{{$key}}: u64;
     {{- end}}
 
     @inline
@@ -278,7 +285,7 @@ export class {{$root.Name}}Viewer {
 
     {{- range $field := $root.Fields }}
     @inline
-    {{$field.Name}}({{- if not $field.IsInline}}reader: karmem.Reader{{- end}}): {{$field.ViewerType}} {{- if (and (not $field.IsEnum) (and (not $field.IsNative) (and (not $field.IsArray) (not $field.IsSlice))))}} | null {{- end}} {
+    {{$field.Name}}({{- if not $field.IsInline}}reader: karmem.Reader{{- end}}): {{$field.ViewerType}} {
     {{- if $root.IsTable}}
         if ((<u32>{{$field.Offset}} + <u32>{{$field.Size}}) > this.SizeOf()) {
             {{- if (or (and $field.IsNative $field.IsBasic) (or $field.IsString $field.IsEnum)) }}
@@ -287,7 +294,7 @@ export class {{$root.Name}}Viewer {
             {{- if or $field.IsSlice $field.IsArray }}
             return new {{$field.ViewerType}}(0,0,0)
             {{- else}}
-            return null;
+            return _Null{{$field.PlainType}}Viewer;
             {{- end}}
             {{- end}}
         }
@@ -326,11 +333,11 @@ export class {{$root.Name}}Viewer {
                 {{- end}}
             {{- else}}
         if (!reader.IsValidOffset(offset, {{$field.MinSize}})) {
-            return null;
+            return _Null{{$field.PlainType}}Viewer
         }
         let v: {{$field.ViewerType}} = changetype<{{$field.ViewerType}}>(reader.Pointer + offset);
         if (!reader.IsValidOffset(offset, v.SizeOf())) {
-            return null;
+            return _Null{{$field.PlainType}}Viewer
         }
         return v
             {{- end}}
@@ -339,18 +346,20 @@ export class {{$root.Name}}Viewer {
     {{- end}}
 }
 
-@inline export function New{{$root.Name}}Viewer(reader: karmem.Reader, offset: u32): {{$root.Name}}Viewer | null {
+@inline export function New{{$root.Name}}Viewer(reader: karmem.Reader, offset: u32): {{$root.Name}}Viewer {
     if (!reader.IsValidOffset(offset, {{$root.MinSize}})) {
-        return null
+        return _Null{{$root.Name}}Viewer
     }
 
     let v: {{$root.Name}}Viewer = changetype<{{$root.Name}}Viewer>(reader.Pointer + offset)
     {{- if $root.IsTable}}
     if (!reader.IsValidOffset(offset, v.SizeOf())) {
-        return null
+        return _Null{{$root.Name}}Viewer
     }
     {{- end}}
     return v
 }
+
+let _Null{{$root.Name}}Viewer = changetype<{{$root.Name}}Viewer>(changetype<usize>(_Null))
 {{- end}}
 {{end}}

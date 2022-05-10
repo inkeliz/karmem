@@ -100,6 +100,10 @@ export class Slice<T> {
         this.size = <i32>size;
     }
 
+    @inline Length(): i32 {
+        return this.length
+    }
+
     @operator("[]") @inline Get(index: i32): T {
         if (index >= this.length) {
             throw new RangeError("Out of range on index:" + index.toString() + "with limit:" + this.length.toString());

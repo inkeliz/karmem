@@ -1,0 +1,11 @@
+goos: darwin
+goarch: arm64
+pkg: benchmark.karmem.org
+BenchmarkDecodeSumVec3
+BenchmarkDecodeSumVec3-8   	   62311	     93725 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8   	   63993	     93730 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8   	   64010	     93734 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8   	   64008	     93747 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8   	   63991	     93755 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	benchmark.karmem.org	34.978s

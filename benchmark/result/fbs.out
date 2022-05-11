@@ -1,0 +1,33 @@
+=== RUN   TestDecodeObjectAPI
+--- PASS: TestDecodeObjectAPI (0.00s)
+=== RUN   TestDecodeObjectAPI
+--- PASS: TestDecodeObjectAPI (0.00s)
+=== RUN   TestDecodeObjectAPI
+--- PASS: TestDecodeObjectAPI (0.00s)
+=== RUN   TestDecodeObjectAPI
+--- PASS: TestDecodeObjectAPI (0.00s)
+=== RUN   TestDecodeObjectAPI
+--- PASS: TestDecodeObjectAPI (0.00s)
+goos: darwin
+goarch: arm64
+pkg: benchmark.karmem.org
+BenchmarkEncodeObjectAPI
+BenchmarkEncodeObjectAPI-8   	    3534	   1453194 ns/op	   12096 B/op	    1001 allocs/op
+BenchmarkEncodeObjectAPI-8   	    4131	   1461247 ns/op	   12096 B/op	    1001 allocs/op
+BenchmarkEncodeObjectAPI-8   	    4129	   1462352 ns/op	   12096 B/op	    1001 allocs/op
+BenchmarkEncodeObjectAPI-8   	    4057	   1456269 ns/op	   12096 B/op	    1001 allocs/op
+BenchmarkEncodeObjectAPI-8   	    4056	   1463174 ns/op	   12096 B/op	    1001 allocs/op
+BenchmarkDecodeObjectAPI
+BenchmarkDecodeObjectAPI-8   	    2794	   2153790 ns/op	 2744197 B/op	  108001 allocs/op
+BenchmarkDecodeObjectAPI-8   	    2802	   2155056 ns/op	 2744196 B/op	  108001 allocs/op
+BenchmarkDecodeObjectAPI-8   	    2785	   2157215 ns/op	 2744196 B/op	  108001 allocs/op
+BenchmarkDecodeObjectAPI-8   	    2761	   2158017 ns/op	 2744197 B/op	  108001 allocs/op
+BenchmarkDecodeObjectAPI-8   	    2786	   2159834 ns/op	 2744196 B/op	  108001 allocs/op
+BenchmarkDecodeSumVec3
+BenchmarkDecodeSumVec3-8     	    6795	    877934 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8     	    6801	    889135 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8     	    6800	    878918 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8     	    6764	    894650 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8     	    6690	    894260 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	benchmark.karmem.org	91.767s

@@ -1,0 +1,34 @@
+namespace game;
+
+enum Color:byte {Red,Green,Blue}
+
+enum Team:byte {Humans, Orcs,Zombies,Robots,Aliens}
+
+struct Vec3 {
+    x: float;
+    y: float;
+    z: float;
+}
+
+table Weapon {
+    damage: int;
+    range:  int;
+}
+
+table Monsters {
+    monsters: [Monster];
+}
+
+table Monster {
+  pos: Vec3;
+  mana: short;
+  health: short;
+  name: string;
+  team: Team;
+  inventory: [ubyte];
+  color: Color;
+  hitbox: [float64];
+  status: [int32];
+  weapons: [Weapon];
+  path: [Vec3];
+}

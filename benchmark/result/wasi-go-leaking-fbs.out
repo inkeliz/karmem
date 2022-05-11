@@ -1,0 +1,23 @@
+goos: darwin
+goarch: arm64
+pkg: benchmark.karmem.org
+BenchmarkDecodeSumVec3
+BenchmarkDecodeSumVec3-8     	    2986	   1978500 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	    3033	   1978517 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	    3022	   1978426 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	    3032	   1977325 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	    3032	   1978439 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeObjectAPI
+BenchmarkDecodeObjectAPI-8   	    1156	   6253260 ns/op	 7531324 B/op	       4 allocs/op
+BenchmarkDecodeObjectAPI-8   	     963	   7237487 ns/op	 9040469 B/op	       4 allocs/op
+BenchmarkDecodeObjectAPI-8   	     960	   7221688 ns/op	 9068717 B/op	       4 allocs/op
+BenchmarkDecodeObjectAPI-8   	     962	   7419722 ns/op	 9049866 B/op	       4 allocs/op
+BenchmarkDecodeObjectAPI-8   	     944	   7399311 ns/op	 9222403 B/op	       4 allocs/op
+BenchmarkEncodeObjectAPI
+BenchmarkEncodeObjectAPI-8   	    1243	   4815568 ns/op	   63083 B/op	       3 allocs/op
+BenchmarkEncodeObjectAPI-8   	    1246	   4820773 ns/op	   62934 B/op	       3 allocs/op
+BenchmarkEncodeObjectAPI-8   	    1246	   4816833 ns/op	   62934 B/op	       3 allocs/op
+BenchmarkEncodeObjectAPI-8   	    1248	   4823340 ns/op	   62836 B/op	       3 allocs/op
+BenchmarkEncodeObjectAPI-8   	    1248	   4820457 ns/op	   62836 B/op	       3 allocs/op
+PASS
+ok  	benchmark.karmem.org	104.258s

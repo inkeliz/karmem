@@ -1,0 +1,42 @@
+karmem game @golang.package(`km`) @assemblyscript.import(`../../assemblyscript/karmem`);
+
+enum Color uint8 {Red;Green;Blue;}
+
+enum Team uint8 {Humans;Orcs;Zombies;Robots;Aliens;}
+
+struct Vec3 inline {
+    X float32;
+    Y float32;
+    Z float32;
+}
+
+struct WeaponData table {
+    Damage int32;
+    Range  int32;
+}
+
+struct Weapon inline {
+    Data WeaponData;
+}
+
+struct MonsterData table {
+    Pos Vec3;
+    Mana int16;
+    Health int16;
+    Name [<512]char;
+    Team Team;
+    Inventory [<128]byte;
+    Color Color;
+    Hitbox [5]float64;
+    Status [<10]int32;
+    Weapons [4]Weapon;
+    Path [<2000]Vec3;
+}
+
+struct Monster inline {
+    Data MonsterData;
+}
+
+struct Monsters table {
+    Monsters [<2000]Monster;
+}

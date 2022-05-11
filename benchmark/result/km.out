@@ -1,0 +1,37 @@
+=== RUN   TestDecodeObjectAPI
+--- PASS: TestDecodeObjectAPI (0.03s)
+=== RUN   TestDecodeObjectAPI
+--- PASS: TestDecodeObjectAPI (0.02s)
+=== RUN   TestDecodeObjectAPI
+--- PASS: TestDecodeObjectAPI (0.01s)
+=== RUN   TestDecodeObjectAPI
+--- PASS: TestDecodeObjectAPI (0.01s)
+=== RUN   TestDecodeObjectAPI
+--- PASS: TestDecodeObjectAPI (0.01s)
+=== RUN   FuzzNRandom
+=== RUN   FuzzNRandom/seed#0
+--- PASS: FuzzNRandom (0.01s)
+    --- PASS: FuzzNRandom/seed#0 (0.00s)
+goos: darwin
+goarch: arm64
+pkg: benchmark.karmem.org
+BenchmarkEncodeObjectAPI
+BenchmarkEncodeObjectAPI-8   	   18891	    317897 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeObjectAPI-8   	   18874	    317884 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeObjectAPI-8   	   18874	    317810 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeObjectAPI-8   	   18874	    317822 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeObjectAPI-8   	   18872	    317872 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeObjectAPI
+BenchmarkDecodeObjectAPI-8   	   40525	    147983 ns/op	   32000 B/op	    1000 allocs/op
+BenchmarkDecodeObjectAPI-8   	   40526	    147951 ns/op	   32000 B/op	    1000 allocs/op
+BenchmarkDecodeObjectAPI-8   	   40578	    148043 ns/op	   32000 B/op	    1000 allocs/op
+BenchmarkDecodeObjectAPI-8   	   40482	    148045 ns/op	   32000 B/op	    1000 allocs/op
+BenchmarkDecodeObjectAPI-8   	   40568	    147971 ns/op	   32000 B/op	    1000 allocs/op
+BenchmarkDecodeSumVec3
+BenchmarkDecodeSumVec3-8     	   60201	     99428 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8     	   60667	     99409 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8     	   60186	     98551 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8     	   60199	     98375 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8     	   61161	     98156 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	benchmark.karmem.org	118.895s

@@ -24,5 +24,8 @@
       "import": "./build/release.js",
       "types": "./build/release.d.ts"
     }
+  },
+  "dependencies": {
+    "as-wasi": "0.4.6"
   }
 }

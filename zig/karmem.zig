@@ -20,11 +20,6 @@ pub const Writer = struct {
             try Writer.Grow(self, capacityTarget);
         }
         self.memory.len = total;
-        var i : usize = offset;
-        while(i < self.memory.len){
-            self.memory[i] = 0;
-            i = i + 1;
-        }
         return @intCast(u32, offset);
     }
 

@@ -1,0 +1,345 @@
+{{- define "header"}}
+import karmem
+{{- end}}
+{{define "enums"}}
+{{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+{{- range $root := .}}
+
+public typealias Enum{{$root.Name}} = {{$root.Type}}
+{{- range $field := $root.Fields }}
+public let Enum{{$root.Name}}{{$field.Name}} : Enum{{$root.Name}} = {{$field.Value}}
+{{- end }}
+{{- end}}
+{{- end}}
+
+{{define "enums_builder"}}
+{{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+
+{{end}}
+{{define "struct"}}
+{{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+{{range $root := .}}
+
+public struct {{$root.Name}} {
+    {{- range $field := $root.Fields }}
+        {{- if $field.IsBasic }}
+        {{- if or $field.IsNative $field.IsEnum }}
+    public var {{ $field.Name }}: {{$field.Type}} = {{$field.Default}}
+        {{- else }}
+    public var {{ $field.Name }}: {{$field.Type}} = {{$field.Type}}()
+        {{- end}}
+        {{- else }}
+        {{- if $field.IsSlice }}
+    public var {{ $field.Name }}: {{$field.Type}} = {{$field.Type}}()
+        {{- else}}
+        {{- if $field.IsNative }}
+    public var {{ $field.Name }}: {{$field.Type}} = Array(repeating: {{$field.PlainType}}({{$field.Default}}), count: {{$field.Length}})
+        {{- else }}
+    public var {{ $field.Name }}: {{$field.Type}} = Array(repeating: {{$field.PlainType}}(), count: {{$field.Length}})
+        {{- end}}
+        {{- end}}
+        {{- end }}
+    {{- end }}
+
+    public init() {}
+
+    public mutating func Reset() -> () {
+        {{- range $field := $root.Fields }}
+        {{- if $field.IsBasic }}
+        {{- if or $field.IsNative $field.IsEnum }}
+        self.{{ $field.Name }} = {{$field.Default}}
+        {{- else}}
+        self.{{ $field.Name }}.Reset()
+        {{- end}}
+        {{- end }}
+        {{- if $field.IsArray }}
+        let __{{$field.Name}}Len = self.{{$field.Name}}.count
+        var __{{$field.Name}}Index = 0
+        while (__{{$field.Name}}Index < __{{$field.Name}}Len) {
+            {{- if not $field.IsNative}}
+                self.{{$field.Name}}[__{{$field.Name}}Index].Reset()
+            {{- else}}
+                self.{{$field.Name}}[__{{$field.Name}}Index] = {{$field.Default}}
+            {{- end}}
+            __{{$field.Name}}Index = __{{$field.Name}}Index + 1
+        }
+        {{- end }}
+        {{- if $field.IsSlice }}
+        {{- if not $field.IsNative}}
+        let __{{$field.Name}}Len = self.{{$field.Name}}.count
+        var __{{$field.Name}}Index = 0
+        while (__{{$field.Name}}Index < __{{$field.Name}}Len) {
+            self.{{$field.Name}}[__{{$field.Name}}Index].Reset()
+            __{{$field.Name}}Index = __{{$field.Name}}Index + 1
+        }
+        {{- end}}
+        self.{{$field.Name}}.removeAll()
+        {{- end }}
+        {{- end }}
+    }
+
+    @inline(__always)
+    public mutating func WriteAsRoot(_ writer: inout karmem.Writer)  -> Bool {
+        return self.Write(&writer, 0)
+    }
+
+    public mutating func Write(_ writer: inout karmem.Writer, _ start: UInt32) -> Bool {
+        var offset = start
+        let size: UInt32 = {{$root.Size}}
+        if (offset == 0) {
+            offset = writer.Alloc(size)
+            if (offset == 0xFFFFFFFF) {
+                return false
+            }
+        }
+
+        {{- if $root.IsTable }}
+        writer.WriteAt(offset, size)
+        {{- end }}
+
+        {{- range $field := $root.Fields }}
+        {{- if not $field.IsInline}}
+        {{- if $field.IsBasic}}
+            {{- if $field.IsNative }}
+        let __{{$field.Name}}Size: UInt32 = {{$field.AllocSize}}
+            {{- else }}
+        let __{{$field.Name}}Size: UInt32 = {{$field.AllocSize}}
+            {{- end }}
+        {{- else}}
+            {{- if $field.IsNative }}
+        let __{{$field.Name}}Size: UInt32 = {{$field.AllocSize}} * UInt32(self.{{$field.Name}}.count)
+            {{- else }}
+        let __{{$field.Name}}Size: UInt32 = {{$field.AllocSize}} * UInt32(self.{{$field.Name}}.count)
+            {{- end }}
+        {{- end}}
+        {{- end }}
+        {{- if $field.IsInline }}
+        let __{{$field.Name}}Offset: UInt32 = offset + {{$field.Offset}}
+        {{- else }}
+        let __{{$field.Name}}Offset = writer.Alloc(__{{$field.Name}}Size)
+        if (__{{$field.Name}}Offset == 0) {
+            return false
+        }
+        writer.WriteAt(offset + {{$field.Offset}}, __{{$field.Name}}Offset)
+            {{- if $field.IsSlice }}
+        writer.WriteAt(offset + {{$field.Offset}} + 4, __{{$field.Name}}Size)
+        writer.WriteAt(offset + {{$field.Offset}} + 4 + 4, {{$field.AllocSize}})
+            {{- end}}
+        {{- end }}
+        {{- if or $field.IsNative $field.IsEnum }}
+        {{- if $field.IsInline}}
+        {{- if $field.IsArray}}
+        writer.WriteArrayAt(__{{$field.Name}}Offset, self.{{$field.Name}}, {{$field.AllocSize}})
+        {{- else}}
+        {{- if $field.IsEnum}}
+        writer.WriteAt(__{{$field.Name}}Offset, self.{{$field.Name}})
+        {{- else}}
+        writer.WriteAt(__{{$field.Name}}Offset, self.{{$field.Name}})
+        {{- end}}
+        {{- end}}
+        {{- else}}
+        {{- if $field.IsSlice}}
+        writer.WriteArrayAt(__{{$field.Name}}Offset, self.{{$field.Name}}, {{$field.AllocSize}})
+        {{- else}}
+        writer.WriteAt(__{{$field.Name}}Offset, self.{{$field.Name}})
+        {{- end}}
+        {{- end}}
+        {{- else }}
+        {{- if $field.IsBasic}}
+        if (!self.{{$field.Name}}.Write(&writer, __{{$field.Name}}Offset)) {
+            return false
+        }
+        {{- else}}
+        let __{{$field.Name}}Len = self.{{$field.Name}}.count
+        var __{{$field.Name}}Index = 0
+        while (__{{$field.Name}}Index < __{{$field.Name}}Len) {
+            if (!self.{{$field.Name}}[__{{$field.Name}}Index].Write(&writer, __{{$field.Name}}Offset + (UInt32(__{{$field.Name}}Index) * {{$field.AllocSize}}))) {
+                return false
+            }
+            __{{$field.Name}}Index = __{{$field.Name}}Index + 1
+        }
+        {{- end}}
+        {{- end}}
+        {{- end}}
+
+        return true
+    }
+
+    @inline(__always)
+    public mutating func ReadAsRoot(_ reader: karmem.Reader) -> () {
+        self.Read(New{{$root.Name}}Viewer(reader, 0), reader)
+    }
+
+    @inline(__always)
+    public mutating func Read(_ viewer: {{$root.Name}}Viewer, _ reader: karmem.Reader) -> () {
+    {{- range $field := $root.Fields }}
+    {{- if $field.IsBasic}}
+    {{- if $field.IsEnum}}
+    self.{{$field.Name}} = viewer.{{$field.Name}}()
+    {{- else}}
+    {{- if $field.IsNative}}
+    self.{{$field.Name}} = viewer.{{$field.Name}}()
+    {{- else}}
+    self.{{$field.Name}}.Read(viewer.{{$field.Name}}({{- if not $field.IsInline}}reader{{- end}}), reader)
+    {{- end}}
+    {{- end}}
+    {{- else}}
+    {{- if $field.IsBasic}}
+    self.{{$field.Name}}.Read(viewer.{{$field.Name}}(reader), reader)
+    {{- end}}
+    {{- if $field.IsSlice}}
+    var __{{$field.Name}}Slice = viewer.{{$field.Name}}(reader)
+    let __{{$field.Name}}Len = __{{$field.Name}}Slice.count
+    self.{{$field.Name}}.removeAll()
+    if (__{{$field.Name}}Len > self.{{$field.Name}}.count) {
+        self.{{$field.Name}}.reserveCapacity(__{{$field.Name}}Len)
+        var __{{$field.Name}}IndexClear = self.{{$field.Name}}.count
+        while(__{{$field.Name}}IndexClear < __{{$field.Name}}Len) {
+            {{- if $field.IsNative}}
+                {{- if $field.IsString}}
+            self.{{$field.Name}}.append(0)
+                {{- else }}
+            self.{{$field.Name}}.append({{$field.Default}})
+                {{- end}}
+            {{- else}}
+            self.{{$field.Name}}.append(New{{$field.PlainType}}())
+            {{- end}}
+            __{{$field.Name}}IndexClear = __{{$field.Name}}IndexClear + 1
+        }
+    }
+    {{- else}}
+    var __{{$field.Name}}Slice = viewer.{{$field.Name}}()
+    let __{{$field.Name}}Len = __{{$field.Name}}Slice.count
+    {{- end }}
+    {{- if $field.IsNative}}
+    var __{{$field.Name}}Index = 0
+    while (__{{$field.Name}}Index < self.{{$field.Name}}.count) {
+        if (__{{$field.Name}}Index >= __{{$field.Name}}Len) {
+            self.{{$field.Name}}[__{{$field.Name}}Index] = {{- if $field.IsString}} UInt8(0){{- else}} {{$field.Default}}{{- end}}
+        } else {
+            self.{{$field.Name}}[__{{$field.Name}}Index] = __{{$field.Name}}Slice[__{{$field.Name}}Index]
+        }
+        __{{$field.Name}}Index = __{{$field.Name}}Index + 1
+    }
+    {{- else}}
+    var __{{$field.Name}}Index = 0
+    while (__{{$field.Name}}Index < self.{{$field.Name}}.count) {
+        if (__{{$field.Name}}Index >= __{{$field.Name}}Len) {
+            self.{{$field.Name}}[__{{$field.Name}}Index].Reset()
+        } else {
+            self.{{$field.Name}}[__{{$field.Name}}Index].Read(__{{$field.Name}}Slice[__{{$field.Name}}Index], reader)
+        }
+        __{{$field.Name}}Index = __{{$field.Name}}Index + 1
+    }
+    {{- end }}
+    {{- end}}
+    {{- end }}
+    }
+
+}
+
+public func New{{$root.Name}}() -> {{$root.Name}} {
+    return {{$root.Name}}()
+}
+{{- end}}
+{{end}}
+{{define "struct_builder"}}
+{{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+{{- range $root := .}}
+public struct {{$root.Name}}Viewer {
+    {{- range $key, $padding := $root.SizeGroup }}
+    var _{{$key}}: UInt64 = 0
+    {{- end}}
+
+    public init() {}
+
+    @inline(__always)
+    public func SizeOf() -> UInt32 {
+        {{- if $root.IsTable}}
+        var size = UInt32(0)
+        return withUnsafePointer(to: self) {
+            return karmem.Load(UnsafeRawPointer($0), 0, &size)
+        }
+        {{- else }}
+        return {{ $root.Size }}
+        {{- end }}
+    }
+
+    {{- range $field := $root.Fields }}
+    @inline(__always)
+    public func {{$field.Name}}({{- if not $field.IsInline}}_ reader: karmem.Reader{{- end}}) -> {{$field.ViewerType}} {
+    {{- if $root.IsTable}}
+        if ((UInt32({{$field.Offset}}) + UInt32({{$field.Size}})) > self.SizeOf()) {
+            {{- if (or (and $field.IsNative $field.IsBasic) $field.IsEnum) }}
+            return {{$field.Default}}
+            {{- else}}
+            {{- if or $field.IsSlice $field.IsArray }}
+            return withUnsafePointer(to: self) {
+                return karmem.NewSlice(UnsafeRawPointer($0), 0, 0, {{- if $field.IsNative}} {{- if $field.IsString}} UInt8(0) {{- else}} {{$field.Default}} {{- end}} {{- else}} {{$field.PlainType}}Viewer() {{- end}})
+            }
+            {{- else}}
+            return {{$field.PlainViewerType}}()
+            {{- end}}
+            {{- end}}
+        }
+    {{- end}}
+
+        {{- if $field.IsInline}}
+        {{- if not $field.IsArray}}
+        {{- if or $field.IsNative $field.IsEnum}}
+        var v : {{ $field.ViewerType }} = {{ $field.ViewerType }}({{$field.Default}})
+        v = withUnsafePointer(to: self) {
+            return karmem.Load(UnsafeRawPointer($0), {{$field.Offset}}, &v)
+        }
+        return {{- if $field.IsEnum}} {{$field.PlainType}}(v) {{- else}} v {{- end}}
+        {{- else}}
+        var v : {{ $field.ViewerType }} = {{ $field.ViewerType }}()
+        return withUnsafePointer(to: self) {
+            return karmem.Load(UnsafeRawPointer($0), {{$field.Offset}}, &v)
+        }
+        {{- end}}
+        {{- else}}
+        return withUnsafePointer(to: self) {
+            return karmem.NewSlice(UnsafeRawPointer(UnsafeRawPointer($0) + Int({{$field.Offset}})), {{$field.Length}}, {{$field.AllocSize}}, {{- if $field.IsNative}} {{- if $field.IsString}} UInt8(0) {{- else}} {{$field.Default}} {{- end}} {{- else}} {{$field.PlainType}}Viewer() {{- end}})
+        }
+        {{- end}}
+        {{- else}}
+        var offset = UInt32(0)
+        offset = withUnsafePointer(to: self) {
+            return karmem.Load(UnsafeRawPointer($0), {{$field.Offset}}, &offset)
+        }
+        {{- if $field.IsSlice}}
+        var size = UInt32(0)
+        size = withUnsafePointer(to: self) {
+            return karmem.Load(UnsafeRawPointer($0), {{$field.Offset}} + 4, &size)
+        }
+        if (!reader.IsValidOffset(offset, size)) {
+            return withUnsafePointer(to: self) {
+               return karmem.NewSlice(UnsafeRawPointer($0), 0, 0, {{- if $field.IsNative}} {{- if $field.IsString}} UInt8(0) {{- else}} {{$field.Default}} {{- end}} {{- else}} {{$field.PlainType}}Viewer() {{- end}})
+            }
+        }
+        return karmem.NewSlice(UnsafeRawPointer(reader.pointer + Int(offset)), size / {{ $field.AllocSize }}, {{ $field.AllocSize }}, {{- if $field.IsNative}} {{- if $field.IsString}} UInt8(0) {{- else}} {{$field.Default}} {{- end}} {{- else}} {{$field.PlainType}}Viewer() {{- end}})
+        {{- else}}
+        return New{{$field.PlainType}}Viewer(reader, offset)
+        {{- end}}
+        {{- end}}
+    }
+    {{- end}}
+}
+
+@inline(__always) public func New{{$root.Name}}Viewer(_ reader: karmem.Reader, _ offset: UInt32) -> {{$root.Name}}Viewer {
+    if (!reader.IsValidOffset(offset, {{$root.MinSize}})) {
+        return {{$root.Name}}Viewer()
+    }
+
+    var v = {{$root.Name}}Viewer()
+    v = karmem.Load(reader.pointer, Int(offset), &v)
+    {{- if $root.IsTable}}
+    if (!reader.IsValidOffset(offset, v.SizeOf())) {
+        return {{$root.Name}}Viewer()
+    }
+    {{- end}}
+    return v
+}
+{{- end}}
+{{end}}

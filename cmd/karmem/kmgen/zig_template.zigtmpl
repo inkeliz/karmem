@@ -92,7 +92,8 @@ pub const {{$root.Name}} = struct {
 
 
         {{- if $root.IsTable }}
-        karmem.Writer.WriteAt(writer, offset, @ptrCast([*]const u8, &size), 4);
+        var sizeData : u32 = {{$root.ContentSize}};
+        karmem.Writer.WriteAt(writer, offset, @ptrCast([*]const u8, &sizeData), 4);
         {{- end }}
 
 {{- range $field := $root.Fields }}

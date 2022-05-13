@@ -94,7 +94,7 @@ public struct {{$root.Name}} {
         }
 
         {{- if $root.IsTable }}
-        writer.WriteAt(offset, size)
+        writer.WriteAt(offset, {{$root.ContentSize}})
         {{- end }}
 
         {{- range $field := $root.Fields }}

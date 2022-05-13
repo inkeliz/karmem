@@ -83,7 +83,7 @@
         }
 
         {{- if $root.IsTable}}
-            writer.Write4At(offset, uint32(size))
+            writer.Write4At(offset, uint32({{$root.ContentSize}}))
         {{- end}}
 
         {{- range $field := $root.Fields }}

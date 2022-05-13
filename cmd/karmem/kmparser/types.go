@@ -68,6 +68,7 @@ func (s *Struct) Save(p *File) bool {
 		s.Size = 4
 	}
 	s.MinSize = 8
+	s.ContentSize = s.Size
 	for i, v := range s.Fields {
 		s.Fields[i].offset = s.Size
 		s.Size += v.size

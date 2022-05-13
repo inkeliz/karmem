@@ -78,7 +78,7 @@ export class {{$root.Name}} {
         }
 
         {{- if $root.IsTable }}
-        writer.WriteAt<u32>(offset, size);
+        writer.WriteAt<u32>(offset, {{$root.ContentSize}});
         {{- end }}
 
         {{- range $field := $root.Fields }}

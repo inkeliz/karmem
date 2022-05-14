@@ -9,8 +9,8 @@ public typealias Enum{{$root.Name}} = {{$root.Type}}
 {{- range $field := $root.Fields }}
 public let Enum{{$root.Name}}{{$field.Name}} : Enum{{$root.Name}} = {{$field.Value}}
 {{- end }}
-{{- end}}
-{{- end}}
+{{end}}
+{{end}}
 
 {{define "enums_builder"}}
 {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
@@ -18,6 +18,13 @@ public let Enum{{$root.Name}}{{$field.Name}} : Enum{{$root.Name}} = {{$field.Val
 {{end}}
 {{define "struct"}}
 {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+
+public typealias EnumPacketIdentifier = UInt64
+
+{{- range $root := .}}
+public let EnumPacketIdentifier{{$root.Name}} : EnumPacketIdentifier = {{$root.ID}}
+{{- end }}
+
 {{range $root := .}}
 
 public struct {{$root.Name}} {
@@ -42,6 +49,10 @@ public struct {{$root.Name}} {
     {{- end }}
 
     public init() {}
+
+    public func PacketIdentifier() -> EnumPacketIdentifier {
+        return EnumPacketIdentifier{{$root.Name}}
+    }
 
     public mutating func Reset() -> () {
         {{- range $field := $root.Fields }}

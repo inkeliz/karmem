@@ -31,12 +31,27 @@
 {{end}}
 
 {{define "struct"}}
+
+    type (
+        PacketIdentifier uint64
+    )
+
+    const (
+    {{- range $root := .}}
+         PacketIdentifier{{$root.Name}} = {{$root.ID}}
+    {{- end }}
+    )
+
     {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
     {{range $root := .}}
         type {{$root.Name}} struct {
         {{- range $field := $root.Fields }}
             {{ $field.Name }} {{$field.Type}}
         {{- end }}
+        }
+
+        func (x *{{$root.Name}}) PacketIdentifier() PacketIdentifier {
+            return PacketIdentifier{{$root.Name}}
         }
 
         func (x *{{$root.Name}}) Reset() {

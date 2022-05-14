@@ -28,6 +28,13 @@ const DefaultEnum{{$root.Name}} = Enum{{$root.Name}}.{{(index $root.Fields 0).Na
 
 {{define "struct"}}
     {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+
+pub const EnumPacketIdentifier = enum(u64) {
+  {{- range $root := .}}
+    {{$root.Name}} = {{$root.ID}},
+  {{- end }}
+};
+
     {{range $root := .}}
 pub const {{$root.Name}} = struct {
 {{- range $field := $root.Fields }}
@@ -37,6 +44,10 @@ pub const {{$root.Name}} = struct {
     _{{ $field.Name }}Capacity: usize,
     {{- end }}
 {{- end }}
+
+    pub fn PacketIdentifier() EnumPacketIdentifier {
+        return EnumPacketIdentifier.{{$root.Name}};
+    }  
 
     pub fn Reset(x: *{{$root.Name}}) void {
         if (x == undefined) {
@@ -57,7 +68,7 @@ pub const {{$root.Name}} = struct {
 {{- end }}
 {{- if $field.IsArray }}
     {{- if not $field.IsNative}}
-        var __{{$field.Name}}Index : usize = 0;
+        var __{{$field.Name}}Index: usize = 0;
         while (__{{$field.Name}}Index < x.{{$field.Name}}.len) {
             {{$field.PlainType}}.Reset(&x.{{$field.Name}}[__{{$field.Name}}Index]);
             __{{$field.Name}}Index = __{{$field.Name}}Index + 1;
@@ -68,7 +79,7 @@ pub const {{$root.Name}} = struct {
 {{- end }}
 {{- if $field.IsSlice }}
     {{- if not $field.IsNative}}
-        var __{{$field.Name}}Index : usize = 0;
+        var __{{$field.Name}}Index: usize = 0;
         while (__{{$field.Name}}Index < x.{{$field.Name}}.len) {
             {{$field.PlainType}}.Reset(&x.{{$field.Name}}[__{{$field.Name}}Index]);
             __{{$field.Name}}Index = __{{$field.Name}}Index + 1;
@@ -84,24 +95,24 @@ pub const {{$root.Name}} = struct {
     }
 
     pub fn Write(x: *{{$root.Name}}, writer: *karmem.Writer, start: usize) Allocator.Error!u32 {
-        var offset : u32 = @intCast(u32, start);
-        var size : u32 = {{$root.Size}};
+        var offset: u32 = @intCast(u32, start);
+        var size: u32 = {{$root.Size}};
         if (offset == 0) {
             offset = try writer.Alloc(size);
         }
 
 
         {{- if $root.IsTable }}
-        var sizeData : u32 = {{$root.ContentSize}};
+        var sizeData: u32 = {{$root.ContentSize}};
         karmem.Writer.WriteAt(writer, offset, @ptrCast([*]const u8, &sizeData), 4);
         {{- end }}
 
 {{- range $field := $root.Fields }}
     {{- if or (not $field.IsInline) $field.IsArray }}
     {{- if $field.IsBasic}}
-        var __{{$field.Name}}Size : usize = {{$field.AllocSize}};
+        var __{{$field.Name}}Size: usize = {{$field.AllocSize}};
     {{- else}}
-        var __{{$field.Name}}Size : usize = {{$field.AllocSize}} * x.{{$field.Name}}.len;
+        var __{{$field.Name}}Size: usize = {{$field.AllocSize}} * x.{{$field.Name}}.len;
     {{- end}}
     {{- end}}
     {{- if $field.IsInline }}
@@ -112,7 +123,7 @@ pub const {{$root.Name}} = struct {
         karmem.Writer.WriteAt(writer, offset+{{$field.Offset}}, @ptrCast([*]const u8, &__{{$field.Name}}Offset), 4);
         {{- if $field.IsSlice}}
         karmem.Writer.WriteAt(writer, offset+{{$field.Offset}}+4, @ptrCast([*]const u8, &__{{$field.Name}}Size), 4);
-        var __{{$field.Name}}SizeEach : u32 = {{$field.AllocSize}};
+        var __{{$field.Name}}SizeEach: u32 = {{$field.AllocSize}};
         karmem.Writer.WriteAt(writer, offset+{{$field.Offset}}+4+4, @ptrCast([*]const u8, &__{{$field.Name}}SizeEach), 4);
         {{- end }}
     {{- end }}
@@ -134,8 +145,8 @@ pub const {{$root.Name}} = struct {
         {{- if $field.IsBasic}}
         _ = try {{$field.PlainType}}.Write(&x.{{$field.Name}}, writer, __{{$field.Name}}Offset);
         {{- else}}
-        var __{{$field.Name}}Index : usize = 0;
-        var __{{$field.Name}}End : usize = __{{$field.Name}}Offset + __{{$field.Name}}Size;
+        var __{{$field.Name}}Index: usize = 0;
+        var __{{$field.Name}}End: usize = __{{$field.Name}}Offset + __{{$field.Name}}Size;
         while (__{{$field.Name}}Offset < __{{$field.Name}}End) {
             _ = try {{$field.PlainType}}.Write(&x.{{$field.Name}}[__{{$field.Name}}Index], writer, __{{$field.Name}}Offset);
             __{{$field.Name}}Offset = __{{$field.Name}}Offset + {{$field.AllocSize}};
@@ -172,12 +183,12 @@ pub const {{$root.Name}} = struct {
         try {{$field.PlainType}}.Read(&x.{{$field.Name}}, {{$root.Name}}Viewer.{{$field.Name}}(reader), reader);
     {{- end}}
     {{- if $field.IsSlice}}
-        var __{{$field.Name}}Slice : {{$field.ViewerType}} = {{$root.Name}}Viewer.{{$field.Name}}(viewer, reader);
-        var __{{$field.Name}}Len : usize = __{{$field.Name}}Slice.len;
+        var __{{$field.Name}}Slice: {{$field.ViewerType}} = {{$root.Name}}Viewer.{{$field.Name}}(viewer, reader);
+        var __{{$field.Name}}Len: usize = __{{$field.Name}}Slice.len;
         if (__{{$field.Name}}Len > x._{{$field.Name}}Capacity) {
-            var __{{$field.Name}}CapacityTarget : usize = __{{$field.Name}}Len;
+            var __{{$field.Name}}CapacityTarget: usize = __{{$field.Name}}Len;
             var __{{$field.Name}}Alloc = try reader.allocator.reallocAtLeast(x.{{$field.Name}}.ptr[0..x._{{$field.Name}}Capacity], __{{$field.Name}}CapacityTarget);
-            var __{{$field.Name}}NewIndex : usize = x._{{$field.Name}}Capacity;
+            var __{{$field.Name}}NewIndex: usize = x._{{$field.Name}}Capacity;
             while (__{{$field.Name}}NewIndex < __{{$field.Name}}Alloc.len) {
                 {{- if $field.IsNative}}
                     {{- if $field.IsString }}
@@ -198,14 +209,14 @@ pub const {{$root.Name}} = struct {
             x.{{$field.Name}}.len = __{{$field.Name}}Len;
         }
     {{- else}}
-        var __{{$field.Name}}Slice : {{$field.ViewerType}} = {{$root.Name}}Viewer.{{$field.Name}}(viewer);
-        var __{{$field.Name}}Len : usize = __{{$field.Name}}Slice.len;
+        var __{{$field.Name}}Slice: {{$field.ViewerType}} = {{$root.Name}}Viewer.{{$field.Name}}(viewer);
+        var __{{$field.Name}}Len: usize = __{{$field.Name}}Slice.len;
         if (__{{$field.Name}}Len > x.{{$field.Name}}.len) {
             __{{$field.Name}}Len = x.{{$field.Name}}.len;
         }
     {{- end }}
     {{- if $field.IsNative}}
-        var __{{$field.Name}}Index : usize = 0;
+        var __{{$field.Name}}Index: usize = 0;
         while (__{{$field.Name}}Index < __{{$field.Name}}Len) {
             x.{{$field.Name}}[__{{$field.Name}}Index] = __{{$field.Name}}Slice[__{{$field.Name}}Index];
             __{{$field.Name}}Index = __{{$field.Name}}Index + 1;
@@ -219,7 +230,7 @@ pub const {{$root.Name}} = struct {
             __{{$field.Name}}Index = __{{$field.Name}}Index + 1;
         }
     {{- else}}
-        var __{{$field.Name}}Index : usize = 0;
+        var __{{$field.Name}}Index: usize = 0;
         while (__{{$field.Name}}Index < __{{$field.Name}}Len) {
             try {{$field.PlainType}}.Read(&x.{{$field.Name}}[__{{$field.Name}}Index], &__{{$field.Name}}Slice[__{{$field.Name}}Index], reader);
              __{{$field.Name}}Index = __{{$field.Name}}Index + 1;

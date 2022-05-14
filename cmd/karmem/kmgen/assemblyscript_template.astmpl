@@ -20,12 +20,22 @@ export const {{$root.Name}}{{$field.Name}} : {{$root.Name}} = {{$field.Value}}
 {{end}}
 {{define "struct"}}
 {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+
+export type PacketIdentifier = u64
+{{- range $root := .}}
+export const PacketIdentifier{{$root.Name}} = {{$root.ID}}
+{{- end }}
+
 {{range $root := .}}
 
 export class {{$root.Name}} {
     {{- range $field := $root.Fields }}
     {{ $field.Name }}: {{$field.Type}};
     {{- end }}
+
+    static PacketIdentifier() : PacketIdentifier {
+        return PacketIdentifier{{$root.Name}}
+    }
 
     static Reset(x: {{$root.Name}}): void {
         {{- range $field := $root.Fields }}

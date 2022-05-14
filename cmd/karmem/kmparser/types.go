@@ -2,8 +2,10 @@ package kmparser
 
 import (
 	"fmt"
+	"golang.org/x/crypto/blake2b"
 	"strconv"
 	"strings"
+	"unsafe"
 )
 
 // File contains all contents from the karmem file.
@@ -48,6 +50,7 @@ type EnumField struct {
 
 // Struct contains the decoded information of struct-type.
 type Struct struct {
+	ID        uint64
 	Name      string
 	Size      uint32
 	SizeGroup []struct{} // Each item is one u64 that matches the Size.
@@ -82,6 +85,17 @@ func (s *Struct) Save(p *File) bool {
 	if s.Class.IsInline() {
 		s.MinSize = s.Size
 	}
+
+	h, _ := blake2b.New(8, nil)
+	if k := p.Header.GetTag("entropy"); k != nil {
+		if _, err := h.Write([]byte(k.Value)); err != nil {
+			return false
+		}
+	}
+	if _, err := h.Write([]byte(s.Name)); err != nil {
+		return false
+	}
+	s.ID = *(*uint64)(unsafe.Pointer(&(h.Sum(nil)[0])))
 
 	return true
 }

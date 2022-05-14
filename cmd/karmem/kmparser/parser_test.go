@@ -1,9 +1,11 @@
 package kmparser
 
 import (
+	"golang.org/x/crypto/blake2b"
 	"os"
 	"strings"
 	"testing"
+	"unsafe"
 )
 
 func TestNewReader(t *testing.T) {
@@ -45,6 +47,34 @@ func TestInlineOfTables2(t *testing.T) {
 	r := NewReader(path, f)
 	if _, err := r.Parser(); err == nil {
 		t.Error("inline of table is not valid")
+	}
+}
+
+func TestInlineOfEnums(t *testing.T) {
+	path := "testdata/enuminline.km"
+	f, err := os.Open(path)
+	if err != nil {
+		t.Error(f)
+		return
+	}
+
+	r := NewReader(path, f)
+	if _, err := r.Parser(); err == nil {
+		t.Error("inline of enum is not valid")
+	}
+}
+
+func TestInlineOfEnums2(t *testing.T) {
+	path := "testdata/enuminline2.km"
+	f, err := os.Open(path)
+	if err != nil {
+		t.Error(f)
+		return
+	}
+
+	r := NewReader(path, f)
+	if _, err := r.Parser(); err == nil {
+		t.Error("inline of enum is not valid")
 	}
 }
 
@@ -119,4 +149,39 @@ func TestInlining(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestEntropyIdentifier(t *testing.T) {
+	path := "testdata/key.km"
+	f, err := os.Open(path)
+	if err != nil {
+		t.Error(f)
+		return
+	}
+
+	r := NewReader(path, f)
+	parsed, err := r.Parser()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if parsed.Struct[0].Name != "Point" || parsed.Struct[1].Name != "User" {
+		t.Error("invalid struct name")
+	}
+
+	h, _ := blake2b.New(8, nil)
+	h.Write([]byte(parsed.Header.GetTag("entropy").Value))
+	h.Write([]byte(parsed.Struct[0].Name))
+
+	if *(*uint64)(unsafe.Pointer(&h.Sum(nil)[0])) != parsed.Struct[0].ID {
+		t.Error("invalid id")
+	}
+
+	h.Reset()
+	h.Write([]byte(parsed.Header.GetTag("entropy").Value))
+	h.Write([]byte(parsed.Struct[1].Name))
+	if *(*uint64)(unsafe.Pointer(&h.Sum(nil)[0])) != parsed.Struct[1].ID {
+		t.Error("invalid id")
+	}
+
 }

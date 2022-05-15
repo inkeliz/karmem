@@ -211,6 +211,10 @@ func (r *Reader) enumName() parserFunc {
 		return r.skipSpace(r.enumType)
 
 	case unicode.IsLetter(b):
+		if len(r.lastEnum.Name) == 0 && unicode.IsLower(b) {
+			r.error = fmt.Errorf(`invalid field name, names can't start with lowercase, got "%s"`, string(b))
+			return nil
+		}
 		r.lastEnum.Name += string(b)
 		return r.enumName
 
@@ -267,6 +271,10 @@ func (r *Reader) enumFieldName() parserFunc {
 		}
 		fallthrough
 	case unicode.IsLetter(b):
+		if len(r.lastEnum.Fields[l].Name) == 0 && unicode.IsLower(b) {
+			r.error = fmt.Errorf(`invalid field name, names can't start with lowercase, got "%s"`, string(b))
+			return nil
+		}
 		r.lastEnum.Fields[l].Name += string(b)
 		return r.enumFieldName
 
@@ -363,6 +371,9 @@ func (r *Reader) structName() parserFunc {
 		r.lastStruct.Name += string(b)
 		return r.structName
 	case unicode.IsLetter(b):
+		if len(r.lastStruct.Name) == 0 && unicode.IsLower(b) {
+			r.error = fmt.Errorf(`invalid field name, names can't start with lowercase, got "%s"`, string(b))
+		}
 		r.lastStruct.Name += string(b)
 		return r.structName
 
@@ -417,6 +428,9 @@ func (r *Reader) structFieldName() parserFunc {
 		}
 		fallthrough
 	case unicode.IsLetter(b):
+		if len(r.lastStruct.Fields[l].Name) == 0 && unicode.IsLower(b) {
+			r.error = fmt.Errorf(`invalid field name, names can't start with lowercase, got "%s"`, string(b))
+		}
 		r.lastStruct.Fields[l].Name += string(b)
 		return r.structFieldName
 
@@ -431,7 +445,6 @@ func (r *Reader) structFieldType() parserFunc {
 	l := len(r.lastStruct.Fields) - 1
 	switch {
 	case b == ';':
-
 		if !r.lastStruct.Fields[l].ValueType.Save(&r.Parsed) {
 			r.error = fmt.Errorf(`invalid type of "%s"`, string(r.lastStruct.Fields[l].ValueType))
 			return nil

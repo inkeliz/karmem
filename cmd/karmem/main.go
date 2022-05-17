@@ -36,6 +36,8 @@ func (l Language) Generator() kmgen.Generator {
 		return kmgen.ZigGenerator()
 	case LanguageSwift:
 		return kmgen.SwiftGenerator()
+	case LanguageC:
+		return kmgen.CGenerator()
 	default:
 		return nil
 	}
@@ -46,11 +48,12 @@ const (
 	LanguageZig            Language = "zig"
 	LanguageAssemblyScript Language = "assemblyscript"
 	LanguageSwift          Language = "swift"
+	LanguageC              Language = "c"
 )
 
 var (
-	Languages       = [...]Language{LanguageGolang, LanguageZig, LanguageAssemblyScript, LanguageSwift}
-	LanguagesFormat = [...]string{".go", ".zig", ".ts", ".swift"}
+	Languages       = [...]Language{LanguageGolang, LanguageZig, LanguageAssemblyScript, LanguageSwift, LanguageC}
+	LanguagesFormat = [...]string{".go", ".zig", ".ts", ".swift", ".h"}
 )
 
 type Build struct {

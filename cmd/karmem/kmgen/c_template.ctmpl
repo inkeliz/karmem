@@ -1,0 +1,428 @@
+{{define "header"}}
+#include "stdint.h"
+#include "stdlib.h"
+#include "string.h"
+#include "stdbool.h"
+#include "{{.Import}}"
+
+uint8_t _Null[{{.Largest}}];
+{{end}}
+
+{{define "enums"}}
+    {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+    {{- range $root := .}}
+
+typedef {{$root.Type}} Enum{{$root.Name}};
+{{- range $field := $root.Fields }}
+const Enum{{$root.Name}} Enum{{$root.Name}}{{$field.Name}} = {{$field.Value}}UL;
+{{- end }}
+    {{- end}}
+{{end}}
+
+{{define "enums_builder"}}
+    {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+
+{{end}}
+
+{{define "struct"}}
+    {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+
+typedef uint64_t EnumPacketIdentifier;
+{{- range $root := .}}
+const EnumPacketIdentifier EnumPacketIdentifier{{$root.Name}} = {{$root.ID}}UL;
+{{- end }}
+
+    {{range $root := .}}
+typedef struct {
+{{- range $field := $root.Fields }}
+    {{- if $field.IsBasic }}
+    {{$field.Type}} {{ $field.Name }};
+    {{- end }}
+    {{- if $field.IsSlice }}
+    {{$field.Type}} {{ $field.Name }};
+    uint32_t _{{ $field.Name }}_len;
+    uint32_t _{{ $field.Name }}_cap;
+    {{- end }}
+    {{- if $field.IsArray }}
+    {{$field.Type}} {{ $field.Name }}[{{$field.Length}}];
+    {{- end }}
+{{- end }}
+} {{$root.Name}};
+
+EnumPacketIdentifier {{$root.Name}}PacketIdentifier({{$root.Name}} * x) {
+    return EnumPacketIdentifier{{$root.Name}};
+}
+
+void {{$root.Name}}Reset({{$root.Name}} * x) {
+    if (x == 0) {
+        return;
+    }
+
+{{- range $field := $root.Fields }}
+{{- if $field.IsBasic }}
+{{- if or $field.IsNative $field.IsEnum }}
+    {{- if $field.IsEnum}}
+    x->{{ $field.Name }} = 0;
+    {{- else }}
+    x->{{ $field.Name }} = {{$field.Default}};
+    {{- end}}
+{{- else}}
+    {{ $field.PlainType }}Reset(&x->{{$field.Name}});
+{{- end}}
+{{- end }}
+{{- if $field.IsArray }}
+{{- if not $field.IsNative}}
+    uint32_t __{{$field.Name}}Index = 0;
+    while (__{{$field.Name}}Index < {{$field.Length}}) {
+        {{$field.PlainType}}Reset(&x->{{$field.Name}}[__{{$field.Name}}Index]);
+        __{{$field.Name}}Index = __{{$field.Name}}Index + 1;
+    }
+{{- else}}
+    uint32_t __{{$field.Name}}Index = 0;
+    while (__{{$field.Name}}Index < {{$field.Length}}) {
+        x->{{$field.Name}}[__{{$field.Name}}Index] = {{$field.Default}};
+        __{{$field.Name}}Index = __{{$field.Name}}Index + 1;
+    }
+{{- end}}
+{{- end }}
+{{- if $field.IsSlice }}
+{{- if not $field.IsNative}}
+    uint32_t __{{$field.Name}}Index = 0;
+    while (__{{$field.Name}}Index < x->_{{$field.Name}}_len) {
+        {{$field.PlainType}}Reset(&x->{{$field.Name}}[__{{$field.Name}}Index]);
+        __{{$field.Name}}Index = __{{$field.Name}}Index + 1;
+    }
+{{- end}}
+    x->_{{$field.Name}}_len = 0;
+{{- end }}
+{{- end }}
+}
+
+uint32_t {{$root.Name}}Write({{$root.Name}} * x, KarmemWriter * writer, uint32_t start) {
+    uint32_t offset = start;
+    uint32_t size = {{$root.Size}};
+    if (offset == 0) {
+        offset = KarmemWriterAlloc(writer, size);
+        if (offset == 0xFFFFFFFF) {
+            return 0;
+        }
+    }
+
+
+    {{- if $root.IsTable }}
+    uint32_t sizeData = {{$root.ContentSize}};
+    KarmemWriterWriteAt(writer, offset, (void *)&sizeData, 4);
+    {{- end }}
+
+{{- range $field := $root.Fields }}
+{{- if or (not $field.IsInline) $field.IsArray }}
+{{- if $field.IsBasic}}
+    uint32_t __{{$field.Name}}Size = {{$field.AllocSize}};
+{{- else}}
+    {{- if $field.IsSlice }}
+    uint32_t __{{$field.Name}}Size = {{$field.AllocSize}} * x->_{{$field.Name}}_len;
+    {{- else }}
+    uint32_t __{{$field.Name}}Size = {{$field.Size}};
+    {{- end }}
+{{- end}}
+{{- end}}
+{{- if $field.IsInline }}
+    uint32_t __{{$field.Name}}Offset = offset + {{$field.Offset}};
+{{- else }}
+    uint32_t __{{$field.Name}}Offset = KarmemWriterAlloc(writer, __{{$field.Name}}Size);
+
+    KarmemWriterWriteAt(writer, offset+{{$field.Offset}}, (void *) &__{{$field.Name}}Offset, 4);
+    {{- if $field.IsSlice}}
+    KarmemWriterWriteAt(writer, offset+{{$field.Offset}}+4, (void *) &__{{$field.Name}}Size, 4);
+    uint32_t __{{$field.Name}}SizeEach = {{$field.AllocSize}};
+    KarmemWriterWriteAt(writer, offset+{{$field.Offset}}+4+4, (void *) &__{{$field.Name}}SizeEach, 4);
+    {{- end }}
+{{- end }}
+{{- if or $field.IsNative $field.IsEnum }}
+    {{- if $field.IsSlice }}
+    KarmemWriterWriteAt(writer, __{{$field.Name}}Offset, (void *) x->{{$field.Name}}, __{{$field.Name}}Size);
+    {{- else }}
+        {{- if $field.IsArray }}
+    KarmemWriterWriteAt(writer, __{{$field.Name}}Offset,(void *) x->{{$field.Name}}, __{{$field.Name}}Size);
+        {{- else }}
+    KarmemWriterWriteAt(writer, __{{$field.Name}}Offset, (void *) &x->{{$field.Name}}, {{$field.AllocSize}});
+        {{- end }}
+    {{- end }}
+{{- else }}
+    {{- if $field.IsBasic}}
+    if ({{$field.PlainType}}Write(&x->{{$field.Name}}, writer, __{{$field.Name}}Offset) == 0) {
+        return 0;
+    }
+    {{- else}}
+    uint32_t __{{$field.Name}}Index = 0;
+    uint32_t __{{$field.Name}}End = __{{$field.Name}}Offset + __{{$field.Name}}Size;
+    while (__{{$field.Name}}Offset < __{{$field.Name}}End) {
+        if ({{$field.PlainType}}Write(&x->{{$field.Name}}[__{{$field.Name}}Index], writer, __{{$field.Name}}Offset) == 0) {
+            return 0;
+        }
+        __{{$field.Name}}Offset = __{{$field.Name}}Offset + {{$field.AllocSize}};
+        __{{$field.Name}}Index = __{{$field.Name}}Index + 1;
+    }
+    {{- end}}
+{{- end}}
+{{- end}}
+
+    return offset;
+}
+
+uint32_t {{$root.Name}}WriteAsRoot({{$root.Name}} * x, KarmemWriter * writer) {
+    return {{$root.Name}}Write(x, writer, 0);
+}
+
+void {{$root.Name}}Read({{$root.Name}} * x, {{$root.Name}}Viewer * viewer, KarmemReader * reader) {
+    {{- range $field := $root.Fields }}
+
+{{- if $field.IsBasic}}
+{{- if (or $field.IsEnum $field.IsNative) }}
+    x->{{$field.Name}} = {{$root.Name}}Viewer_{{$field.Name}}(viewer);
+{{- else}}
+    {{$field.PlainType}}Read(&x->{{$field.Name}}, {{$root.Name}}Viewer_{{$field.Name}}(viewer{{- if not $field.IsInline}}, reader{{- end}}), reader);
+{{- end}}
+{{- else}}
+{{- if $field.IsSlice}}
+    {{$field.ViewerType}} __{{$field.Name}}Slice = {{$root.Name}}Viewer_{{$field.Name}}(viewer, reader);
+    uint32_t __{{$field.Name}}Len = {{$root.Name}}Viewer_{{$field.Name}}Length(viewer, reader);
+    if (__{{$field.Name}}Len > x->_{{$field.Name}}_cap) {
+        uint32_t __{{$field.Name}}CapacityTarget = __{{$field.Name}}Len;
+        {{- if $field.IsString}}
+        x->{{$field.Name}} = ({{$field.PlainType}}) realloc(x->{{$field.Name}}, __{{$field.Name}}CapacityTarget);
+        {{- else }}
+        x->{{$field.Name}} = ({{$field.PlainType}} *) realloc(x->{{$field.Name}}, __{{$field.Name}}CapacityTarget * sizeof({{$field.PlainType}}));
+        {{- end }}
+        uint32_t __{{$field.Name}}NewIndex = x->_{{$field.Name}}_cap;
+        while (__{{$field.Name}}NewIndex < __{{$field.Name}}CapacityTarget) {
+            {{- if $field.IsNative}}
+                {{- if $field.IsString }}
+            x->{{$field.Name}}[__{{$field.Name}}NewIndex] = 0;
+                {{- else }}
+            x->{{$field.Name}}[__{{$field.Name}}NewIndex] = {{$field.Default}};
+                {{- end }}
+            {{- else }}
+            x->{{$field.Name}}[__{{$field.Name}}NewIndex] = New{{$field.PlainType}}();
+            {{- end }}
+            __{{$field.Name}}NewIndex = __{{$field.Name}}NewIndex + 1;
+        }
+        x->_{{$field.Name}}_cap = __{{$field.Name}}CapacityTarget;
+    }
+    if (__{{$field.Name}}Len > x->_{{$field.Name}}_len) {
+        x->_{{$field.Name}}_len = __{{$field.Name}}Len;
+    }
+{{- else}}
+    {{$field.ViewerType}} __{{$field.Name}}Slice = {{$root.Name}}Viewer_{{$field.Name}}(viewer);
+    uint32_t __{{$field.Name}}Len = {{$root.Name}}Viewer_{{$field.Name}}Length(viewer);
+    if (__{{$field.Name}}Len > {{$field.Length}}) {
+        __{{$field.Name}}Len = {{$field.Length}};
+    }
+{{- end }}
+{{- if $field.IsNative}}
+    uint32_t __{{$field.Name}}Index = 0;
+    while (__{{$field.Name}}Index < __{{$field.Name}}Len) {
+        x->{{$field.Name}}[__{{$field.Name}}Index] = __{{$field.Name}}Slice[__{{$field.Name}}Index];
+        __{{$field.Name}}Index = __{{$field.Name}}Index + 1;
+    }
+    {{- if $field.IsArray}}
+    while (__{{$field.Name}}Index < {{$field.Length}}) {
+        {{- if $field.IsString}}
+        x->{{$field.Name}}[__{{$field.Name}}Index] = 0;
+        {{- else }}
+        x->{{$field.Name}}[__{{$field.Name}}Index] = {{$field.Default}};
+        {{- end }}
+        __{{$field.Name}}Index = __{{$field.Name}}Index + 1;
+    }
+    {{- end}}
+{{- else}}
+    uint32_t __{{$field.Name}}Index = 0;
+    while (__{{$field.Name}}Index < __{{$field.Name}}Len) {
+        {{$field.PlainType}}Read(&x->{{$field.Name}}[__{{$field.Name}}Index], &__{{$field.Name}}Slice[__{{$field.Name}}Index], reader);
+         __{{$field.Name}}Index = __{{$field.Name}}Index + 1;
+    }
+    {{- if $field.IsArray}}
+    while (__{{$field.Name}}Index < {{$field.Length}}) {
+        {{$field.PlainType}}Reset(&x->{{$field.Name}}[__{{$field.Name}}Index]);
+        __{{$field.Name}}Index = __{{$field.Name}}Index + 1;
+    }
+    {{- end}}
+{{- end }}
+{{- if $field.IsSlice}}
+    x->_{{$field.Name}}_len = __{{$field.Name}}Len;
+{{- end }}
+    {{- end}}
+{{- end }}
+}
+
+void {{$root.Name}}ReadAsRoot({{$root.Name}} * x, KarmemReader * reader) {
+    return {{$root.Name}}Read(x, New{{$root.Name}}Viewer(reader, 0), reader);
+}
+
+{{$root.Name}} New{{$root.Name}}() {
+    {{$root.Name}} r = ({{$root.Name}}) {
+{{- range $field := $root.Fields }}
+    {{- if $field.IsBasic }}
+        {{- if (or $field.IsNative $field.IsEnum) }}
+        .{{$field.Name}} = {{$field.Default}},
+        {{- else }}
+        .{{$field.Name}} = New{{$field.PlainType}}(),
+        {{- end }}
+    {{- end }}
+    {{- if $field.IsArray }}
+        .{{ $field.Name }} = {},
+    {{- end }}
+    {{- if $field.IsSlice}}
+        {{- if $field.IsString}}
+        .{{ $field.Name }} = ({{$field.PlainType}}) malloc(0),
+        {{- else }}
+        .{{ $field.Name }} = ({{$field.PlainType}} *) malloc(0),
+        {{- end}}
+        ._{{ $field.Name }}_len = 0,
+        ._{{ $field.Name }}_cap = 0,
+    {{- end}}
+{{- end}}
+    };
+
+{{- range $field := $root.Fields }}
+{{- if $field.IsArray}}
+    size_t __{{ $field.Name }}Index = 0;
+    while (__{{ $field.Name }}Index < {{$field.Length}}) {
+    {{- if (and $field.IsNative (not $field.IsString)) }}
+        r.{{ $field.Name }}[__{{ $field.Name }}Index] = {{$field.Default}};
+    {{- else}}
+        {{- if $field.IsString}}
+        r.{{ $field.Name }}[__{{ $field.Name }}Index] = 0;
+        {{- else}}
+        r.{{ $field.Name }}[__{{ $field.Name }}Index] = New{{$field.PlainType}}();
+        {{- end }}
+    {{- end}}
+        __{{ $field.Name }}Index = __{{ $field.Name }}Index + 1;
+    }
+{{- end }}
+{{- end}}
+
+    return r;
+}
+
+    {{- end }}
+{{end}}
+
+{{define "struct_builder"}}
+    {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+    {{- range $root := .}}
+
+typedef struct {
+    uint8_t _data[{{$root.Size}}];
+} {{$root.Name}}Viewer;
+
+uint8_t {{$root.Name}}ViewerSize({{$root.Name}}Viewer * x) {
+{{- if $root.IsTable}}
+    uint32_t r;
+    memcpy(&r, x, 4);
+    return r;
+{{- else}}
+    return {{ $root.Size }};
+{{- end }}
+}
+
+{{$root.Name}}Viewer * New{{$root.Name}}Viewer(KarmemReader * reader, uint32_t offset) {
+    if (KarmemReaderIsValidOffset(reader, offset, {{$root.MinSize}}) == false) {
+        return ({{$root.Name}}Viewer *) &_Null;
+    }
+    {{$root.Name}}Viewer * v = ({{$root.Name}}Viewer *) &reader->pointer[offset];
+{{- if $root.IsTable}}
+    if (KarmemReaderIsValidOffset(reader, offset, {{$root.Name}}ViewerSize(v)) == false) {
+        return ({{$root.Name}}Viewer *) &_Null;
+    }
+{{- end}}
+    return v;
+}
+
+    {{- range $field := $root.Fields }}
+
+    {{- if $field.IsArray}}
+uint32_t {{$root.Name}}Viewer_{{$field.Name}}Length({{$root.Name}}Viewer * x) {
+    if (({{$field.Offset}} + {{$field.Size}}) > {{$root.Name}}ViewerSize(x)) {
+        return 0;
+    }
+    return {{$field.Length}};
+}
+    {{- end}}
+
+    {{- if $field.IsSlice}}
+uint32_t {{$root.Name}}Viewer_{{$field.Name}}Length({{$root.Name}}Viewer * x, KarmemReader * reader) {
+    if (({{$field.Offset}} + {{$field.Size}}) > {{$root.Name}}ViewerSize(x)) {
+        return 0;
+    }
+    uint32_t offset;
+    memcpy(&offset, &x->_data[{{$field.Offset}}], 4);
+    uint32_t size;
+    memcpy(&size, &x->_data[{{$field.Offset}} + 4], 4);
+    if (KarmemReaderIsValidOffset(reader, offset, size) == false) {
+        return 0;
+    }
+    uint32_t length = size / {{$field.AllocSize}};
+    {{- if $field.IsLimited }}
+    if (length > {{$field.Length}}) {
+        length = {{$field.Length}};
+    }
+    {{- end }}
+    return length;
+}
+    {{- end}}
+
+{{$field.ViewerType}} {{$root.Name}}Viewer_{{$field.Name}}({{$root.Name}}Viewer * x{{- if not $field.IsInline}}, KarmemReader * reader{{- end}}) {
+    {{- if $root.IsTable}}
+    if (({{$field.Offset}} + {{$field.Size}}) > {{$root.Name}}ViewerSize(x)) {
+    {{- if or (and $field.IsBasic $field.IsNative) $field.IsEnum }}
+        return {{$field.Default}};
+    {{- else}}
+        return ({{$field.ViewerType}}) &_Null;
+    {{- end}}
+    }
+    {{- end}}
+
+    {{- if $field.IsInline}}
+{{- if not $field.IsArray}}
+    {{- if $field.IsNative}}
+    {{$field.ViewerType}} r;
+    memcpy(&r, &x->_data[{{$field.Offset}}], {{$field.Size}});
+    return r;
+    {{- else }}
+    {{- if $field.IsEnum}}
+        return * ({{$field.ViewerType}} * ) &x->_data[{{$field.Offset}}];
+    {{- else }}
+        return ({{$field.ViewerType}}) &x->_data[{{$field.Offset}}];
+    {{- end }}
+    {{- end}}
+{{- else}}
+    return ({{$field.ViewerType}}) &x->_data[{{$field.Offset}}];
+{{- end}}
+{{- else }}
+    uint32_t offset;
+    memcpy(&offset, &x->_data[{{$field.Offset}}], 4);
+{{- if $field.IsSlice}}
+    uint32_t size;
+    memcpy(&size, &x->_data[{{$field.Offset}} + 4], 4);
+    if (KarmemReaderIsValidOffset(reader, offset, size) == false) {
+    {{- if or (and $field.IsBasic $field.IsNative) $field.IsEnum }}
+        return {{$field.Default}};
+    {{- else}}
+        {{- if (and $field.IsInline $field.IsNative) }}
+        return *({{$field.ViewerType}} *) &_Null;
+        {{- else  }}
+        return ({{$field.ViewerType}}) &_Null;
+        {{- end }}
+    {{- end}}
+    }
+    uint32_t length = size / {{$field.AllocSize}};
+    return ({{$field.ViewerType}}) &reader->pointer[offset];
+{{- else}}
+    return New{{$field.PlainType}}Viewer(reader, offset);
+{{- end}}
+{{- end}}
+}
+{{- end}}
+    {{- end }}
+{{end}}

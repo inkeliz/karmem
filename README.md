@@ -261,10 +261,10 @@ Currently, we have focus on WebAssembly, and because of that those are the langu
 | Zero-Copy |❌ | ❌ |❌ | ❌ | ❌ |
 | **Decoding** | | | | | |
 | Object Decoding |✔️ |✔️ |✔️ | ✔️ |✔️ |
-| Object Re-Use |✔️ |✔️ |✔️ | ❌ |❌ |
+| Object Re-Use |✔️ |✔️ |✔️ | ❌ |✔️ |
 | Random-Access |✔️ |✔️ |✔️ | ✔️ |✔️ |
-| Zero-Copy |✔️ | ✔️ |✔️ | ❌ |❌ |
-| Native Array | ✔️ |✔️ |❌ | ❌ |❌ |
+| Zero-Copy |✔️ | ✔️ |✔️ | ❌ |✔️ |
+| Native Array | ✔️ |✔️ |❌ | ❌ |✔️ |
 
 # Schema
 

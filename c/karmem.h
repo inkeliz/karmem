@@ -51,16 +51,16 @@ void KarmemWriterFree(KarmemWriter * w) {
 
 typedef struct {
     uint8_t *pointer;
-    uint32_t length;
+    uint64_t length;
     uint32_t capacity;
 } KarmemReader;
 
 KarmemReader KarmemNewReader(uint8_t * memory, uint32_t length) {
-    return (KarmemReader) {.pointer = memory, .length = length, .capacity = length};
+    return (KarmemReader) {.pointer = memory, .length = (uint64_t) length, .capacity = length};
 }
 
 bool KarmemReaderIsValidOffset(KarmemReader * r, uint32_t offset, uint32_t size) {
-    return r->length >= offset + size;
+    return r->length >= (uint64_t) offset + (uint64_t) size;
 }
 
 // SetSize re-defines the bounds of the slice, useful when the
@@ -69,6 +69,6 @@ uint8_t KarmemReaderSetSize(KarmemReader * r, uint32_t size) {
     if (size > r->capacity) {
         return 0;
     }
-    r->length = size;
+    r->length = (uint64_t) size;
     return 1;
 }

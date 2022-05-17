@@ -43,6 +43,10 @@ pub const Writer = struct {
     pub fn Reset(self: *Writer) void {
         self.memory.len = 0;
     }
+
+    pub fn Free(self: *Writer) void {
+        self.allocator.free(self.memory.ptr[0..self.capacity]);
+    }
 };
 
 pub fn NewWriter(allocator: Allocator, cap: usize) !Writer {

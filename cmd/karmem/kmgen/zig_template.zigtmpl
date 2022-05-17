@@ -50,10 +50,6 @@ pub const {{$root.Name}} = struct {
     }  
 
     pub fn Reset(x: *{{$root.Name}}) void {
-        if (x == undefined) {
-            return;
-        }
-
 {{- range $field := $root.Fields }}
 {{- if $field.IsBasic }}
     {{- if or $field.IsNative $field.IsEnum }}
@@ -98,7 +94,7 @@ pub const {{$root.Name}} = struct {
         var offset: u32 = @intCast(u32, start);
         var size: u32 = {{$root.Size}};
         if (offset == 0) {
-            offset = try writer.Alloc(size);
+            offset = try karmem.Writer.Alloc(writer, size);
         }
 
 
@@ -118,7 +114,7 @@ pub const {{$root.Name}} = struct {
     {{- if $field.IsInline }}
         var __{{$field.Name}}Offset = offset + {{$field.Offset}};
     {{- else }}
-        var __{{$field.Name}}Offset = try writer.Alloc(__{{$field.Name}}Size);
+        var __{{$field.Name}}Offset = try karmem.Writer.Alloc(writer, __{{$field.Name}}Size);
 
         karmem.Writer.WriteAt(writer, offset+{{$field.Offset}}, @ptrCast([*]const u8, &__{{$field.Name}}Offset), 4);
         {{- if $field.IsSlice}}
@@ -164,12 +160,8 @@ pub const {{$root.Name}} = struct {
     }
 
     pub fn Read(x: *{{$root.Name}}, viewer: *const {{$root.Name}}Viewer, reader: *karmem.Reader) Allocator.Error!void {
-        if (x == undefined) {
-            return;
-        }
-        if (reader == undefined) {
-            return;
-        }
+        _ = x;
+        _ = reader;
         {{- range $field := $root.Fields }}
 
 {{- if $field.IsBasic}}
@@ -253,9 +245,9 @@ pub const {{$root.Name}} = struct {
 pub fn New{{$root.Name}}() {{$root.Name}} {
     return {{$root.Name}} {
 {{- range $field := $root.Fields }}
-    .{{$field.Name}} ={{- if or (and $field.IsBasic $field.IsNative) $field.IsEnum }}{{- if $field.IsEnum}} Default{{$field.Type}} {{- else }} {{$field.Default}}{{- end}}{{- else}}{{- if $field.IsBasic }} New{{$field.Type}}(){{- else}} {{- if $field.IsArray}} [_]{{$field.PlainType}}{ {{- if $field.IsNative}}{{$field.Default}}{{- else }}New{{$field.PlainType}}(){{- end}}} ** {{$field.Length}}{{- else}} {{- if $field.IsString}} &[_]u8{} {{- else }} &[_]{{$field.PlainType}}{}{{- end}}{{- end}}{{- end }}{{- end}},
+        .{{$field.Name}} ={{- if or (and $field.IsBasic $field.IsNative) $field.IsEnum }}{{- if $field.IsEnum}} Default{{$field.Type}} {{- else }} {{$field.Default}}{{- end}}{{- else}}{{- if $field.IsBasic }} New{{$field.Type}}(){{- else}} {{- if $field.IsArray}} [_]{{$field.PlainType}}{ {{- if $field.IsNative}}{{$field.Default}}{{- else }}New{{$field.PlainType}}(){{- end}}} ** {{$field.Length}}{{- else}} {{- if $field.IsString}} &[_]u8{} {{- else }} &[_]{{$field.PlainType}}{}{{- end}}{{- end}}{{- end }}{{- end}},
     {{- if $field.IsSlice }}
-    ._{{ $field.Name }}Capacity = 0,
+        ._{{ $field.Name }}Capacity = 0,
     {{- end }}
 {{- end}}
     };
@@ -272,9 +264,7 @@ pub const {{$root.Name}}Viewer = struct {
     _data: [{{$root.Size}}]u8,
 
     pub fn Size(x: *const {{$root.Name}}Viewer) u32 {
-        if (x == undefined) {
-            return 0xFFFFFFFF;
-        }
+    _ = x;
     {{- if $root.IsTable}}
         return @ptrCast(*align(1) const u32, x._data[0..4]).*;
     {{- else}}
@@ -284,29 +274,6 @@ pub const {{$root.Name}}Viewer = struct {
 
         {{- range $field := $root.Fields }}
     pub fn {{$field.Name}}(x: *const {{$root.Name}}Viewer{{- if not $field.IsInline}}, reader: *karmem.Reader{{- end}}) {{$field.ViewerType}} {
-        if (x == undefined) {
-       {{- if or (and $field.IsBasic $field.IsNative) $field.IsEnum }}
-                {{- if $field.IsEnum}}
-            return Default{{$field.Type}};
-                {{- else}}
-            return {{$field.Default}};
-                {{- end}}
-        {{- else}}
-        {{- if or $field.IsSlice $field.IsArray }}
-        {{- if $field.IsNative}}
-            return {{- if $field.IsString}} &[_]u8{}{{- else }} &[_]{{$field.PlainType}}{}{{- end}};
-        {{- else }}
-            return &[_]{{$field.PlainType}}Viewer{};
-        {{- end }}
-        {{- else }}
-        {{- if $field.IsNative}}
-            return {{$field.Default}};
-        {{- else }}
-            return &Null{{$field.PlainType}}Viewer;
-        {{- end }}
-        {{- end }}
-        {{- end}}
-        }
         {{- if $root.IsTable}}
         if (({{$field.Offset}} + {{$field.Size}}) > {{$root.Name}}Viewer.Size(x)) {
         {{- if or (and $field.IsBasic $field.IsNative) $field.IsEnum }}

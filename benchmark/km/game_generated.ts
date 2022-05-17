@@ -14,12 +14,24 @@ export const TeamOrcs : Team = 1
 export const TeamZombies : Team = 2
 export const TeamRobots : Team = 3
 export const TeamAliens : Team = 4
+export type PacketIdentifier = u64
+export const PacketIdentifierVec3 = 10268726485798425099
+export const PacketIdentifierWeaponData = 15342010214468761012
+export const PacketIdentifierWeapon = 8029074423243608167
+export const PacketIdentifierMonsterData = 12254962724431809041
+export const PacketIdentifierMonster = 5593793986513565154
+export const PacketIdentifierMonsters = 14096677544474027661
+
 
 
 export class Vec3 {
     X: f32;
     Y: f32;
     Z: f32;
+
+    static PacketIdentifier() : PacketIdentifier {
+        return PacketIdentifierVec3
+    }
 
     static Reset(x: Vec3): void {
         x.X = 0;
@@ -78,6 +90,10 @@ export class WeaponData {
     Damage: i32;
     Range: i32;
 
+    static PacketIdentifier() : PacketIdentifier {
+        return PacketIdentifierWeaponData
+    }
+
     static Reset(x: WeaponData): void {
         x.Damage = 0;
         x.Range = 0;
@@ -97,7 +113,7 @@ export class WeaponData {
                 return false;
             }
         }
-        writer.WriteAt<u32>(offset, size);
+        writer.WriteAt<u32>(offset, 12);
         let __DamageOffset: u32 = offset + 4;
         writer.WriteAt<i32>(__DamageOffset, x.Damage);
         let __RangeOffset: u32 = offset + 8;
@@ -129,6 +145,10 @@ export function NewWeaponData(): WeaponData {
 
 export class Weapon {
     Data: WeaponData;
+
+    static PacketIdentifier() : PacketIdentifier {
+        return PacketIdentifierWeapon
+    }
 
     static Reset(x: Weapon): void {
         WeaponData.Reset(x.Data);
@@ -192,6 +212,11 @@ export class MonsterData {
     Status: Array<i32>;
     Weapons: StaticArray<Weapon>;
     Path: Array<Vec3>;
+    IsAlive: bool;
+
+    static PacketIdentifier() : PacketIdentifier {
+        return PacketIdentifierMonsterData
+    }
 
     static Reset(x: MonsterData): void {
         Vec3.Reset(x.Pos);
@@ -215,6 +240,7 @@ export class MonsterData {
             Vec3.Reset(x.Path[i]);
         }
         x.Path.length = 0;
+        x.IsAlive = false;
     }
 
     @inline
@@ -231,7 +257,7 @@ export class MonsterData {
                 return false;
             }
         }
-        writer.WriteAt<u32>(offset, size);
+        writer.WriteAt<u32>(offset, 147);
         let __PosOffset: u32 = offset + 4;
         if (!Vec3.Write(x.Pos, writer, __PosOffset)) {
             return false;
@@ -297,6 +323,8 @@ export class MonsterData {
             }
             __PathOffset += 16;
         }
+        let __IsAliveOffset: u32 = offset + 146;
+        writer.WriteAt<bool>(__IsAliveOffset, x.IsAlive);
 
         return true
     }
@@ -392,6 +420,7 @@ export class MonsterData {
         }
     }
     x.Path.length = __PathLen;
+    x.IsAlive = viewer.IsAlive();
     }
 
 }
@@ -409,6 +438,7 @@ export function NewMonsterData(): MonsterData {
     Status: new Array<i32>(0),
     Weapons: new StaticArray<Weapon>(4),
     Path: new Array<Vec3>(0),
+    IsAlive: false,
     }
     for (let i = 0; i < x.Hitbox.length; i++) {
         x.Hitbox[i] = 0;
@@ -421,6 +451,10 @@ export function NewMonsterData(): MonsterData {
 
 export class Monster {
     Data: MonsterData;
+
+    static PacketIdentifier() : PacketIdentifier {
+        return PacketIdentifierMonster
+    }
 
     static Reset(x: Monster): void {
         MonsterData.Reset(x.Data);
@@ -475,6 +509,10 @@ export function NewMonster(): Monster {
 export class Monsters {
     Monsters: Array<Monster>;
 
+    static PacketIdentifier() : PacketIdentifier {
+        return PacketIdentifierMonsters
+    }
+
     static Reset(x: Monsters): void {
         let __MonstersLen = x.Monsters.length;
         for (let i = 0; i < __MonstersLen; i++) {
@@ -497,7 +535,7 @@ export class Monsters {
                 return false;
             }
         }
-        writer.WriteAt<u32>(offset, size);
+        writer.WriteAt<u32>(offset, 16);
         const __MonstersSize: u32 = 8 * x.Monsters.length;
         let __MonstersOffset = writer.Alloc(__MonstersSize);
         if (__MonstersOffset == 0) {
@@ -790,6 +828,13 @@ export class MonsterDataViewer {
             length = 2000;
         }
         return new karmem.Slice<Vec3Viewer>(reader.Pointer + offset, length, 16);
+    }
+    @inline
+    IsAlive(): bool {
+        if ((<u32>146 + <u32>1) > this.SizeOf()) {
+            return false
+        }
+        return load<bool>(changetype<usize>(this) + 146);
     }
 }
 

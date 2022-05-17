@@ -31,4 +31,5 @@ table Monster {
   status: [int32];
   weapons: [Weapon];
   path: [Vec3];
+  is_alive: bool;
 }

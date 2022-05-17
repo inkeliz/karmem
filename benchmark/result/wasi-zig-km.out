@@ -1,13 +1,13 @@
 === RUN   TestEncodeObjectAPI
---- PASS: TestEncodeObjectAPI (0.83s)
+--- PASS: TestEncodeObjectAPI (0.84s)
 === RUN   TestEncodeObjectAPI
---- PASS: TestEncodeObjectAPI (0.71s)
-=== RUN   TestEncodeObjectAPI
---- PASS: TestEncodeObjectAPI (0.75s)
+--- PASS: TestEncodeObjectAPI (0.72s)
 === RUN   TestEncodeObjectAPI
 --- PASS: TestEncodeObjectAPI (0.73s)
 === RUN   TestEncodeObjectAPI
---- PASS: TestEncodeObjectAPI (0.71s)
+--- PASS: TestEncodeObjectAPI (0.70s)
+=== RUN   TestEncodeObjectAPI
+--- PASS: TestEncodeObjectAPI (0.73s)
 === RUN   FuzzNRandom
 === RUN   FuzzNRandom/seed#0
 --- PASS: FuzzNRandom (0.01s)
@@ -23,7 +23,7 @@
 === RUN   FuzzContent/9ec8b66906aeadb3724c1173c39f581587542c75fcf789de2bbfb56252a5e5f0
 === RUN   FuzzContent/a4adf62fd2eb8fc7ec3209e73116b78654c68ba3269f0e64f9ae6d797feb41f0
 === RUN   FuzzContent/f76cb39946dee3e4d37a02bc9f52fd6b5bf485d30942032dd5d23599550167e3
---- PASS: FuzzContent (0.33s)
+--- PASS: FuzzContent (0.34s)
     --- PASS: FuzzContent/015a00e8d336b9dee362593599cc5cbf05a1123abdb5215712e459132f97cfd3 (0.00s)
     --- PASS: FuzzContent/0e10a3a17b4654127f376569215d408363e1d48f9191a9a34dc9ac185f3a802b (0.00s)
     --- PASS: FuzzContent/285acbaf8430bedf6851e3307be7d4bcb1d90b5b8ef332c67b6adb5a17a492de (0.00s)
@@ -50,7 +50,7 @@
 === RUN   FuzzRandom/c425b46e6cf22d3e5351ff01715ce523b5802934ee897a9b698724a19f2c9d3b
 === RUN   FuzzRandom/caf81e9797b19c76c1fc4dbf537d4d81f389524539f402d13aa01f93a65ac7e9
 === RUN   FuzzRandom/da3d469497f0de66bd3e4762481ee77a9fa15f5f3ecdeab2e201206527d6d458
---- PASS: FuzzRandom (0.86s)
+--- PASS: FuzzRandom (0.88s)
     --- PASS: FuzzRandom/seed#0 (0.24s)
     --- PASS: FuzzRandom/031d902368ad97355bde3c1f2425cc272f4bf6586b2a11a969e8c3f396f7121e (0.01s)
     --- PASS: FuzzRandom/2c31764d5cade7e4b807391d52cdbda4b3baa2d3d43b5c2ebb020f95dbd4d1a0 (0.00s)
@@ -70,22 +70,22 @@ goos: darwin
 goarch: arm64
 pkg: benchmark.karmem.org
 BenchmarkDecodeSumVec3
-BenchmarkDecodeSumVec3-8     	   26041	    230577 ns/op	    1248 B/op	       5 allocs/op
-BenchmarkDecodeSumVec3-8     	   25956	    231041 ns/op	    1248 B/op	       5 allocs/op
-BenchmarkDecodeSumVec3-8     	   26010	    231244 ns/op	    1248 B/op	       5 allocs/op
-BenchmarkDecodeSumVec3-8     	   25892	    231107 ns/op	    1248 B/op	       5 allocs/op
-BenchmarkDecodeSumVec3-8     	   25906	    231591 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	   25960	    230644 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	   25850	    231268 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	   26058	    230638 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	   26030	    231286 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	   25952	    231748 ns/op	    1248 B/op	       5 allocs/op
 BenchmarkDecodeObjectAPI
-BenchmarkDecodeObjectAPI-8   	    9618	    611873 ns/op	  161617 B/op	       4 allocs/op
-BenchmarkDecodeObjectAPI-8   	    9661	    615053 ns/op	  160903 B/op	       4 allocs/op
-BenchmarkDecodeObjectAPI-8   	    9628	    613862 ns/op	  161451 B/op	       4 allocs/op
-BenchmarkDecodeObjectAPI-8   	    9608	    615064 ns/op	  161784 B/op	       4 allocs/op
-BenchmarkDecodeObjectAPI-8   	    9614	    612242 ns/op	  161684 B/op	       4 allocs/op
+BenchmarkDecodeObjectAPI-8   	    9457	    624003 ns/op	  164348 B/op	       4 allocs/op
+BenchmarkDecodeObjectAPI-8   	    9453	    622483 ns/op	  164417 B/op	       4 allocs/op
+BenchmarkDecodeObjectAPI-8   	    9462	    622268 ns/op	  164261 B/op	       4 allocs/op
+BenchmarkDecodeObjectAPI-8   	    9486	    625624 ns/op	  163849 B/op	       4 allocs/op
+BenchmarkDecodeObjectAPI-8   	    9439	    624324 ns/op	  164659 B/op	       4 allocs/op
 BenchmarkEncodeObjectAPI
-BenchmarkEncodeObjectAPI-8   	    8072	    712819 ns/op	    1232 B/op	       3 allocs/op
-BenchmarkEncodeObjectAPI-8   	    8064	    712512 ns/op	    1232 B/op	       3 allocs/op
-BenchmarkEncodeObjectAPI-8   	    8065	    712327 ns/op	    1232 B/op	       3 allocs/op
-BenchmarkEncodeObjectAPI-8   	    8172	    714929 ns/op	    1232 B/op	       3 allocs/op
-BenchmarkEncodeObjectAPI-8   	    8064	    713611 ns/op	    1232 B/op	       3 allocs/op
+BenchmarkEncodeObjectAPI-8   	    8098	    714066 ns/op	    1232 B/op	       3 allocs/op
+BenchmarkEncodeObjectAPI-8   	    8061	    712346 ns/op	    1232 B/op	       3 allocs/op
+BenchmarkEncodeObjectAPI-8   	    8028	    714291 ns/op	    1232 B/op	       3 allocs/op
+BenchmarkEncodeObjectAPI-8   	    8038	    713853 ns/op	    1232 B/op	       3 allocs/op
+BenchmarkEncodeObjectAPI-8   	    8101	    713368 ns/op	    1232 B/op	       3 allocs/op
 PASS
-ok  	benchmark.karmem.org	141.550s
+ok  	benchmark.karmem.org	141.608s

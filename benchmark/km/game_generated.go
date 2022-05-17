@@ -29,10 +29,27 @@ const (
 	TeamAliens  Team = 4
 )
 
+type (
+	PacketIdentifier uint64
+)
+
+const (
+	PacketIdentifierVec3        = 10268726485798425099
+	PacketIdentifierWeaponData  = 15342010214468761012
+	PacketIdentifierWeapon      = 8029074423243608167
+	PacketIdentifierMonsterData = 12254962724431809041
+	PacketIdentifierMonster     = 5593793986513565154
+	PacketIdentifierMonsters    = 14096677544474027661
+)
+
 type Vec3 struct {
 	X float32
 	Y float32
 	Z float32
+}
+
+func (x *Vec3) PacketIdentifier() PacketIdentifier {
+	return PacketIdentifierVec3
 }
 
 func (x *Vec3) Reset() {
@@ -79,6 +96,10 @@ type WeaponData struct {
 	Range  int32
 }
 
+func (x *WeaponData) PacketIdentifier() PacketIdentifier {
+	return PacketIdentifierWeaponData
+}
+
 func (x *WeaponData) Reset() {
 	x.Damage = 0
 	x.Range = 0
@@ -97,7 +118,7 @@ func (x *WeaponData) Write(writer *karmem.Writer, start uint) (offset uint, err 
 			return 0, err
 		}
 	}
-	writer.Write4At(offset, uint32(size))
+	writer.Write4At(offset, uint32(12))
 	__DamageOffset := offset + 4
 	writer.Write4At(__DamageOffset, *(*uint32)(unsafe.Pointer(&x.Damage)))
 	__RangeOffset := offset + 8
@@ -117,6 +138,10 @@ func (x *WeaponData) Read(viewer *WeaponDataViewer, reader *karmem.Reader) {
 
 type Weapon struct {
 	Data WeaponData
+}
+
+func (x *Weapon) PacketIdentifier() PacketIdentifier {
+	return PacketIdentifierWeapon
 }
 
 func (x *Weapon) Reset() {
@@ -169,6 +194,11 @@ type MonsterData struct {
 	Status    []int32
 	Weapons   [4]Weapon
 	Path      []Vec3
+	IsAlive   bool
+}
+
+func (x *MonsterData) PacketIdentifier() PacketIdentifier {
+	return PacketIdentifierMonsterData
 }
 
 func (x *MonsterData) Reset() {
@@ -188,6 +218,7 @@ func (x *MonsterData) Reset() {
 		x.Path[i].Reset()
 	}
 	x.Path = x.Path[:0]
+	x.IsAlive = false
 }
 
 func (x *MonsterData) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -203,7 +234,7 @@ func (x *MonsterData) Write(writer *karmem.Writer, start uint) (offset uint, err
 			return 0, err
 		}
 	}
-	writer.Write4At(offset, uint32(size))
+	writer.Write4At(offset, uint32(147))
 	__PosOffset := offset + 4
 	if _, err := x.Pos.Write(writer, __PosOffset); err != nil {
 		return offset, err
@@ -273,6 +304,8 @@ func (x *MonsterData) Write(writer *karmem.Writer, start uint) (offset uint, err
 		}
 		__PathOffset += 16
 	}
+	__IsAliveOffset := offset + 146
+	writer.Write1At(__IsAliveOffset, *(*uint8)(unsafe.Pointer(&x.IsAlive)))
 
 	return offset, nil
 }
@@ -342,10 +375,15 @@ func (x *MonsterData) Read(viewer *MonsterDataViewer, reader *karmem.Reader) {
 		}
 	}
 	x.Path = x.Path[:__PathLen]
+	x.IsAlive = viewer.IsAlive()
 }
 
 type Monster struct {
 	Data MonsterData
+}
+
+func (x *Monster) PacketIdentifier() PacketIdentifier {
+	return PacketIdentifierMonster
 }
 
 func (x *Monster) Reset() {
@@ -390,6 +428,10 @@ type Monsters struct {
 	Monsters []Monster
 }
 
+func (x *Monsters) PacketIdentifier() PacketIdentifier {
+	return PacketIdentifierMonsters
+}
+
 func (x *Monsters) Reset() {
 	for i := range x.Monsters {
 		x.Monsters[i].Reset()
@@ -410,7 +452,7 @@ func (x *Monsters) Write(writer *karmem.Writer, start uint) (offset uint, err er
 			return 0, err
 		}
 	}
-	writer.Write4At(offset, uint32(size))
+	writer.Write4At(offset, uint32(16))
 	__MonstersSize := uint(8 * len(x.Monsters))
 	__MonstersOffset, err := writer.Alloc(__MonstersSize)
 	if err != nil {
@@ -679,6 +721,12 @@ func (x *MonsterDataViewer) Path(reader *karmem.Reader) (v []Vec3Viewer) {
 		uintptr(unsafe.Add(reader.Pointer, offset)), length, length,
 	}
 	return *(*[]Vec3Viewer)(unsafe.Pointer(&slice))
+}
+func (x *MonsterDataViewer) IsAlive() (v bool) {
+	if 146+1 > x.size() {
+		return v
+	}
+	return *(*bool)(unsafe.Add(unsafe.Pointer(&x._data), 146))
 }
 
 type MonsterViewer struct {

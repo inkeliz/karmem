@@ -328,8 +328,11 @@ type MonsterT struct {
 	Team Team
 	Inventory []byte
 	Color Color
+	Hitbox []float64
+	Status []int32
 	Weapons []*WeaponT
 	Path []*Vec3T
+	IsAlive bool
 }
 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -338,6 +341,24 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	inventoryOffset := flatbuffers.UOffsetT(0)
 	if t.Inventory != nil {
 		inventoryOffset = builder.CreateByteString(t.Inventory)
+	}
+	hitboxOffset := flatbuffers.UOffsetT(0)
+	if t.Hitbox != nil {
+		hitboxLength := len(t.Hitbox)
+		MonsterStartHitboxVector(builder, hitboxLength)
+		for j := hitboxLength - 1; j >= 0; j-- {
+			builder.PrependFloat64(t.Hitbox[j])
+		}
+		hitboxOffset = builder.EndVector(hitboxLength)
+	}
+	statusOffset := flatbuffers.UOffsetT(0)
+	if t.Status != nil {
+		statusLength := len(t.Status)
+		MonsterStartStatusVector(builder, statusLength)
+		for j := statusLength - 1; j >= 0; j-- {
+			builder.PrependInt32(t.Status[j])
+		}
+		statusOffset = builder.EndVector(statusLength)
 	}
 	weaponsOffset := flatbuffers.UOffsetT(0)
 	if t.Weapons != nil {
@@ -370,8 +391,11 @@ func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	MonsterAddTeam(builder, t.Team)
 	MonsterAddInventory(builder, inventoryOffset)
 	MonsterAddColor(builder, t.Color)
+	MonsterAddHitbox(builder, hitboxOffset)
+	MonsterAddStatus(builder, statusOffset)
 	MonsterAddWeapons(builder, weaponsOffset)
 	MonsterAddPath(builder, pathOffset)
+	MonsterAddIsAlive(builder, t.IsAlive)
 	return MonsterEnd(builder)
 }
 
@@ -383,6 +407,16 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 	t.Team = rcv.Team()
 	t.Inventory = rcv.InventoryBytes()
 	t.Color = rcv.Color()
+	hitboxLength := rcv.HitboxLength()
+	t.Hitbox = make([]float64, hitboxLength)
+	for j := 0; j < hitboxLength; j++ {
+		t.Hitbox[j] = rcv.Hitbox(j)
+	}
+	statusLength := rcv.StatusLength()
+	t.Status = make([]int32, statusLength)
+	for j := 0; j < statusLength; j++ {
+		t.Status[j] = rcv.Status(j)
+	}
 	weaponsLength := rcv.WeaponsLength()
 	t.Weapons = make([]*WeaponT, weaponsLength)
 	for j := 0; j < weaponsLength; j++ {
@@ -397,6 +431,7 @@ func (rcv *Monster) UnPackTo(t *MonsterT) {
 		rcv.Path(&x, j)
 		t.Path[j] = x.UnPack()
 	}
+	t.IsAlive = rcv.IsAlive()
 }
 
 func (rcv *Monster) UnPack() *MonsterT {
@@ -536,8 +571,60 @@ func (rcv *Monster) MutateColor(n Color) bool {
 	return rcv._tab.MutateInt8Slot(16, int8(n))
 }
 
-func (rcv *Monster) Weapons(obj *Weapon, j int) bool {
+func (rcv *Monster) Hitbox(j int) float64 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(18))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetFloat64(a + flatbuffers.UOffsetT(j*8))
+	}
+	return 0
+}
+
+func (rcv *Monster) HitboxLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(18))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) MutateHitbox(j int, n float64) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(18))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.MutateFloat64(a+flatbuffers.UOffsetT(j*8), n)
+	}
+	return false
+}
+
+func (rcv *Monster) Status(j int) int32 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(20))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.GetInt32(a + flatbuffers.UOffsetT(j*4))
+	}
+	return 0
+}
+
+func (rcv *Monster) StatusLength() int {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(20))
+	if o != 0 {
+		return rcv._tab.VectorLen(o)
+	}
+	return 0
+}
+
+func (rcv *Monster) MutateStatus(j int, n int32) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(20))
+	if o != 0 {
+		a := rcv._tab.Vector(o)
+		return rcv._tab.MutateInt32(a+flatbuffers.UOffsetT(j*4), n)
+	}
+	return false
+}
+
+func (rcv *Monster) Weapons(obj *Weapon, j int) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(22))
 	if o != 0 {
 		x := rcv._tab.Vector(o)
 		x += flatbuffers.UOffsetT(j) * 4
@@ -549,7 +636,7 @@ func (rcv *Monster) Weapons(obj *Weapon, j int) bool {
 }
 
 func (rcv *Monster) WeaponsLength() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(18))
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(22))
 	if o != 0 {
 		return rcv._tab.VectorLen(o)
 	}
@@ -557,7 +644,7 @@ func (rcv *Monster) WeaponsLength() int {
 }
 
 func (rcv *Monster) Path(obj *Vec3, j int) bool {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(20))
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(24))
 	if o != 0 {
 		x := rcv._tab.Vector(o)
 		x += flatbuffers.UOffsetT(j) * 12
@@ -568,15 +655,27 @@ func (rcv *Monster) Path(obj *Vec3, j int) bool {
 }
 
 func (rcv *Monster) PathLength() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(20))
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(24))
 	if o != 0 {
 		return rcv._tab.VectorLen(o)
 	}
 	return 0
 }
 
+func (rcv *Monster) IsAlive() bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
+	if o != 0 {
+		return rcv._tab.GetBool(o + rcv._tab.Pos)
+	}
+	return false
+}
+
+func (rcv *Monster) MutateIsAlive(n bool) bool {
+	return rcv._tab.MutateBoolSlot(26, n)
+}
+
 func MonsterStart(builder *flatbuffers.Builder) {
-	builder.StartObject(9)
+	builder.StartObject(12)
 }
 func MonsterAddPos(builder *flatbuffers.Builder, pos flatbuffers.UOffsetT) {
 	builder.PrependStructSlot(0, flatbuffers.UOffsetT(pos), 0)
@@ -602,17 +701,32 @@ func MonsterStartInventoryVector(builder *flatbuffers.Builder, numElems int) fla
 func MonsterAddColor(builder *flatbuffers.Builder, color Color) {
 	builder.PrependInt8Slot(6, int8(color), 0)
 }
+func MonsterAddHitbox(builder *flatbuffers.Builder, hitbox flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(7, flatbuffers.UOffsetT(hitbox), 0)
+}
+func MonsterStartHitboxVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(8, numElems, 8)
+}
+func MonsterAddStatus(builder *flatbuffers.Builder, status flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(8, flatbuffers.UOffsetT(status), 0)
+}
+func MonsterStartStatusVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
+	return builder.StartVector(4, numElems, 4)
+}
 func MonsterAddWeapons(builder *flatbuffers.Builder, weapons flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(7, flatbuffers.UOffsetT(weapons), 0)
+	builder.PrependUOffsetTSlot(9, flatbuffers.UOffsetT(weapons), 0)
 }
 func MonsterStartWeaponsVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(4, numElems, 4)
 }
 func MonsterAddPath(builder *flatbuffers.Builder, path flatbuffers.UOffsetT) {
-	builder.PrependUOffsetTSlot(8, flatbuffers.UOffsetT(path), 0)
+	builder.PrependUOffsetTSlot(10, flatbuffers.UOffsetT(path), 0)
 }
 func MonsterStartPathVector(builder *flatbuffers.Builder, numElems int) flatbuffers.UOffsetT {
 	return builder.StartVector(12, numElems, 4)
+}
+func MonsterAddIsAlive(builder *flatbuffers.Builder, isAlive bool) {
+	builder.PrependBoolSlot(11, isAlive, false)
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

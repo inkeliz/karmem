@@ -16,22 +16,22 @@ goos: darwin
 goarch: arm64
 pkg: benchmark.karmem.org
 BenchmarkEncodeObjectAPI
-BenchmarkEncodeObjectAPI-8   	   18891	    317897 ns/op	       0 B/op	       0 allocs/op
-BenchmarkEncodeObjectAPI-8   	   18874	    317884 ns/op	       0 B/op	       0 allocs/op
-BenchmarkEncodeObjectAPI-8   	   18874	    317810 ns/op	       0 B/op	       0 allocs/op
-BenchmarkEncodeObjectAPI-8   	   18874	    317822 ns/op	       0 B/op	       0 allocs/op
-BenchmarkEncodeObjectAPI-8   	   18872	    317872 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeObjectAPI-8   	   18964	    318115 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeObjectAPI-8   	   18858	    318200 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeObjectAPI-8   	   18868	    318137 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeObjectAPI-8   	   18859	    318106 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeObjectAPI-8   	   18858	    318421 ns/op	       0 B/op	       0 allocs/op
 BenchmarkDecodeObjectAPI
-BenchmarkDecodeObjectAPI-8   	   40525	    147983 ns/op	   32000 B/op	    1000 allocs/op
-BenchmarkDecodeObjectAPI-8   	   40526	    147951 ns/op	   32000 B/op	    1000 allocs/op
-BenchmarkDecodeObjectAPI-8   	   40578	    148043 ns/op	   32000 B/op	    1000 allocs/op
-BenchmarkDecodeObjectAPI-8   	   40482	    148045 ns/op	   32000 B/op	    1000 allocs/op
-BenchmarkDecodeObjectAPI-8   	   40568	    147971 ns/op	   32000 B/op	    1000 allocs/op
+BenchmarkDecodeObjectAPI-8   	   40640	    147616 ns/op	   32000 B/op	    1000 allocs/op
+BenchmarkDecodeObjectAPI-8   	   40609	    147555 ns/op	   32000 B/op	    1000 allocs/op
+BenchmarkDecodeObjectAPI-8   	   40668	    147680 ns/op	   32000 B/op	    1000 allocs/op
+BenchmarkDecodeObjectAPI-8   	   40645	    147568 ns/op	   32000 B/op	    1000 allocs/op
+BenchmarkDecodeObjectAPI-8   	   40675	    147632 ns/op	   32000 B/op	    1000 allocs/op
 BenchmarkDecodeSumVec3
-BenchmarkDecodeSumVec3-8     	   60201	     99428 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDecodeSumVec3-8     	   60667	     99409 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDecodeSumVec3-8     	   60186	     98551 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDecodeSumVec3-8     	   60199	     98375 ns/op	       0 B/op	       0 allocs/op
-BenchmarkDecodeSumVec3-8     	   61161	     98156 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8     	   60598	     98302 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8     	   61329	     99662 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8     	   61318	     99663 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8     	   60027	     99166 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeSumVec3-8     	   61340	     97822 ns/op	       0 B/op	       0 allocs/op
 PASS
-ok  	benchmark.karmem.org	118.895s
+ok  	benchmark.karmem.org	119.142s

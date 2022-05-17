@@ -3,6 +3,7 @@ go run karmem.org/cmd/karmem build --golang -o "km" testdata/game.km
 go run karmem.org/cmd/karmem build --assemblyscript -o "km" testdata/game.km
 go run karmem.org/cmd/karmem build --zig -o "km" testdata/game.km
 go run karmem.org/cmd/karmem build --swift -o "km" testdata/game.km
+go run karmem.org/cmd/karmem build --c -o "km" testdata/game.km
 
 go test -tags fbs -v -bench=. -benchmem -benchtime=5s -count 5 . > result/fbs.out
 go test -tags km -v -bench=. -benchmem -benchtime=5s -count 5 . > result/km.out
@@ -27,9 +28,12 @@ go test -tags wasi,wazero,km,zig -v -bench=. -benchmem -benchtime=5s -count 5 . 
 
 xcrun --toolchain swiftwasm swift build --triple wasm32-unknown-wasi -v -c release
 xcrun --toolchain swiftwasm swiftc -L ".build/wasm32-unknown-wasi/release" -o "testdata/wasi/swift.wasi" -module-name benchmark -emit-executable @.build/wasm32-unknown-wasi/release/benchmark.product/Objects.LinkFileList -target wasm32-unknown-wasi -sdk /Library/Developer/Toolchains/swift-wasm-5.6.0-RELEASE.xctoolchain/usr/share/wasi-sysroot -L /Library/Developer/Toolchains/swift-wasm-5.6.0-RELEASE.xctoolchain/usr/lib -O -Xlinker "--export=_start" -Xlinker "--export=InputMemoryPointer" -Xlinker "--export=OutputMemoryPointer" -Xlinker "--export=KBenchmarkEncodeObjectAPI"  -Xlinker "--export=KBenchmarkDecodeObjectAPI" -Xlinker "--export=KBenchmarkDecodeSumVec3"
-go test -tags wasi,wazero,km,swift -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-swift.out
+go test -tags wasi,wazero,km,swift -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-swift-km.out
+
+emcc c/main.c -o testdata/wasi/c.wasm -s "EXPORTED_FUNCTIONS=_InputMemoryPointer,_OutputMemoryPointer,__start,_KBenchmarkDecodeSumVec3,_KBenchmarkDecodeObjectAPI,_KBenchmarkEncodeObjectAPI, _KBenchmarkDecodeSumVec3" --no-entry -sALLOW_MEMORY_GROWTH -O3 -flto
+go test -tags wasi,wazero,km,c -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-c-km.out
 
 benchstat result/fbs.out result/km.out
 benchstat result/wasi-go-km.out result/wasi-go-fbs.out
 benchstat result/wasi-go-leaking-km.out result/wasi-go-leaking-fbs.out
-benchstat result/wasi-go-km.out result/wasi-as-km.out result/wasi-zig-km.out result/wasi-swift.out
+benchstat result/wasi-go-km.out result/wasi-as-km.out result/wasi-zig-km.out result/wasi-swift-km.out result/wasi-c-km.out

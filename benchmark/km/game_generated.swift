@@ -6,6 +6,7 @@ public let EnumColorRed : EnumColor = 0
 public let EnumColorGreen : EnumColor = 1
 public let EnumColorBlue : EnumColor = 2
 
+
 public typealias EnumTeam = UInt8
 public let EnumTeamHumans : EnumTeam = 0
 public let EnumTeamOrcs : EnumTeam = 1
@@ -13,12 +14,26 @@ public let EnumTeamZombies : EnumTeam = 2
 public let EnumTeamRobots : EnumTeam = 3
 public let EnumTeamAliens : EnumTeam = 4
 
+public typealias EnumPacketIdentifier = UInt64
+public let EnumPacketIdentifierVec3 : EnumPacketIdentifier = 10268726485798425099
+public let EnumPacketIdentifierWeaponData : EnumPacketIdentifier = 15342010214468761012
+public let EnumPacketIdentifierWeapon : EnumPacketIdentifier = 8029074423243608167
+public let EnumPacketIdentifierMonsterData : EnumPacketIdentifier = 12254962724431809041
+public let EnumPacketIdentifierMonster : EnumPacketIdentifier = 5593793986513565154
+public let EnumPacketIdentifierMonsters : EnumPacketIdentifier = 14096677544474027661
+
+
+
 public struct Vec3 {
     public var X: Float = 0
     public var Y: Float = 0
     public var Z: Float = 0
 
     public init() {}
+
+    public func PacketIdentifier() -> EnumPacketIdentifier {
+        return EnumPacketIdentifierVec3
+    }
 
     public mutating func Reset() -> () {
         self.X = 0
@@ -74,6 +89,10 @@ public struct WeaponData {
 
     public init() {}
 
+    public func PacketIdentifier() -> EnumPacketIdentifier {
+        return EnumPacketIdentifierWeaponData
+    }
+
     public mutating func Reset() -> () {
         self.Damage = 0
         self.Range = 0
@@ -93,7 +112,7 @@ public struct WeaponData {
                 return false
             }
         }
-        writer.WriteAt(offset, size)
+        writer.WriteAt(offset, 12)
         let __DamageOffset: UInt32 = offset + 4
         writer.WriteAt(__DamageOffset, self.Damage)
         let __RangeOffset: UInt32 = offset + 8
@@ -123,6 +142,10 @@ public struct Weapon {
     public var Data: WeaponData = WeaponData()
 
     public init() {}
+
+    public func PacketIdentifier() -> EnumPacketIdentifier {
+        return EnumPacketIdentifierWeapon
+    }
 
     public mutating func Reset() -> () {
         self.Data.Reset()
@@ -183,8 +206,13 @@ public struct MonsterData {
     public var Status: [Int32] = [Int32]()
     public var Weapons: [Weapon] = Array(repeating: Weapon(), count: 4)
     public var Path: [Vec3] = [Vec3]()
+    public var IsAlive: Bool = false
 
     public init() {}
+
+    public func PacketIdentifier() -> EnumPacketIdentifier {
+        return EnumPacketIdentifierMonsterData
+    }
 
     public mutating func Reset() -> () {
         self.Pos.Reset()
@@ -214,6 +242,7 @@ public struct MonsterData {
             __PathIndex = __PathIndex + 1
         }
         self.Path.removeAll()
+        self.IsAlive = false
     }
 
     @inline(__always)
@@ -230,7 +259,7 @@ public struct MonsterData {
                 return false
             }
         }
-        writer.WriteAt(offset, size)
+        writer.WriteAt(offset, 147)
         let __PosOffset: UInt32 = offset + 4
         if (!self.Pos.Write(&writer, __PosOffset)) {
             return false
@@ -297,6 +326,8 @@ public struct MonsterData {
             }
             __PathIndex = __PathIndex + 1
         }
+        let __IsAliveOffset: UInt32 = offset + 146
+        writer.WriteAt(__IsAliveOffset, self.IsAlive)
 
         return true
     }
@@ -415,6 +446,7 @@ public struct MonsterData {
         }
         __PathIndex = __PathIndex + 1
     }
+    self.IsAlive = viewer.IsAlive()
     }
 
 }
@@ -427,6 +459,10 @@ public struct Monster {
     public var Data: MonsterData = MonsterData()
 
     public init() {}
+
+    public func PacketIdentifier() -> EnumPacketIdentifier {
+        return EnumPacketIdentifierMonster
+    }
 
     public mutating func Reset() -> () {
         self.Data.Reset()
@@ -480,6 +516,10 @@ public struct Monsters {
 
     public init() {}
 
+    public func PacketIdentifier() -> EnumPacketIdentifier {
+        return EnumPacketIdentifierMonsters
+    }
+
     public mutating func Reset() -> () {
         let __MonstersLen = self.Monsters.count
         var __MonstersIndex = 0
@@ -504,7 +544,7 @@ public struct Monsters {
                 return false
             }
         }
-        writer.WriteAt(offset, size)
+        writer.WriteAt(offset, 16)
         let __MonstersSize: UInt32 = 8 * UInt32(self.Monsters.count)
         let __MonstersOffset = writer.Alloc(__MonstersSize)
         if (__MonstersOffset == 0) {
@@ -875,6 +915,17 @@ public struct MonsterDataViewer {
             }
         }
         return karmem.NewSlice(UnsafeRawPointer(reader.pointer + Int(offset)), size / 16, 16, Vec3Viewer())
+    }
+    @inline(__always)
+    public func IsAlive() -> Bool {
+        if ((UInt32(146) + UInt32(1)) > self.SizeOf()) {
+            return false
+        }
+        var v : Bool = Bool(false)
+        v = withUnsafePointer(to: self) {
+            return karmem.Load(UnsafeRawPointer($0), 146, &v)
+        }
+        return v
     }
 }
 

@@ -54,7 +54,8 @@ func initEncode() {
 						},
 					},
 				},
-				Path: make([]km.Vec3, _pathLen),
+				Path:    make([]km.Vec3, _pathLen),
+				IsAlive: i&1 == 0,
 			},
 		}
 		for j := range KStruct.Monsters[i].Data.Path {

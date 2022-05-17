@@ -38,8 +38,8 @@ func initEncode() {
 			Team:      fbs.TeamAliens,
 			Inventory: make([]uint8, 100),
 			Color:     0,
-			//	Hitbox:    [5]float64{4.2, 313.12, 4.02, 90, -2942.123},
-			//	Status:    []int32{23123, 83859, 30123123, 34123, -23111, -923, 93123, 11123},
+			Hitbox:    [5]float64{4.2, 313.12, 4.02, 90, -2942.123},
+			Status:    []int32{23123, 83859, 30123123, 34123, -23111, -923, 93123, 11123},
 			Weapons: []*fbs.WeaponT{
 				{
 					Damage: 100,
@@ -50,7 +50,8 @@ func initEncode() {
 					Range:  int32(i),
 				},
 			},
-			Path: make([]*fbs.Vec3T, _pathLen),
+			Path:    make([]*fbs.Vec3T, _pathLen),
+			IsAlive: i&1 == 0,
 		}
 		for j := range KStruct.Monsters[i].Path {
 			v := &fbs.Vec3T{

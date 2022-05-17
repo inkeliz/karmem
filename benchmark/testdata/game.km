@@ -1,4 +1,4 @@
-karmem game @golang.package(`km`) @assemblyscript.import(`../../assemblyscript/karmem`);
+karmem game @golang.package(`km`) @assemblyscript.import(`../../assemblyscript/karmem`) @c.import(`../../c/karmem.h`);
 
 enum Color uint8 {Red;Green;Blue;}
 
@@ -31,6 +31,7 @@ struct MonsterData table {
     Status [<10]int32;
     Weapons [4]Weapon;
     Path [<2000]Vec3;
+    IsAlive bool;
 }
 
 struct Monster inline {

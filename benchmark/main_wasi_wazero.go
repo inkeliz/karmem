@@ -5,13 +5,13 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
 	"github.com/tetratelabs/wazero/wasi"
 	"golang.org/x/text/encoding/unicode"
 	"os"
-	"errors"
 	"path/filepath"
 )
 
@@ -44,14 +44,18 @@ func initWasm(b interface {
 		return getStringImpl(ptr)
 	}
 
-	w.modules[1], err = runtime.NewModuleBuilder("env").ExportFunction("abort", func(msg, file, line, column int32) {
-		var m string
-		m += fmt.Sprint(`msg:`, __getString(msg))
-		m += fmt.Sprint(`file:`, __getString(file))
-		m += fmt.Sprint(`line:`, __getString(line))
-		m += fmt.Sprint(`column:`, __getString(column))
-		panic(m)
-	}).Instantiate(context.Background())
+	w.modules[1], err = runtime.NewModuleBuilder("env").
+		ExportFunction("abort", func(msg, file, line, column int32) {
+			var m string
+			m += fmt.Sprint(`msg:`, __getString(msg))
+			m += fmt.Sprint(`file:`, __getString(file))
+			m += fmt.Sprint(`line:`, __getString(line))
+			m += fmt.Sprint(`column:`, __getString(column))
+			panic(m)
+		}).
+		ExportFunction("emscripten_notify_memory_growth", func(_ int32) {
+		}).
+		Instantiate(context.Background())
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -71,6 +75,10 @@ func initWasm(b interface {
 		b.Fatal(err)
 	}
 
+	if _, ok := w.mainModule.Memory().Read(nil, uint32(input[0]), uint32(len(InputMemory))); !ok {
+		b.Fatal("invalid ptr", input)
+	}
+
 	w.mainModule.Memory().Write(context.Background(), uint32(input[0]), make([]byte, len(InputMemory)))
 
 	output, err := w.mainModule.ExportedFunction("OutputMemoryPointer").Call(context.Background())
@@ -78,10 +86,14 @@ func initWasm(b interface {
 		b.Fatal(err)
 	}
 
+	if _, ok := w.mainModule.Memory().Read(nil, uint32(output[0]), uint32(len(InputMemory))); !ok {
+		b.Fatal("invalid ptr", output)
+	}
+
 	w.mainModule.Memory().Write(context.Background(), uint32(output[0]), make([]byte, len(InputMemory)))
 
 	if len(input) == 0 || len(output) == 0 || input[0] == 0 || output[0] == 0 {
-		b.Fatal("invalid ptr")
+		b.Fatal("invalid ptr", input, output)
 	}
 
 	functions := make(map[string]api.Function, len(fn))
@@ -118,10 +130,10 @@ func (w *WasmWazero) ReaderReset(b []byte) {
 }
 
 func (w *WasmWazero) Run(s string, v ...uint64) ([]uint64, error) {
-    f, ok := w.functions[s]
-    if !ok || f == nil {
-        return nil, errors.New("invalid function of "+ s)
-    }
+	f, ok := w.functions[s]
+	if !ok || f == nil {
+		return nil, errors.New("invalid function of " + s)
+	}
 	return f.Call(context.Background(), v...)
 }
 

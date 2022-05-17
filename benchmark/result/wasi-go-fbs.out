@@ -2,22 +2,22 @@ goos: darwin
 goarch: arm64
 pkg: benchmark.karmem.org
 BenchmarkDecodeSumVec3
-BenchmarkDecodeSumVec3-8     	    1352	   4438915 ns/op	    1248 B/op	       5 allocs/op
-BenchmarkDecodeSumVec3-8     	    1350	   4439536 ns/op	    1248 B/op	       5 allocs/op
-BenchmarkDecodeSumVec3-8     	    1353	   4438708 ns/op	    1248 B/op	       5 allocs/op
-BenchmarkDecodeSumVec3-8     	    1352	   4439215 ns/op	    1248 B/op	       5 allocs/op
-BenchmarkDecodeSumVec3-8     	    1344	   4436398 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	    1681	   3569479 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	    1682	   3569239 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	    1681	   3572137 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	    1680	   3568488 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	    1681	   3573223 ns/op	    1248 B/op	       5 allocs/op
 BenchmarkDecodeObjectAPI
-BenchmarkDecodeObjectAPI-8   	     258	  31188701 ns/op	 2172451 B/op	       5 allocs/op
-BenchmarkDecodeObjectAPI-8   	     259	  31109879 ns/op	 2164075 B/op	       5 allocs/op
-BenchmarkDecodeObjectAPI-8   	     260	  31149685 ns/op	 2155763 B/op	       5 allocs/op
-BenchmarkDecodeObjectAPI-8   	     259	  31132121 ns/op	 2164075 B/op	       5 allocs/op
-BenchmarkDecodeObjectAPI-8   	     260	  31086397 ns/op	 2155763 B/op	       5 allocs/op
+BenchmarkDecodeObjectAPI-8   	     260	  26533696 ns/op	 2155763 B/op	       5 allocs/op
+BenchmarkDecodeObjectAPI-8   	     261	  26424459 ns/op	 2147515 B/op	       5 allocs/op
+BenchmarkDecodeObjectAPI-8   	     262	  26386524 ns/op	 2139330 B/op	       5 allocs/op
+BenchmarkDecodeObjectAPI-8   	     260	  26522097 ns/op	 2155763 B/op	       5 allocs/op
+BenchmarkDecodeObjectAPI-8   	     262	  26507374 ns/op	 2139330 B/op	       5 allocs/op
 BenchmarkEncodeObjectAPI
-BenchmarkEncodeObjectAPI-8   	     591	  10108353 ns/op	    3024 B/op	       4 allocs/op
-BenchmarkEncodeObjectAPI-8   	     592	  10099061 ns/op	    3024 B/op	       4 allocs/op
-BenchmarkEncodeObjectAPI-8   	     592	  10109368 ns/op	    3024 B/op	       4 allocs/op
-BenchmarkEncodeObjectAPI-8   	     592	  10223693 ns/op	    3024 B/op	       4 allocs/op
-BenchmarkEncodeObjectAPI-8   	     592	  10107661 ns/op	    3024 B/op	       4 allocs/op
+BenchmarkEncodeObjectAPI-8   	     578	  10368660 ns/op	    3280 B/op	       4 allocs/op
+BenchmarkEncodeObjectAPI-8   	     579	  10355954 ns/op	    3280 B/op	       4 allocs/op
+BenchmarkEncodeObjectAPI-8   	     578	  10368027 ns/op	    3280 B/op	       4 allocs/op
+BenchmarkEncodeObjectAPI-8   	     578	  10371664 ns/op	    3280 B/op	       4 allocs/op
+BenchmarkEncodeObjectAPI-8   	     578	  10373925 ns/op	    3280 B/op	       4 allocs/op
 PASS
-ok  	benchmark.karmem.org	122.352s
+ok  	benchmark.karmem.org	115.954s

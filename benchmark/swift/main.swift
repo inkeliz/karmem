@@ -1,20 +1,20 @@
 import karmem
 import km
 
-var InputMemory : [UInt8] = Array(repeating: 0, count: 8_000_000)
-var OutputMemory : [UInt8] = Array(repeating: 0, count: 8_000_001)
+var InputMemory: [UInt8] = Array(repeating: 0, count: 8_000_000)
+var OutputMemory: [UInt8] = Array(repeating: 0, count: 8_000_001)
 
 @_cdecl("InputMemoryPointer")
 func InputMemoryPointer() -> UInt32 {
-    return UInt32(Int(bitPattern: InputMemory.withUnsafeBufferPointer({return UnsafePointer($0.baseAddress!)})))
+    return UInt32(Int(bitPattern: InputMemory.withUnsafeBufferPointer({ return UnsafePointer($0.baseAddress!) })))
 }
 
 @_cdecl("OutputMemoryPointer")
 func OutputMemoryPointer() -> UInt32 {
-    return UInt32(Int(bitPattern: OutputMemory.withUnsafeBufferPointer({return UnsafePointer($0.baseAddress!)})))
+    return UInt32(Int(bitPattern: OutputMemory.withUnsafeBufferPointer({ return UnsafePointer($0.baseAddress!) })))
 }
 
-var _KarmemStruct : km.Monsters = km.Monsters()
+var _KarmemStruct: km.Monsters = km.Monsters()
 var _KarmemWriter = karmem.NewFixedWriter(OutputMemory)
 var _KarmemReader = karmem.NewReader(InputMemory)
 
@@ -34,16 +34,14 @@ func KBenchmarkDecodeObjectAPI(_ size: UInt32) {
 func KBenchmarkDecodeSumVec3(_ size: UInt32) -> Float {
     _ = _KarmemReader.SetSize(size)
 
-    var monsters = km.NewMonstersViewer(_KarmemReader, 0)
+    let monsters = km.NewMonstersViewer(_KarmemReader, 0)
     var monstersList = monsters.Monsters(_KarmemReader)
 
     var sum = km.Vec3()
-    var i : Int = 0
-    while(i < monstersList.count) {
-
-    var x = monstersList[i].Data(_KarmemReader).Hitbox()
+    var i: Int = 0
+    while (i < monstersList.count) {
         var path = monstersList[i].Data(_KarmemReader).Path(_KarmemReader)
-        var p : Int = 0
+        var p: Int = 0
         while (p < path.count) {
             sum.X += path[p].X()
             sum.Y += path[p].Y()
@@ -52,6 +50,6 @@ func KBenchmarkDecodeSumVec3(_ size: UInt32) -> Float {
         }
         i += 1
     }
-    return sum.X+sum.Y+sum.Z
+    return sum.X + sum.Y + sum.Z
 }
 

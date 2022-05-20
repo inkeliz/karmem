@@ -1,119 +1,131 @@
 package kmgen
 
 import (
-	"bytes"
-	"io"
+	"fmt"
 	"karmem.org/cmd/karmem/kmparser"
-	"text/template"
 )
 
 type Zig struct {
-	buf             *bytes.Buffer
-	template        *template.Template
-	translateTypes  ValueTypeTranslator
-	translateViewer ValueTypeTranslator
-	*kmparser.File
+	content *kmparser.Content
+	generatorFinishCopy
 }
+
+func init() { RegisterGenerator(ZigGenerator()) }
 
 func ZigGenerator() Generator {
-	t, err := template.ParseFS(templateFiles, "zig_template.*")
-	if err != nil {
-		panic(err)
-	}
-
-	return &Zig{
-		buf:      bytes.NewBuffer(nil),
-		template: t,
-		translateTypes: ValueTypeTranslator{
-			Byte:    "u8",
-			Bool:    "bool",
-			Char:    "[]u8",
-			Uint8:   "u8",
-			Uint16:  "u16",
-			Uint32:  "u32",
-			Uint64:  "u64",
-			Int8:    "i8",
-			Int16:   "i16",
-			Int32:   "i32",
-			Int64:   "i64",
-			Float32: "f32",
-			Float64: "f64",
-			Enum:    NewValueTypeFormatter(`Enum{{.}}`),
-			Array:   NewValueTypeFormatter(`[{{.Length}}]{{.PlainType}}`),
-			Slice:   NewValueTypeFormatter(`[]{{.PlainType}}`),
-		},
-		translateViewer: ValueTypeTranslator{
-			Byte:    "u8",
-			Bool:    "bool",
-			Char:    "[]u8",
-			Uint8:   "u8",
-			Uint16:  "u16",
-			Uint32:  "u32",
-			Uint64:  "u64",
-			Int8:    "i8",
-			Int16:   "i16",
-			Int32:   "i32",
-			Int64:   "i64",
-			Float32: "f32",
-			Float64: "f64",
-			Enum:    NewValueTypeFormatter(`Enum{{.}}`),
-			Struct:  NewValueTypeFormatter(`*const {{.PlainType}}`),
-			Array:   NewValueTypeFormatter(`[]const {{.PlainType}}`),
-			Slice:   NewValueTypeFormatter(`[]const {{.PlainType}}`),
-		},
-	}
+	return &Zig{}
 }
 
-func (gen *Zig) Start(file *kmparser.File) error {
-	gen.translateTypes.TranslateTypes(file)
-	gen.translateViewer.TranslateViewerTypes(file)
-	gen.File = file
+func (gen *Zig) Start(file *kmparser.Content) (compiler Compiler, err error) {
+	gen.content = file
+	return NewTemplate(
+		[]string{`header`, `enums`, `enums_builder`, `struct`, `struct_builder`},
+		gen.functions(),
+		"zig_template.*",
+	), nil
+}
 
-	for _, f := range []func() error{gen.start, gen.enums, gen.structs, gen.enumsBuilder, gen.structBuilder} {
-		if err := f(); err != nil {
-			return err
+func (gen *Zig) functions() (f TemplateFunctions) {
+	f = NewTemplateFunctions(gen, gen.content)
+
+	f.ToDefault = func(typ kmparser.Type) string {
+		t := typ.PlainSchema
+		switch t {
+		case "bool":
+			return "false"
+		case "char":
+			return `""`
+		default:
+			return "0"
 		}
 	}
 
-	return nil
-}
-
-func (gen *Zig) start() error {
-	pkg := gen.Header.Name
-	if p := gen.Header.GetTag("zig.package"); p != nil {
-		pkg = p.Value
+	f.ToPlainType = func(typ kmparser.Type) string {
+		t := typ.PlainSchema
+		if typ.Format == kmparser.TypeFormatEnum {
+			return fmt.Sprintf(`Enum%s`, t)
+		}
+		switch t {
+		case "byte":
+			return "u8"
+		case "bool":
+			return "bool"
+		case "char":
+			return "[]u8"
+		case "uint8":
+			return "u8"
+		case "uint16":
+			return "u16"
+		case "uint32":
+			return "u32"
+		case "uint64":
+			return "u64"
+		case "int8":
+			return "i8"
+		case "int16":
+			return "i16"
+		case "int32":
+			return "i32"
+		case "int64":
+			return "i64"
+		case "float32":
+			return "f32"
+		case "float64":
+			return "f64"
+		default:
+			return t
+		}
 	}
 
-	imports := "karmem"
-	if p := gen.Header.GetTag("zig.import"); p != nil {
-		imports = p.Value
+	f.ToType = func(typ kmparser.Type) string {
+		p := f.ToPlainType(typ)
+		switch {
+		case typ.PlainSchema == "char":
+			return p
+		case typ.Model == kmparser.TypeModelSlice, typ.Model == kmparser.TypeModelSliceLimited:
+			return fmt.Sprintf(`[]%s`, p)
+		case typ.Model == kmparser.TypeModelArray:
+			return fmt.Sprintf(`[%d]%s`, typ.Length, p)
+		default:
+			return p
+		}
 	}
 
-	return gen.template.ExecuteTemplate(gen.buf, `header`, struct {
-		Package, Import string
-	}{
-		Package: pkg,
-		Import:  imports,
-	})
+	f.ToPlainTypeView = func(typ kmparser.Type) string {
+		p := f.ToPlainType(typ)
+		switch typ.Format {
+		case kmparser.TypeFormatStruct, kmparser.TypeFormatTable:
+			return fmt.Sprintf(`*const %sViewer`, p)
+		default:
+			return p
+		}
+	}
+
+	f.ToTypeView = func(typ kmparser.Type) string {
+		p := f.ToPlainTypeView(typ)
+		if typ.PlainSchema == "char" {
+			return p
+		}
+		switch typ.Model {
+		case kmparser.TypeModelArray, kmparser.TypeModelSlice, kmparser.TypeModelSliceLimited:
+			switch typ.Format {
+			case kmparser.TypeFormatStruct, kmparser.TypeFormatTable:
+				return fmt.Sprintf(`[]const %sViewer`, f.ToPlainType(typ))
+			default:
+				return fmt.Sprintf(`[]%s`, p)
+			}
+		default:
+			return p
+		}
+	}
+
+	return f
 }
 
-func (gen *Zig) enums() error {
-	return gen.template.ExecuteTemplate(gen.buf, `enums`, gen.File.Enum)
+func (gen *Zig) Language() string { return `zig` }
+
+func (gen *Zig) Options() map[string]string {
+	return map[string]string{"import": "karmem"}
 }
 
-func (gen *Zig) enumsBuilder() error {
-	return gen.template.ExecuteTemplate(gen.buf, `enums_builder`, gen.File.Enum)
-}
-
-func (gen *Zig) structs() error {
-	return gen.template.ExecuteTemplate(gen.buf, `struct`, gen.File.Struct)
-}
-
-func (gen *Zig) structBuilder() error {
-	return gen.template.ExecuteTemplate(gen.buf, `struct_builder`, gen.File.Struct)
-}
-
-func (gen *Zig) Save(output io.Writer) error {
-	_, err := io.Copy(output, gen.buf)
-	return err
-}
+func (gen *Zig) Extensions() []string { return []string{`.zig`} }

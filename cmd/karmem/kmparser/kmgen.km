@@ -1,0 +1,115 @@
+karmem kmparser;
+
+struct Tag inline {
+    Name  []char;
+    Value []char;
+}
+
+struct StructSize table {
+	Minimum    uint32;
+	Content    uint32;
+	Padding    uint32;
+	Total      uint32;
+	TotalGroup []uint8;
+}
+
+struct StructFieldSize table {
+	Minimum    uint32;
+	Allocation uint32;
+	Field      uint32;
+}
+
+enum StructClass uint8 {
+    None;
+    Table;
+    Inline;
+}
+
+
+enum TypeModel uint8 {
+    None;
+    Single;
+    Array;
+    Slice;
+    SliceLimited;
+}
+
+enum TypeFormat uint8 {
+    None;
+    Primitive;
+    Enum;
+    Struct;
+    Table;
+}
+
+struct Type table {
+    Schema []char;
+    PlainSchema []char;
+    Length uint32;
+
+    Format TypeFormat;
+    Model  TypeModel;
+}
+
+struct EnumFieldData table {
+    Name  []char;
+    Value []char;
+    Tags  []Tag;
+}
+
+struct EnumField inline {
+    Data EnumFieldData;
+}
+
+struct EnumData table {
+    Name []char;
+    Type Type;
+    Fields []EnumField;
+}
+
+struct Enum inline {
+    Data EnumData;
+}
+
+struct StructFieldData table {
+	Name    []char;
+	Type    Type;
+    Offset  uint32;
+	Tags    []Tag;
+	Size    StructFieldSize;
+}
+
+struct StructField inline {
+    Data StructFieldData;
+}
+
+struct StructData table {
+	ID      uint64;
+	Name    []char;
+	Size    StructSize;
+	Fields  []StructField;
+	Class   StructClass;
+}
+
+struct Struct inline {
+    Data StructData;
+}
+
+struct ContentSize table {
+    Largest uint32;
+}
+
+struct ContentOptions table {
+    Module []char;
+    Import []char;
+    Prefix []char;
+}
+
+struct Content table {
+    Tags    []Tag;
+    Structs []Struct;
+    Enums   []Enum;
+    Size    ContentSize;
+    Options ContentOptions;
+    Module  []char;
+}

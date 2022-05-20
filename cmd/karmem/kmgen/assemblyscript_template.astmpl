@@ -1,16 +1,16 @@
 {{- define "header"}}
-import * as karmem from '{{.Import}}'
+import * as karmem from '{{FromTags "import"}}'
 
-let _Null = new StaticArray<u8>({{.Largest}})
+let _Null = new StaticArray<u8>({{.Size.Largest}})
 
 {{- end}}
 {{define "enums"}}
 {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
-{{- range $root := .}}
+{{- range $root := .Enums}}
 
-export type {{$root.Name}} = {{$root.Type}};
-{{- range $field := $root.Fields }}
-export const {{$root.Name}}{{$field.Name}} : {{$root.Name}} = {{$field.Value}}
+export type {{$root.Data.Name}} = {{ToType $root.Data.Type}};
+{{- range $field := $root.Data.Fields }}
+export const {{$root.Data.Name}}{{$field.Data.Name}} : {{$root.Data.Name}} = {{$field.Data.Value}}
 {{- end }}
 {{- end}}
 {{end}}
@@ -22,64 +22,64 @@ export const {{$root.Name}}{{$field.Name}} : {{$root.Name}} = {{$field.Value}}
 {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
 
 export type PacketIdentifier = u64
-{{- range $root := .}}
-export const PacketIdentifier{{$root.Name}} = {{$root.ID}}
+{{- range $root := .Structs}}
+export const PacketIdentifier{{$root.Data.Name}} = {{$root.Data.ID}}
 {{- end }}
 
-{{range $root := .}}
+{{range $root := .Structs}}
 
-export class {{$root.Name}} {
-    {{- range $field := $root.Fields }}
-    {{ $field.Name }}: {{$field.Type}};
+export class {{$root.Data.Name}} {
+    {{- range $field := $root.Data.Fields }}
+    {{ $field.Data.Name }}: {{ToType $field.Data.Type}};
     {{- end }}
 
     static PacketIdentifier() : PacketIdentifier {
-        return PacketIdentifier{{$root.Name}}
+        return PacketIdentifier{{$root.Data.Name}}
     }
 
-    static Reset(x: {{$root.Name}}): void {
-        {{- range $field := $root.Fields }}
-        {{- if $field.IsBasic }}
-        {{- if or $field.IsNative $field.IsEnum }}
-        x.{{ $field.Name }} = {{$field.Default}};
+    static Reset(x: {{$root.Data.Name}}): void {
+        {{- range $field := $root.Data.Fields }}
+        {{- if $field.Data.Type.IsBasic }}
+        {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
+        x.{{ $field.Data.Name }} = {{ToDefault $field.Data.Type}};
         {{- else}}
-        {{$field.PlainType}}.Reset(x.{{ $field.Name }});
+        {{ToPlainType $field.Data.Type}}.Reset(x.{{ $field.Data.Name }});
         {{- end}}
         {{- end }}
-        {{- if $field.IsArray }}
-        let __{{$field.Name}}Len = x.{{$field.Name}}.length;
-        for (let i = 0; i < __{{$field.Name}}Len; i++) {
-            {{- if not $field.IsNative}}
-            {{$field.PlainType}}.Reset(x.{{$field.Name}}[i]);
+        {{- if $field.Data.Type.IsArray }}
+        let __{{$field.Data.Name}}Len = x.{{$field.Data.Name}}.length;
+        for (let i = 0; i < __{{$field.Data.Name}}Len; i++) {
+            {{- if not $field.Data.Type.IsNative}}
+            {{ToPlainType $field.Data.Type}}.Reset(x.{{$field.Data.Name}}[i]);
             {{- else}}
-            x.{{$field.Name}}[i] = {{$field.Default}};
+            x.{{$field.Data.Name}}[i] = {{ToDefault $field.Data.Type}};
             {{- end}}
         }
         {{- end }}
-        {{- if $field.IsSlice }}
-        {{- if $field.IsString}}
-        x.{{$field.Name}} = ""
+        {{- if $field.Data.Type.IsSlice }}
+        {{- if $field.Data.Type.IsString}}
+        x.{{$field.Data.Name}} = ""
         {{- else }}
-        {{- if not $field.IsNative}}
-        let __{{$field.Name}}Len = x.{{$field.Name}}.length;
-        for (let i = 0; i < __{{$field.Name}}Len; i++) {
-            {{$field.PlainType}}.Reset(x.{{$field.Name}}[i]);
+        {{- if not $field.Data.Type.IsNative}}
+        let __{{$field.Data.Name}}Len = x.{{$field.Data.Name}}.length;
+        for (let i = 0; i < __{{$field.Data.Name}}Len; i++) {
+            {{ToPlainType $field.Data.Type}}.Reset(x.{{$field.Data.Name}}[i]);
         }
         {{- end}}
-        x.{{$field.Name}}.length = 0;
+        x.{{$field.Data.Name}}.length = 0;
         {{- end }}
         {{- end }}
         {{- end }}
     }
 
     @inline
-    static WriteAsRoot(x: {{$root.Name}}, writer: karmem.Writer): void {
+    static WriteAsRoot(x: {{$root.Data.Name}}, writer: karmem.Writer): void {
         this.Write(x, writer, 0);
     }
 
-    static Write(x: {{$root.Name}}, writer: karmem.Writer, start: u32): boolean {
+    static Write(x: {{$root.Data.Name}}, writer: karmem.Writer, start: u32): boolean {
         let offset = start;
-        const size: u32 = {{$root.Size}};
+        const size: u32 = {{$root.Data.Size.Total}};
         if (offset == 0) {
             offset = writer.Alloc(size);
             if (offset == 0xFFFFFFFF) {
@@ -87,70 +87,66 @@ export class {{$root.Name}} {
             }
         }
 
-        {{- if $root.IsTable }}
-        writer.WriteAt<u32>(offset, {{$root.ContentSize}});
+        {{- if $root.Data.IsTable }}
+        writer.WriteAt<u32>(offset, {{$root.Data.Size.Content}});
         {{- end }}
 
-        {{- range $field := $root.Fields }}
-        {{- if not $field.IsInline}}
-        {{- if $field.IsBasic}}
-        const __{{$field.Name}}Size: u32 = {{$field.AllocSize}};
+        {{- range $field := $root.Data.Fields }}
+        {{- if not $field.Data.Type.IsInline}}
+        {{- if $field.Data.Type.IsBasic}}
+        const __{{$field.Data.Name}}Size: u32 = {{$field.Data.Size.Allocation}};
         {{- else}}
-        {{- if $field.IsString }}
-        const __{{$field.Name}}String : Uint8Array = Uint8Array.wrap(String.UTF8.encode(x.{{$field.Name}}, false))
-        const __{{$field.Name}}Size: u32 = {{$field.AllocSize}} * __{{$field.Name}}String.length;
+        {{- if $field.Data.Type.IsString }}
+        const __{{$field.Data.Name}}String : Uint8Array = Uint8Array.wrap(String.UTF8.encode(x.{{$field.Data.Name}}, false))
+        const __{{$field.Data.Name}}Size: u32 = {{$field.Data.Size.Allocation}} * __{{$field.Data.Name}}String.length;
         {{- else }}
-        const __{{$field.Name}}Size: u32 = {{$field.AllocSize}} * x.{{$field.Name}}.length;
+        const __{{$field.Data.Name}}Size: u32 = {{$field.Data.Size.Allocation}} * x.{{$field.Data.Name}}.length;
         {{- end }}
         {{- end}}
         {{- end }}
-        {{- if $field.IsInline }}
-        let __{{$field.Name}}Offset: u32 = offset + {{$field.Offset}};
+        {{- if $field.Data.Type.IsInline }}
+        let __{{$field.Data.Name}}Offset: u32 = offset + {{$field.Data.Offset}};
         {{- else }}
-        let __{{$field.Name}}Offset = writer.Alloc(__{{$field.Name}}Size);
-        if (__{{$field.Name}}Offset == 0) {
+        let __{{$field.Data.Name}}Offset = writer.Alloc(__{{$field.Data.Name}}Size);
+        if (__{{$field.Data.Name}}Offset == 0) {
             return false;
         }
-        writer.WriteAt<u32>(offset +{{$field.Offset}}, __{{$field.Name}}Offset);
-        {{- if $field.IsSlice}}
-        writer.WriteAt<u32>(offset +{{$field.Offset}} +4, __{{$field.Name}}Size);
-        writer.WriteAt<u32>(offset + {{$field.Offset}} + 4 + 4, {{$field.AllocSize}})
+        writer.WriteAt<u32>(offset +{{$field.Data.Offset}}, __{{$field.Data.Name}}Offset);
+        {{- if $field.Data.Type.IsSlice}}
+        writer.WriteAt<u32>(offset +{{$field.Data.Offset}} +4, __{{$field.Data.Name}}Size);
+        writer.WriteAt<u32>(offset + {{$field.Data.Offset}} + 4 + 4, {{$field.Data.Size.Allocation}})
         {{- end}}
         {{- end }}
-        {{- if or $field.IsNative $field.IsEnum }}
-        {{- if $field.IsInline}}
-        {{- if $field.IsArray}}
-        writer.WriteArrayAt<{{$field.Type}}>(__{{$field.Name}}Offset, x.{{$field.Name}});
+        {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
+        {{- if $field.Data.Type.IsInline}}
+        {{- if $field.Data.Type.IsArray}}
+        writer.WriteArrayAt<{{ToType $field.Data.Type}}>(__{{$field.Data.Name}}Offset, x.{{$field.Data.Name}});
         {{- else}}
-        {{- if $field.IsEnum}}
-        writer.WriteAt<{{$field.BackgroundType}}>(__{{$field.Name}}Offset, {{$field.BackgroundType}}(x.{{$field.Name}}));
-        {{- else}}
-        writer.WriteAt<{{$field.Type}}>(__{{$field.Name}}Offset, x.{{$field.Name}});
-        {{- end}}
+        writer.WriteAt<{{ToType $field.Data.Type}}>(__{{$field.Data.Name}}Offset, x.{{$field.Data.Name}});
         {{- end}}
         {{- else}}
-        {{- if $field.IsSlice}}
-        {{- if $field.IsString}}
-        writer.WriteSliceAt<Uint8Array>(__{{$field.Name}}Offset, __{{$field.Name}}String);
+        {{- if $field.Data.Type.IsSlice}}
+        {{- if $field.Data.Type.IsString}}
+        writer.WriteSliceAt<Uint8Array>(__{{$field.Data.Name}}Offset, __{{$field.Data.Name}}String);
         {{- else}}
-        writer.WriteSliceAt<{{$field.Type}}>(__{{$field.Name}}Offset, x.{{$field.Name}});
+        writer.WriteSliceAt<{{ToType $field.Data.Type}}>(__{{$field.Data.Name}}Offset, x.{{$field.Data.Name}});
         {{- end}}
         {{- else}}
-        writer.WriteAt<{{$field.Type}}>(__{{$field.Name}}Offset, x.{{$field.Name}});
+        writer.WriteAt<{{ToType $field.Data.Type}}>(__{{$field.Data.Name}}Offset, x.{{$field.Data.Name}});
         {{- end}}
         {{- end}}
         {{- else }}
-        {{- if $field.IsBasic}}
-        if (!{{$field.PlainType}}.Write(x.{{$field.Name}}, writer, __{{$field.Name}}Offset)) {
+        {{- if $field.Data.Type.IsBasic}}
+        if (!{{ToPlainType $field.Data.Type}}.Write(x.{{$field.Data.Name}}, writer, __{{$field.Data.Name}}Offset)) {
             return false;
         }
         {{- else}}
-        let __{{$field.Name}}Len = x.{{$field.Name}}.length;
-        for (let i = 0; i < __{{$field.Name}}Len; i++) {
-            if (!{{$field.PlainType}}.Write(x.{{$field.Name}}[i], writer, __{{$field.Name}}Offset)) {
+        let __{{$field.Data.Name}}Len = x.{{$field.Data.Name}}.length;
+        for (let i = 0; i < __{{$field.Data.Name}}Len; i++) {
+            if (!{{ToPlainType $field.Data.Type}}.Write(x.{{$field.Data.Name}}[i], writer, __{{$field.Data.Name}}Offset)) {
                 return false;
             }
-            __{{$field.Name}}Offset += {{$field.AllocSize}};
+            __{{$field.Data.Name}}Offset += {{$field.Data.Size.Allocation}};
         }
         {{- end}}
         {{- end}}
@@ -160,75 +156,75 @@ export class {{$root.Name}} {
     }
 
     @inline
-    static ReadAsRoot(x: {{$root.Name}}, reader: karmem.Reader) : void {
-        this.Read(x, New{{$root.Name}}Viewer(reader, 0), reader);
+    static ReadAsRoot(x: {{$root.Data.Name}}, reader: karmem.Reader) : void {
+        this.Read(x, New{{$root.Data.Name}}Viewer(reader, 0), reader);
     }
 
     @inline
-    static Read(x: {{$root.Name}}, viewer: {{$root.Name}}Viewer, reader: karmem.Reader) : void {
-    {{- range $field := $root.Fields }}
-    {{- if $field.IsBasic}}
-    {{- if $field.IsEnum}}
-    x.{{$field.Name}} = <{{$field.Type}}>viewer.{{$field.Name}}();
+    static Read(x: {{$root.Data.Name}}, viewer: {{$root.Data.Name}}Viewer, reader: karmem.Reader) : void {
+    {{- range $field := $root.Data.Fields }}
+    {{- if $field.Data.Type.IsBasic}}
+    {{- if $field.Data.Type.IsEnum}}
+    x.{{$field.Data.Name}} = <{{ToType $field.Data.Type}}>viewer.{{$field.Data.Name}}();
     {{- else}}
-    {{- if $field.IsNative}}
-    x.{{$field.Name}} = viewer.{{$field.Name}}();
+    {{- if $field.Data.Type.IsNative}}
+    x.{{$field.Data.Name}} = viewer.{{$field.Data.Name}}();
     {{- else}}
-    {{$field.Type}}.Read(x.{{$field.Name}}, viewer.{{$field.Name}}({{- if not $field.IsInline}}reader{{- end}}), reader);
+    {{ToType $field.Data.Type}}.Read(x.{{$field.Data.Name}}, viewer.{{$field.Data.Name}}({{- if not $field.Data.Type.IsInline}}reader{{- end}}), reader);
     {{- end}}
     {{- end}}
     {{- else}}
-    {{- if $field.IsBasic}}
-    {{$field.Type}}.Read(x.{{$field.Name}}, viewer.{{$field.Name}}(reader), reader);
+    {{- if $field.Data.Type.IsBasic}}
+    {{ToType $field.Data.Type}}.Read(x.{{$field.Data.Name}}, viewer.{{$field.Data.Name}}(reader), reader);
     {{- end}}
-    {{- if $field.IsString}}
-    x.{{$field.Name}} = viewer.{{$field.Name}}(reader);
+    {{- if $field.Data.Type.IsString}}
+    x.{{$field.Data.Name}} = viewer.{{$field.Data.Name}}(reader);
     {{- else}}
-    {{- if $field.IsSlice}}
-    let __{{$field.Name}}Slice = viewer.{{$field.Name}}(reader);
-    let __{{$field.Name}}Len = __{{$field.Name}}Slice.length;
-    let __{{$field.Name}}DestLen = x.{{$field.Name}}.length;
-    if (__{{$field.Name}}Len > __{{$field.Name}}DestLen) {
-        x.{{$field.Name}}.length = __{{$field.Name}}Len
-        x.{{$field.Name}}.length = __{{$field.Name}}DestLen
-        for (let i = __{{$field.Name}}DestLen; i < __{{$field.Name}}Len; i++) {
-            {{- if $field.IsNative }}
-            x.{{$field.Name}}.push({{$field.Default}});
+    {{- if $field.Data.Type.IsSlice}}
+    let __{{$field.Data.Name}}Slice = viewer.{{$field.Data.Name}}(reader);
+    let __{{$field.Data.Name}}Len = __{{$field.Data.Name}}Slice.length;
+    let __{{$field.Data.Name}}DestLen = x.{{$field.Data.Name}}.length;
+    if (__{{$field.Data.Name}}Len > __{{$field.Data.Name}}DestLen) {
+        x.{{$field.Data.Name}}.length = __{{$field.Data.Name}}Len
+        x.{{$field.Data.Name}}.length = __{{$field.Data.Name}}DestLen
+        for (let i = __{{$field.Data.Name}}DestLen; i < __{{$field.Data.Name}}Len; i++) {
+            {{- if $field.Data.Type.IsNative }}
+            x.{{$field.Data.Name}}.push({{ToDefault $field.Data.Type}});
             {{- else }}
-            x.{{$field.Name}}.push(New{{$field.PlainType}}());
+            x.{{$field.Data.Name}}.push(New{{ToPlainType $field.Data.Type}}());
             {{- end }}
         }
     }
     {{- else}}
-    let __{{$field.Name}}Slice = viewer.{{$field.Name}}();
-    let __{{$field.Name}}Len = __{{$field.Name}}Slice.length;
-    for (let i = x.{{$field.Name}}.length; i < __{{$field.Name}}Len; i++) {
-        {{- if $field.IsNative }}
-        x.{{$field.Name}}[i] = {{$field.Default}};
+    let __{{$field.Data.Name}}Slice = viewer.{{$field.Data.Name}}();
+    let __{{$field.Data.Name}}Len = __{{$field.Data.Name}}Slice.length;
+    for (let i = x.{{$field.Data.Name}}.length; i < __{{$field.Data.Name}}Len; i++) {
+        {{- if $field.Data.Type.IsNative }}
+        x.{{$field.Data.Name}}[i] = {{ToDefault $field.Data.Type}};
         {{- else }}
-        x.{{$field.Name}}[i] = New{{$field.PlainType}}();
+        x.{{$field.Data.Name}}[i] = New{{ToPlainType $field.Data.Type}}();
         {{- end }}
     }
     {{- end }}
-    {{- if $field.IsNative}}
-    for (let i = 0; i < x.{{$field.Name}}.length; i++) {
-        if (i >= __{{$field.Name}}Len) {
-            x.{{$field.Name}}[i] = {{$field.Default}};
+    {{- if $field.Data.Type.IsNative}}
+    for (let i = 0; i < x.{{$field.Data.Name}}.length; i++) {
+        if (i >= __{{$field.Data.Name}}Len) {
+            x.{{$field.Data.Name}}[i] = {{ToDefault $field.Data.Type}};
         } else {
-            x.{{$field.Name}}[i] = __{{$field.Name}}Slice[i];
+            x.{{$field.Data.Name}}[i] = __{{$field.Data.Name}}Slice[i];
         }
     }
     {{- else}}
-    for (let i = 0; i < x.{{$field.Name}}.length; i++) {
-        if (i >= __{{$field.Name}}Len) {
-            {{$field.PlainType}}.Reset(x.{{$field.Name}}[i]);
+    for (let i = 0; i < x.{{$field.Data.Name}}.length; i++) {
+        if (i >= __{{$field.Data.Name}}Len) {
+            {{ToPlainType $field.Data.Type}}.Reset(x.{{$field.Data.Name}}[i]);
         } else {
-            {{$field.PlainType}}.Read(x.{{$field.Name}}[i], __{{$field.Name}}Slice[i], reader);
+            {{ToPlainType $field.Data.Type}}.Read(x.{{$field.Data.Name}}[i], __{{$field.Data.Name}}Slice[i], reader);
         }
     }
     {{- end }}
-    {{- if $field.IsSlice}}
-    x.{{$field.Name}}.length = __{{$field.Name}}Len;
+    {{- if $field.Data.Type.IsSlice}}
+    x.{{$field.Data.Name}}.length = __{{$field.Data.Name}}Len;
     {{- end}}
     {{- end }}
     {{- end}}
@@ -237,36 +233,36 @@ export class {{$root.Name}} {
 
 }
 
-export function New{{$root.Name}}(): {{$root.Name}} {
-    let x: {{$root.Name}} = {
-    {{- range $field := $root.Fields }}
-    {{- if $field.IsBasic}}
-    {{- if or $field.IsNative $field.IsEnum}}
-    {{ $field.Name }}: {{ $field.Default }},
+export function New{{$root.Data.Name}}(): {{$root.Data.Name}} {
+    let x: {{$root.Data.Name}} = {
+    {{- range $field := $root.Data.Fields }}
+    {{- if $field.Data.Type.IsBasic}}
+    {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum}}
+    {{ $field.Data.Name }}: {{ ToDefault $field.Data.Type }},
     {{- else}}
-    {{ $field.Name }}: New{{$field.Type}}(),
+    {{ $field.Data.Name }}: New{{ToType $field.Data.Type}}(),
     {{- end}}
     {{- else}}
-    {{- if $field.IsArray}}
-    {{ $field.Name }}: new {{$field.Type}}({{$field.Length}}),
+    {{- if $field.Data.Type.IsArray}}
+    {{ $field.Data.Name }}: new {{ToType $field.Data.Type}}({{$field.Data.Type.Length}}),
     {{- end}}
-    {{- if $field.IsSlice}}
-    {{- if $field.IsString}}
-    {{ $field.Name }}: "",
+    {{- if $field.Data.Type.IsSlice}}
+    {{- if $field.Data.Type.IsString}}
+    {{ $field.Data.Name }}: "",
     {{- else}}
-    {{ $field.Name }}: new {{$field.Type}}(0),
+    {{ $field.Data.Name }}: new {{ToType $field.Data.Type}}(0),
     {{- end}}
     {{- end}}
     {{- end}}
     {{- end}}
     }
-    {{- range $field := $root.Fields }}
-    {{- if (and $field.IsArray)}}
-    for (let i = 0; i < x.{{$field.Name}}.length; i++) {
-        {{- if (not $field.IsNative)}}
-        x.{{$field.Name}}[i] = New{{$field.PlainType}}();
+    {{- range $field := $root.Data.Fields }}
+    {{- if (and $field.Data.Type.IsArray)}}
+    for (let i = 0; i < x.{{$field.Data.Name}}.length; i++) {
+        {{- if (not $field.Data.Type.IsNative)}}
+        x.{{$field.Data.Name}}[i] = New{{ToPlainType $field.Data.Type}}();
         {{- else}}
-        x.{{$field.Name}}[i] = {{$field.Default}};
+        x.{{$field.Data.Name}}[i] = {{ToDefault $field.Data.Type}};
         {{- end}}
     }
     {{- end}}
@@ -277,99 +273,90 @@ export function New{{$root.Name}}(): {{$root.Name}} {
 {{end}}
 {{define "struct_builder"}}
 {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
-{{- range $root := .}}
+{{- range $root := .Structs}}
 @unmanaged
-export class {{$root.Name}}Viewer {
-    {{- range $key, $padding := $root.SizeGroup }}
+export class {{$root.Data.Name}}Viewer {
+    {{- range $key, $padding := $root.Data.Size.TotalGroup }}
     private _{{$key}}: u64;
     {{- end}}
 
     @inline
     SizeOf(): u32 {
-        {{- if $root.IsTable}}
+        {{- if $root.Data.IsTable}}
         return load<u32>(changetype<usize>(this));
         {{- else}}
-        return {{ $root.Size }};
+        return {{ $root.Data.Size.Total }};
         {{- end }}
     }
 
-    {{- range $field := $root.Fields }}
+    {{- range $field := $root.Data.Fields }}
     @inline
-    {{$field.Name}}({{- if not $field.IsInline}}reader: karmem.Reader{{- end}}): {{$field.ViewerType}} {
-    {{- if $root.IsTable}}
-        if ((<u32>{{$field.Offset}} + <u32>{{$field.Size}}) > this.SizeOf()) {
-            {{- if (or (and $field.IsNative $field.IsBasic) (or $field.IsString $field.IsEnum)) }}
-            return {{$field.Default}}
+    {{$field.Data.Name}}({{- if not $field.Data.Type.IsInline}}reader: karmem.Reader{{- end}}): {{ToTypeView $field.Data.Type}} {
+    {{- if $root.Data.IsTable}}
+        if ((<u32>{{$field.Data.Offset}} + <u32>{{$field.Data.Size.Field}}) > this.SizeOf()) {
+            {{- if (or (and $field.Data.Type.IsNative $field.Data.Type.IsBasic) (or $field.Data.Type.IsString $field.Data.Type.IsEnum)) }}
+            return {{ToDefault $field.Data.Type}}
             {{- else}}
-            {{- if or $field.IsSlice $field.IsArray }}
-            return new {{$field.ViewerType}}(0,0,0)
+            {{- if or $field.Data.Type.IsSlice $field.Data.Type.IsArray }}
+            return new {{ToTypeView $field.Data.Type}}(0,0,0)
             {{- else}}
-            return _Null{{$field.PlainType}}Viewer;
+            return changetype<{{ToPlainTypeView $field.Data.Type}}>(changetype<usize>(_Null));
             {{- end}}
             {{- end}}
         }
     {{- end}}
 
-        {{- if $field.IsInline}}
-    {{- if not $field.IsArray}}
-            {{- if or $field.IsNative $field.IsEnum}}
-        return load<{{$field.ViewerType}}>(changetype<usize>(this) + {{$field.Offset}});
+        {{- if $field.Data.Type.IsInline}}
+    {{- if not $field.Data.Type.IsArray}}
+            {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum}}
+        return load<{{ToTypeView $field.Data.Type}}>(changetype<usize>(this) + {{$field.Data.Offset}});
             {{- else}}
-        return changetype<{{$field.ViewerType}}>(changetype<usize>(this) + {{$field.Offset}});
+        return changetype<{{ToTypeView $field.Data.Type}}>(changetype<usize>(this) + {{$field.Data.Offset}});
             {{- end}}
     {{- else}}
-        return new {{$field.ViewerType}}(changetype<usize>(this) + {{$field.Offset}}, {{$field.Length}}, {{$field.AllocSize}});
+        return new {{ToTypeView $field.Data.Type}}(changetype<usize>(this) + {{$field.Data.Offset}}, {{$field.Data.Type.Length}}, {{$field.Data.Size.Allocation}});
     {{- end}}
         {{- else}}
-        let offset: u32 = load<u32>(changetype<usize>(this) + {{$field.Offset}});
-            {{- if $field.IsSlice}}
-        let size: u32 = load<u32>(changetype<usize>(this) + {{$field.Offset}} +4);
-                {{- if $field.IsString}}
+        let offset: u32 = load<u32>(changetype<usize>(this) + {{$field.Data.Offset}});
+            {{- if $field.Data.Type.IsSlice}}
+        let size: u32 = load<u32>(changetype<usize>(this) + {{$field.Data.Offset}} +4);
+                {{- if $field.Data.Type.IsString}}
         if (!reader.IsValidOffset(offset, size)) {
             return "";
         }
         return String.UTF8.decodeUnsafe(reader.Pointer + offset, size, false);
                 {{- else}}
         if (!reader.IsValidOffset(offset, size)) {
-            return new {{$field.ViewerType}}(0, 0, 0);
+            return new {{ToTypeView $field.Data.Type}}(0, 0, 0);
         }
-        let length = size / {{$field.AllocSize}};
-        {{- if $field.IsLimited }}
-        if (length > {{$field.Length}}) {
-            length = {{$field.Length}};
+        let length = size / {{$field.Data.Size.Allocation}};
+        {{- if $field.Data.Type.IsLimited }}
+        if (length > {{$field.Data.Type.Length}}) {
+            length = {{$field.Data.Type.Length}};
         }
         {{- end }}
-        return new {{$field.ViewerType}}(reader.Pointer + offset, length, {{$field.AllocSize}});
+        return new {{ToTypeView $field.Data.Type}}(reader.Pointer + offset, length, {{$field.Data.Size.Allocation}});
                 {{- end}}
             {{- else}}
-        if (!reader.IsValidOffset(offset, {{$field.MinSize}})) {
-            return _Null{{$field.PlainType}}Viewer
-        }
-        let v: {{$field.ViewerType}} = changetype<{{$field.ViewerType}}>(reader.Pointer + offset);
-        if (!reader.IsValidOffset(offset, v.SizeOf())) {
-            return _Null{{$field.PlainType}}Viewer
-        }
-        return v
+        return New{{ToTypeView $field.Data.Type}}(reader, offset)
             {{- end}}
         {{- end}}
     }
     {{- end}}
 }
 
-@inline export function New{{$root.Name}}Viewer(reader: karmem.Reader, offset: u32): {{$root.Name}}Viewer {
-    if (!reader.IsValidOffset(offset, {{$root.MinSize}})) {
-        return _Null{{$root.Name}}Viewer
+@inline export function New{{$root.Data.Name}}Viewer(reader: karmem.Reader, offset: u32): {{$root.Data.Name}}Viewer {
+    if (!reader.IsValidOffset(offset, {{$root.Data.Size.Minimum}})) {
+        return changetype<{{$root.Data.Name}}Viewer>(changetype<usize>(_Null))
     }
 
-    let v: {{$root.Name}}Viewer = changetype<{{$root.Name}}Viewer>(reader.Pointer + offset)
-    {{- if $root.IsTable}}
+    let v: {{$root.Data.Name}}Viewer = changetype<{{$root.Data.Name}}Viewer>(reader.Pointer + offset)
+    {{- if $root.Data.IsTable}}
     if (!reader.IsValidOffset(offset, v.SizeOf())) {
-        return _Null{{$root.Name}}Viewer
+        return changetype<{{$root.Data.Name}}Viewer>(changetype<usize>(_Null))
     }
     {{- end}}
     return v
 }
-
-let _Null{{$root.Name}}Viewer = changetype<{{$root.Name}}Viewer>(changetype<usize>(_Null))
 {{- end}}
 {{end}}

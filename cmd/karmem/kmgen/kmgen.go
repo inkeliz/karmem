@@ -2,146 +2,102 @@ package kmgen
 
 import (
 	"embed"
-	"fmt"
 	"io"
 	"karmem.org/cmd/karmem/kmparser"
-	"strings"
 	"text/template"
 )
 
 //go:embed *_template.*
 var templateFiles embed.FS
 
+// Generators is a list of all generators available and registered by RegisterGenerator
+var Generators []Generator
+
+// RegisterGenerator register the given Generator.
+// You should use it on `init` function.
+func RegisterGenerator(g Generator) {
+	Generators = append(Generators, g)
+}
+
 type Generator interface {
-	Start(file *kmparser.File) error
-	Save(output io.Writer) error
+	Start(file *kmparser.Content) (compiler Compiler, err error)
+	Options() map[string]string
+	Extensions() []string
+	Language() string
+	Finish(output io.Writer, buffer io.Reader) (err error)
 }
 
-type ValueTypeTranslator struct {
-	Byte    string
-	Bool    string
-	Char    string
-	Uint8   string
-	Uint16  string
-	Uint32  string
-	Uint64  string
-	Int8    string
-	Int16   string
-	Int32   string
-	Int64   string
-	Float32 string
-	Float64 string
-
-	Enum   ValueTypeFormatter
-	Struct ValueTypeFormatter
-	Array  ValueTypeFormatter
-	Slice  ValueTypeFormatter
-	Import string
+type Compiler struct {
+	Template []*template.Template
+	Modules  []string
 }
 
-type ValueTypeFormatter struct {
-	*template.Template
+type TemplateFunctions struct {
+	FromTags func(s string) string
+
+	ToDefault       func(typ kmparser.Type) string
+	ToType          func(typ kmparser.Type) string
+	ToPlainType     func(typ kmparser.Type) string
+	ToTypeView      func(typ kmparser.Type) string
+	ToPlainTypeView func(typ kmparser.Type) string
 }
 
-func NewValueTypeFormatter(s string) ValueTypeFormatter {
-	t, err := template.New("").Parse(s)
-	if err != nil {
-		panic(err)
-	}
-	return ValueTypeFormatter{Template: t}
-}
-
-func (x *ValueTypeTranslator) TranslateTypes(p *kmparser.File) {
-	for pi, v := range p.Enum {
-		p.Enum[pi].Type = x.translate(v.ValueType, false)
-	}
-	for pi, v := range p.Struct {
-		for vi, v := range v.Fields {
-			p.Struct[pi].Fields[vi].Type = x.translate(v.ValueType, v.IsEnum())
-			p.Struct[pi].Fields[vi].BackgroundType = x.translate(kmparser.ValueType(v.BackgroundType), v.IsEnum())
-			p.Struct[pi].Fields[vi].PlainType = x.translate(kmparser.ValueType(v.ValueType.PlainType()), v.IsEnum())
-		}
-	}
-}
-
-func (x *ValueTypeTranslator) TranslateViewerTypes(p *kmparser.File) {
-	for pi, v := range p.Enum {
-		p.Enum[pi].Type = x.translate(v.ValueType, false)
-	}
-	for pi, v := range p.Struct {
-		for vi, v := range v.Fields {
-			v.IsBool()
-			viewer := v.ValueType
-			if !v.IsNative() && !v.IsEnum() {
-				viewer = v.ValueType + "Viewer"
+func NewTemplateFunctions(gen Generator, content *kmparser.Content) TemplateFunctions {
+	return TemplateFunctions{
+		FromTags: func(s string) string {
+			def, ok := gen.Options()[s]
+			if !ok {
+				panic("invalid tag search")
 			}
-			p.Struct[pi].Fields[vi].ViewerType = x.translate(viewer, v.IsEnum())
-			p.Struct[pi].Fields[vi].PlainViewerType = x.translate(kmparser.ValueType(viewer.PlainType()), v.IsEnum())
-		}
+
+			if s == "package" {
+				def = content.Module
+			}
+
+			tags := content.Tags
+			name := gen.Language() + "." + s
+			for i := range tags {
+				if tags[i].Name == name {
+					return tags[i].Value
+				}
+			}
+
+			return def
+		},
 	}
 }
 
-func (x *ValueTypeTranslator) translate(v kmparser.ValueType, isEnum bool) string {
-	t := v.PlainType()
-	switch t {
-	case "byte":
-		t = x.Byte
-	case "bool":
-		t = x.Bool
-	case "char":
-		t = x.Char
-	case "uint8":
-		t = x.Uint8
-	case "uint16":
-		t = x.Uint16
-	case "uint32":
-		t = x.Uint32
-	case "uint64":
-		t = x.Uint64
-	case "int8":
-		t = x.Int8
-	case "int16":
-		t = x.Int16
-	case "int32":
-		t = x.Int32
-	case "int64":
-		t = x.Int64
-	case "float32":
-		t = x.Float32
-	case "float64":
-		t = x.Float64
-	}
+type TemplateData struct {
+	*kmparser.Content
+}
 
-	if v.IsBasic() && isEnum && x.Enum.Template != nil {
-		var s strings.Builder
-		if err := x.Enum.Execute(&s, kmparser.ValueType(fmt.Sprintf("%s", t))); err != nil {
-			panic("invalid enum format on translator")
+func NewTemplate(modules []string, funcs TemplateFunctions, pattern ...string) (compiler Compiler) {
+	compiler.Modules = modules
+	compiler.Template = make([]*template.Template, len(pattern))
+	for i, v := range pattern {
+		t := template.New("")
+		t = t.Funcs(template.FuncMap{
+			"FromTags": funcs.FromTags,
+
+			"ToDefault": funcs.ToDefault,
+
+			"ToPlainType":     funcs.ToPlainType,
+			"ToType":          funcs.ToType,
+			"ToPlainTypeView": funcs.ToPlainTypeView,
+			"ToTypeView":      funcs.ToTypeView,
+		})
+		t, err := t.ParseFS(templateFiles, v)
+		if err != nil {
+			panic(err)
 		}
-		return s.String()
+		compiler.Template[i] = t
 	}
-	if v.IsBasic() && !v.IsNative() && x.Struct.Template != nil {
-		var s strings.Builder
-		if err := x.Struct.Execute(&s, kmparser.ValueType(fmt.Sprintf("%s", t))); err != nil {
-			panic("invalid struct format on translator")
-		}
-		return s.String()
-	}
-	if v.IsString() {
-		return x.Char
-	}
-	if v.IsArray() {
-		var s strings.Builder
-		if err := x.Array.Execute(&s, kmparser.ValueType(fmt.Sprintf("[%d]%s", v.Length(), t))); err != nil {
-			panic("invalid array format on translator")
-		}
-		return s.String()
-	}
-	if v.IsSlice() {
-		var s strings.Builder
-		if err := x.Slice.Execute(&s, kmparser.ValueType(fmt.Sprintf("[]%s", t))); err != nil {
-			panic("invalid slice format on translator")
-		}
-		return s.String()
-	}
-	return t
+	return compiler
+}
+
+type generatorFinishCopy struct{}
+
+func (*generatorFinishCopy) Finish(output io.Writer, buffer io.Reader) error {
+	_, err := io.Copy(output, buffer)
+	return err
 }

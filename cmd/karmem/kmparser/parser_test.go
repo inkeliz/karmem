@@ -93,58 +93,58 @@ func TestInlining(t *testing.T) {
 		t.Error(err)
 	}
 
-	for _, v := range k.Struct {
-		for _, v := range v.Fields {
+	for _, v := range k.Structs {
+		if v.Data.ID == 0 {
+			t.Errorf("invalid id")
+		}
+		for _, v := range v.Data.Fields {
 			switch {
-			case strings.Contains(v.Name, "BasicPtr"):
-				if v.inline {
-					t.Errorf("expect inline at %s %v", v.Name, v.inline)
+			case strings.Contains(v.Data.Name, "BasicPtr"):
+				if v.Data.Type.IsInline() {
+					t.Errorf("expect inline at %s %v", v.Data.Name, v.Data.Type.IsInline())
 				}
-				if !v.ValueType.IsBasic() {
-					t.Errorf("expect array at %s %v", v.Name, v.inline)
+				if !v.Data.Type.IsBasic() {
+					t.Errorf("expect array at %s %v", v.Data.Name, v.Data.Type.IsInline())
 				}
-			case strings.Contains(v.Name, "Basic"):
-				if !v.inline {
-					t.Errorf("expect inline at %s %v", v.Name, v.inline)
+			case strings.Contains(v.Data.Name, "Basic"):
+				if !v.Data.Type.IsInline() {
+					t.Errorf("expect inline at %s %v", v.Data.Name, v.Data.Type.IsInline())
 				}
-				if !v.ValueType.IsBasic() {
-					t.Errorf("expect array at %s %v", v.Name, v.inline)
+				if !v.Data.Type.IsBasic() {
+					t.Errorf("expect array at %s %v", v.Data.Name, v.Data.Type.IsInline())
 				}
-			case strings.Contains(v.Name, "Limited"):
-				if !v.ValueType.IsLimited() {
-					t.Errorf("expect limited at %s", v.Name)
+			case strings.Contains(v.Data.Name, "Limited"):
+				if !v.Data.Type.IsLimited() {
+					t.Errorf("expect limited at %s", v.Data.Name)
 				}
-				if v.ValueType.Length() == 0 {
-					t.Errorf("unexpected zero lenght at %s", v.Name)
+				if v.Data.Type.Length == 0 {
+					t.Errorf("unexpected zero lenght at %s", v.Data.Name)
 				}
 				fallthrough
-			case strings.Contains(v.Name, "String"):
+			case strings.Contains(v.Data.Name, "String"):
 				fallthrough
-			case strings.Contains(v.Name, "Slice"):
-				if v.inline {
-					t.Errorf("expect inline at %s %v", v.Name, v.inline)
+			case strings.Contains(v.Data.Name, "Slice"):
+				if v.Data.Type.IsInline() {
+					t.Errorf("expect inline at %s %v", v.Data.Name, v.Data.Type.IsInline())
 				}
-				if !v.ValueType.IsSlice() {
-					t.Errorf("expect slice at %s %v", v.Name, v.inline)
+				if !v.Data.Type.IsSlice() {
+					t.Errorf("expect slice at %s %v", v.Data.Name, v.Data.Type.IsInline())
 				}
-				if v.Size() != 4 {
-					t.Errorf("wrong size at %s with size %d", v.Name, v.Size())
+				if v.Data.Size.Field != 12 {
+					t.Errorf("wrong size at %s with size %d", v.Data.Name, v.Data.Size.Field)
 				}
 			default:
-				if v.ValueType.IsLimited() {
-					t.Errorf("unexpected limited at %s %v", v.Name, v)
+				if v.Data.Type.IsLimited() {
+					t.Errorf("unexpected limited at %s %v", v.Data.Name, v)
 				}
-				if !v.inline {
-					t.Errorf("unexpected limited at %s", v.Name)
+				if !v.Data.Type.IsInline() {
+					t.Errorf("unexpected limited at %s", v.Data.Name)
 				}
-				if !v.ValueType.IsArray() {
-					t.Errorf("expect array at %s %v", v.Name, v.inline)
+				if !v.Data.Type.IsArray() {
+					t.Errorf("expect array at %s %v", v.Data.Name, v.Data.Type.IsArray())
 				}
-				if v.Size() == 4 {
-					t.Errorf("wrong size at %s with %d", v.Name, v.Size())
-				}
-				if v.ValueType.Length() == 0 {
-					t.Errorf("unexpected zero lenght at %s", v.Name)
+				if v.Data.Type.Length == 0 {
+					t.Errorf("unexpected zero lenght at %s", v.Data.Name)
 				}
 			}
 		}
@@ -165,22 +165,30 @@ func TestEntropyIdentifier(t *testing.T) {
 		t.Error(err)
 	}
 
-	if parsed.Struct[0].Name != "Point" || parsed.Struct[1].Name != "User" {
+	if parsed.Structs[0].Data.Name != "Point" || parsed.Structs[1].Data.Name != "User" {
 		t.Error("invalid struct name")
 	}
 
 	h, _ := blake2b.New(8, nil)
-	h.Write([]byte(parsed.Header.GetTag("entropy").Value))
-	h.Write([]byte(parsed.Struct[0].Name))
+	entropy, ok := Tags(parsed.Tags).Get("entropy")
+	if !ok {
+		t.Error("not found entropy")
+	}
+	h.Write([]byte(entropy))
+	h.Write([]byte(parsed.Structs[0].Data.Name))
 
-	if *(*uint64)(unsafe.Pointer(&h.Sum(nil)[0])) != parsed.Struct[0].ID {
-		t.Error("invalid id")
+	if *(*uint64)(unsafe.Pointer(&h.Sum(nil)[0])) != parsed.Structs[0].Data.ID {
+		t.Error("invalid id", *(*uint64)(unsafe.Pointer(&h.Sum(nil)[0])), parsed.Structs[0].Data.ID)
 	}
 
 	h.Reset()
-	h.Write([]byte(parsed.Header.GetTag("entropy").Value))
-	h.Write([]byte(parsed.Struct[1].Name))
-	if *(*uint64)(unsafe.Pointer(&h.Sum(nil)[0])) != parsed.Struct[1].ID {
+	entropy, ok = Tags(parsed.Tags).Get("entropy")
+	if !ok {
+		t.Error("not found entropy")
+	}
+	h.Write([]byte(entropy))
+	h.Write([]byte(parsed.Structs[1].Data.Name))
+	if *(*uint64)(unsafe.Pointer(&h.Sum(nil)[0])) != parsed.Structs[1].Data.ID {
 		t.Error("invalid id")
 	}
 

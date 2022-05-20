@@ -1,110 +1,139 @@
 package kmgen
 
 import (
-	"bytes"
+	"fmt"
 	"go/format"
 	"io"
 	"karmem.org/cmd/karmem/kmparser"
-	"text/template"
 )
 
 type Golang struct {
-	buf             *bytes.Buffer
-	template        *template.Template
-	translateTypes  ValueTypeTranslator
-	translateViewer ValueTypeTranslator
-	*kmparser.File
+	content *kmparser.Content
 }
+
+func init() { RegisterGenerator(GolangGenerator()) }
 
 func GolangGenerator() Generator {
-	t, err := template.ParseFS(templateFiles, "golang_template.*")
-	if err != nil {
-		panic(err)
-	}
-
-	return &Golang{
-		buf:      bytes.NewBuffer(nil),
-		template: t,
-		translateTypes: ValueTypeTranslator{
-			Byte:    "byte",
-			Bool:    "bool",
-			Char:    "string",
-			Uint8:   "uint8",
-			Uint16:  "uint16",
-			Uint32:  "uint32",
-			Uint64:  "uint64",
-			Int8:    "int8",
-			Int16:   "int16",
-			Int32:   "int32",
-			Int64:   "int64",
-			Float32: "float32",
-			Float64: "float64",
-			Array:   NewValueTypeFormatter(`[{{.Length}}]{{.PlainType}}`),
-			Slice:   NewValueTypeFormatter(`[]{{.PlainType}}`),
-		},
-		translateViewer: ValueTypeTranslator{
-			Byte:    "byte",
-			Bool:    "bool",
-			Char:    "[]byte",
-			Uint8:   "uint8",
-			Uint16:  "uint16",
-			Uint32:  "uint32",
-			Uint64:  "uint64",
-			Int8:    "int8",
-			Int16:   "int16",
-			Int32:   "int32",
-			Int64:   "int64",
-			Float32: "float32",
-			Float64: "float64",
-			Enum:    NewValueTypeFormatter(`{{.}}`),
-			Struct:  NewValueTypeFormatter(`*{{.PlainType}}`),
-			Array:   NewValueTypeFormatter(`[]{{.PlainType}}`),
-			Slice:   NewValueTypeFormatter(`[]{{.PlainType}}`),
-		},
-	}
+	return &Golang{}
 }
 
-func (gen *Golang) Start(file *kmparser.File) error {
-	gen.translateTypes.TranslateTypes(file)
-	gen.translateViewer.TranslateViewerTypes(file)
-	gen.File = file
+func (gen *Golang) Start(file *kmparser.Content) (compiler Compiler, err error) {
+	gen.content = file
+	return NewTemplate(
+		[]string{`header`, `enums`, `enums_builder`, `struct`, `struct_builder`},
+		gen.functions(),
+		"golang_template.*",
+	), nil
+}
 
-	for _, f := range []func() error{gen.start, gen.enums, gen.enumsBuilder, gen.structs, gen.structBuilder} {
-		if err := f(); err != nil {
-			return err
+func (gen *Golang) functions() (f TemplateFunctions) {
+	f = NewTemplateFunctions(gen, gen.content)
+
+	f.ToDefault = func(typ kmparser.Type) string {
+		t := typ.PlainSchema
+		switch t {
+		case "bool":
+			return "false"
+		case "char":
+			return `""`
+		default:
+			return "0"
 		}
 	}
 
-	return nil
-}
-
-func (gen *Golang) start() error {
-	pkg := gen.Header.Name
-	if p := gen.Header.GetTag("golang.package"); p != nil {
-		pkg = p.Value
+	f.ToPlainType = func(typ kmparser.Type) string {
+		t := typ.PlainSchema
+		switch t {
+		case "byte":
+			return "byte"
+		case "bool":
+			return "bool"
+		case "char":
+			return "string"
+		case "uint8":
+			return "uint8"
+		case "uint16":
+			return "uint16"
+		case "uint32":
+			return "uint32"
+		case "uint64":
+			return "uint64"
+		case "int8":
+			return "int8"
+		case "int16":
+			return "int16"
+		case "int32":
+			return "int32"
+		case "int64":
+			return "int64"
+		case "float32":
+			return "float32"
+		case "float64":
+			return "float64"
+		default:
+			return t
+		}
 	}
 
-	return gen.template.ExecuteTemplate(gen.buf, `header`, pkg)
+	f.ToType = func(typ kmparser.Type) string {
+		p := f.ToPlainType(typ)
+		switch {
+		case typ.PlainSchema == "char":
+			return p
+		case typ.Model == kmparser.TypeModelSlice, typ.Model == kmparser.TypeModelSliceLimited:
+			return fmt.Sprintf(`[]%s`, p)
+		case typ.Model == kmparser.TypeModelArray:
+			return fmt.Sprintf(`[%d]%s`, typ.Length, p)
+		default:
+			return p
+		}
+	}
+
+	f.ToPlainTypeView = func(typ kmparser.Type) string {
+		p := f.ToPlainType(typ)
+		switch typ.Format {
+		case kmparser.TypeFormatStruct, kmparser.TypeFormatTable:
+			return fmt.Sprintf(`*%sViewer`, p)
+		default:
+			return p
+		}
+	}
+
+	f.ToTypeView = func(typ kmparser.Type) string {
+		p := f.ToPlainTypeView(typ)
+		if typ.PlainSchema == "char" {
+			return p
+		}
+		switch typ.Model {
+		case kmparser.TypeModelArray, kmparser.TypeModelSlice, kmparser.TypeModelSliceLimited:
+			switch typ.Format {
+			case kmparser.TypeFormatStruct, kmparser.TypeFormatTable:
+				return fmt.Sprintf(`[]%sViewer`, f.ToPlainType(typ))
+			default:
+				return fmt.Sprintf(`[]%s`, p)
+			}
+		default:
+			return p
+		}
+	}
+
+	return f
 }
 
-func (gen *Golang) enums() error {
-	return gen.template.ExecuteTemplate(gen.buf, `enums`, gen.File.Enum)
+func (gen *Golang) Language() string { return "golang" }
+
+func (gen *Golang) Options() map[string]string {
+	return map[string]string{"package": "", "import": "karmem.org/golang"}
 }
 
-func (gen *Golang) enumsBuilder() error {
-	return gen.template.ExecuteTemplate(gen.buf, `enums_builder`, gen.File.Enum)
-}
+func (gen *Golang) Extensions() []string { return []string{`.go`} }
 
-func (gen *Golang) structs() error {
-	return gen.template.ExecuteTemplate(gen.buf, `struct`, gen.File.Struct)
-}
-
-func (gen *Golang) structBuilder() error {
-	return gen.template.ExecuteTemplate(gen.buf, `struct_builder`, gen.File.Struct)
-}
-
-func (gen *Golang) Save(output io.Writer) error {
-	b, err := format.Source(gen.buf.Bytes())
+func (gen *Golang) Finish(output io.Writer, buffer io.Reader) error {
+	buf, err := io.ReadAll(buffer)
+	if err != nil {
+		return err
+	}
+	b, err := format.Source(buf)
 	if err != nil {
 		return err
 	}

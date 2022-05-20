@@ -1,126 +1,123 @@
 package kmgen
 
 import (
-	"bytes"
-	"io"
+	"fmt"
 	"karmem.org/cmd/karmem/kmparser"
-	"text/template"
 )
 
 type AssemblyScript struct {
-	buf             *bytes.Buffer
-	template        *template.Template
-	translateTypes  ValueTypeTranslator
-	translateViewer ValueTypeTranslator
-	*kmparser.File
+	content *kmparser.Content
+	generatorFinishCopy
 }
+
+func init() { RegisterGenerator(AssemblyScriptGenerator()) }
 
 func AssemblyScriptGenerator() Generator {
-	t, err := template.ParseFS(templateFiles, "assemblyscript_template.*")
-	if err != nil {
-		panic(err)
-	}
-
-	return &AssemblyScript{
-		buf:      bytes.NewBuffer(nil),
-		template: t,
-		translateTypes: ValueTypeTranslator{
-			Byte:    "u8",
-			Bool:    "bool",
-			Char:    "string",
-			Uint8:   "u8",
-			Uint16:  "u16",
-			Uint32:  "u32",
-			Uint64:  "u64",
-			Int8:    "i8",
-			Int16:   "i16",
-			Int32:   "i32",
-			Int64:   "i64",
-			Float32: "f32",
-			Float64: "f64",
-			Array:   NewValueTypeFormatter(`StaticArray<{{.PlainType}}>`),
-			Slice:   NewValueTypeFormatter(`Array<{{.PlainType}}>`),
-		},
-		translateViewer: ValueTypeTranslator{
-			Byte:    "u8",
-			Bool:    "bool",
-			Char:    "string",
-			Uint8:   "u8",
-			Uint16:  "u16",
-			Uint32:  "u32",
-			Uint64:  "u64",
-			Int8:    "i8",
-			Int16:   "i16",
-			Int32:   "i32",
-			Int64:   "i64",
-			Float32: "f32",
-			Float64: "f64",
-			Enum:    NewValueTypeFormatter(`{{.}}`),
-			Struct:  NewValueTypeFormatter(`{{.PlainType}}`),
-			Array:   NewValueTypeFormatter(`karmem.Slice<{{.PlainType}}>`),
-			Slice:   NewValueTypeFormatter(`karmem.Slice<{{.PlainType}}>`),
-		},
-	}
+	return &AssemblyScript{}
 }
 
-func (gen *AssemblyScript) Start(file *kmparser.File) error {
-	gen.translateTypes.TranslateTypes(file)
-	gen.translateViewer.TranslateViewerTypes(file)
-	gen.File = file
+func (gen *AssemblyScript) Start(file *kmparser.Content) (compiler Compiler, err error) {
+	gen.content = file
+	return NewTemplate(
+		[]string{`header`, `enums`, `enums_builder`, `struct`, `struct_builder`},
+		gen.functions(),
+		"assemblyscript_template.*",
+	), nil
+}
 
-	for _, f := range []func() error{gen.start, gen.enums, gen.structs, gen.enumsBuilder, gen.structBuilder} {
-		if err := f(); err != nil {
-			return err
+func (gen *AssemblyScript) functions() (f TemplateFunctions) {
+	f = NewTemplateFunctions(gen, gen.content)
+
+	f.ToDefault = func(typ kmparser.Type) string {
+		t := typ.PlainSchema
+		switch t {
+		case "bool":
+			return "false"
+		case "char":
+			return `""`
+		default:
+			return "0"
 		}
 	}
 
-	return nil
-}
-
-func (gen *AssemblyScript) start() error {
-	pkg := gen.Header.Name
-	if p := gen.Header.GetTag("assemblyscript.package"); p != nil {
-		pkg = p.Value
-	}
-
-	imports := "karmem/assemblyscript/karmem"
-	if p := gen.Header.GetTag("assemblyscript.import"); p != nil {
-		imports = p.Value
-	}
-
-	largest := uint32(0)
-	for _, s := range gen.File.Struct {
-		if s.Size > largest {
-			largest = s.Size
+	f.ToPlainType = func(typ kmparser.Type) string {
+		t := typ.PlainSchema
+		switch t {
+		case "byte":
+			return "u8"
+		case "bool":
+			return "bool"
+		case "char":
+			return "string"
+		case "uint8":
+			return "u8"
+		case "uint16":
+			return "u16"
+		case "uint32":
+			return "u32"
+		case "uint64":
+			return "u64"
+		case "int8":
+			return "i8"
+		case "int16":
+			return "i16"
+		case "int32":
+			return "i32"
+		case "int64":
+			return "i64"
+		case "float32":
+			return "f32"
+		case "float64":
+			return "f64"
+		default:
+			return t
 		}
 	}
-	return gen.template.ExecuteTemplate(gen.buf, `header`, struct {
-		Package, Import string
-		Largest         uint32
-	}{
-		Package: pkg,
-		Import:  imports,
-		Largest: largest,
-	})
+
+	f.ToType = func(typ kmparser.Type) string {
+		p := f.ToPlainType(typ)
+		switch {
+		case typ.PlainSchema == "char":
+			return p
+		case typ.Model == kmparser.TypeModelSlice, typ.Model == kmparser.TypeModelSliceLimited:
+			return fmt.Sprintf(`Array<%s>`, p)
+		case typ.Model == kmparser.TypeModelArray:
+			return fmt.Sprintf(`StaticArray<%s>`, p)
+		default:
+			return p
+		}
+	}
+
+	f.ToPlainTypeView = func(typ kmparser.Type) string {
+		p := f.ToPlainType(typ)
+		switch typ.Format {
+		case kmparser.TypeFormatStruct, kmparser.TypeFormatTable:
+			return fmt.Sprintf(`%sViewer`, p)
+		default:
+			return p
+		}
+	}
+
+	f.ToTypeView = func(typ kmparser.Type) string {
+		p := f.ToPlainTypeView(typ)
+		if typ.PlainSchema == "char" {
+			return p
+		}
+		switch typ.Model {
+		case kmparser.TypeModelArray, kmparser.TypeModelSlice, kmparser.TypeModelSliceLimited:
+			return fmt.Sprintf(`karmem.Slice<%s>`, p)
+		default:
+			return p
+		}
+	}
+
+	return f
 }
 
-func (gen *AssemblyScript) enums() error {
-	return gen.template.ExecuteTemplate(gen.buf, `enums`, gen.File.Enum)
+func (gen *AssemblyScript) Language() string { return "assemblyscript" }
+
+func (gen *AssemblyScript) Options() map[string]string {
+	return map[string]string{"import": "karmem/assemblyscript/karmem"}
 }
 
-func (gen *AssemblyScript) enumsBuilder() error {
-	return gen.template.ExecuteTemplate(gen.buf, `enums_builder`, gen.File.Enum)
-}
-
-func (gen *AssemblyScript) structs() error {
-	return gen.template.ExecuteTemplate(gen.buf, `struct`, gen.File.Struct)
-}
-
-func (gen *AssemblyScript) structBuilder() error {
-	return gen.template.ExecuteTemplate(gen.buf, `struct_builder`, gen.File.Struct)
-}
-
-func (gen *AssemblyScript) Save(output io.Writer) error {
-	_, err := io.Copy(output, gen.buf)
-	return err
-}
+func (gen *AssemblyScript) Extensions() []string { return []string{`.ts`} }

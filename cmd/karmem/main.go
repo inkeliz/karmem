@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
 	"karmem.org/cmd/karmem/kmgen"
 	"karmem.org/cmd/karmem/kmparser"
+	karmem "karmem.org/golang"
 	"os"
 	"path/filepath"
 )
@@ -24,48 +26,17 @@ func main() {
 	}
 }
 
-type Language string
-
-func (l Language) Generator() kmgen.Generator {
-	switch l {
-	case LanguageGolang:
-		return kmgen.GolangGenerator()
-	case LanguageAssemblyScript:
-		return kmgen.AssemblyScriptGenerator()
-	case LanguageZig:
-		return kmgen.ZigGenerator()
-	case LanguageSwift:
-		return kmgen.SwiftGenerator()
-	case LanguageC:
-		return kmgen.CGenerator()
-	default:
-		return nil
-	}
-}
-
-const (
-	LanguageGolang         Language = "golang"
-	LanguageZig            Language = "zig"
-	LanguageAssemblyScript Language = "assemblyscript"
-	LanguageSwift          Language = "swift"
-	LanguageC              Language = "c"
-)
-
-var (
-	Languages       = [...]Language{LanguageGolang, LanguageZig, LanguageAssemblyScript, LanguageSwift, LanguageC}
-	LanguagesFormat = [...]string{".go", ".zig", ".ts", ".swift", ".h"}
-)
-
 type Build struct {
-	language [len(Languages)]bool
+	language []bool
 	output   string
 	input    string
 }
 
 func (b *Build) Parse() {
 	flags := flag.NewFlagSet("build", flag.ExitOnError)
-	for i, l := range Languages {
-		flags.BoolVar(&b.language[i], string(l), false, fmt.Sprintf("Enable geneartion for %s language.", l))
+	b.language = make([]bool, len(kmgen.Generators))
+	for i, g := range kmgen.Generators {
+		flags.BoolVar(&b.language[i], g.Language(), false, fmt.Sprintf("Enable geneartion for %s language.", g.Language()))
 	}
 	flags.StringVar(&b.output, "o", ".", "Output directory path.")
 	flags.Parse(flag.Args()[1:])
@@ -74,27 +45,18 @@ func (b *Build) Parse() {
 }
 
 func (b *Build) Generator() (v kmgen.Generator, err error) {
-	for i, l := range Languages {
+	for i, g := range kmgen.Generators {
 		if b.language[i] {
 			if v != nil {
 				return nil, errors.New("multiple languages is not supported")
 			}
-			v = l.Generator()
+			v = g
 		}
 	}
 	if v == nil {
 		return nil, errors.New("missing language. Please, specify one output language (such as --golang)")
 	}
 	return v, nil
-}
-
-func (b *Build) FileFormat() string {
-	for i := range Languages {
-		if b.language[i] {
-			return LanguagesFormat[i]
-		}
-	}
-	return ""
 }
 
 func (b *Build) Execute() error {
@@ -114,7 +76,13 @@ func (b *Build) Execute() error {
 		return err
 	}
 
-	if err := gen.Start(parsed); err != nil {
+	writer := karmem.NewWriter(8_000_000)
+	if _, err := parsed.WriteAsRoot(writer); err != nil {
+		return err
+	}
+
+	compiler, err := gen.Start(parsed)
+	if err != nil {
 		return err
 	}
 
@@ -124,14 +92,29 @@ func (b *Build) Execute() error {
 		}
 	}
 
-	outputFile, err := os.Create(filepath.Join(b.output, parsed.Header.Name+"_generated"+b.FileFormat()))
-	if err != nil {
-		return err
+	for i, c := range compiler.Template {
+		var buffer bytes.Buffer
+
+		for _, n := range compiler.Modules {
+
+			if err := c.ExecuteTemplate(&buffer, n, kmgen.TemplateData{Content: parsed}); err != nil {
+				return err
+			}
+		}
+
+		outputFile, err := os.Create(filepath.Join(b.output, parsed.Module+"_generated"+gen.Extensions()[i]))
+		if err != nil {
+			return err
+		}
+
+		if err := gen.Finish(outputFile, &buffer); err != nil {
+			return err
+		}
+
+		if err := outputFile.Close(); err != nil {
+			return err
+		}
 	}
 
-	if err := gen.Save(outputFile); err != nil {
-		return err
-	}
-
-	return outputFile.Close()
+	return nil
 }

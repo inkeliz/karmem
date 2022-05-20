@@ -1,122 +1,131 @@
 package kmgen
 
 import (
-	"bytes"
-	"io"
+	"fmt"
 	"karmem.org/cmd/karmem/kmparser"
-	"text/template"
 )
 
 type C struct {
-	buf             *bytes.Buffer
-	template        *template.Template
-	translateTypes  ValueTypeTranslator
-	translateViewer ValueTypeTranslator
-	*kmparser.File
+	content *kmparser.Content
+	generatorFinishCopy
 }
+
+func init() { RegisterGenerator(CGenerator()) }
 
 func CGenerator() Generator {
-	t, err := template.ParseFS(templateFiles, "c_template.*")
-	if err != nil {
-		panic(err)
-	}
-
-	return &C{
-		buf:      bytes.NewBuffer(nil),
-		template: t,
-		translateTypes: ValueTypeTranslator{
-			Byte:    "uint8_t",
-			Bool:    "bool",
-			Char:    "uint8_t *",
-			Uint8:   "uint8_t",
-			Uint16:  "uint16_t",
-			Uint32:  "uint32_t",
-			Uint64:  "uint64_t",
-			Int8:    "int8_t",
-			Int16:   "int16_t",
-			Int32:   "int32_t",
-			Int64:   "int64_t",
-			Float32: "float",
-			Float64: "double",
-			Enum:    NewValueTypeFormatter(`Enum{{.}}`),
-			Array:   NewValueTypeFormatter(`{{.PlainType}}`),
-			Slice:   NewValueTypeFormatter(`{{.PlainType}} *`),
-		},
-		translateViewer: ValueTypeTranslator{
-			Byte:    "uint8_t",
-			Bool:    "bool",
-			Char:    "uint8_t *",
-			Uint8:   "uint8_t",
-			Uint16:  "uint16_t",
-			Uint32:  "uint32_t",
-			Uint64:  "uint64_t",
-			Int8:    "int8_t",
-			Int16:   "int16_t",
-			Int32:   "int32_t",
-			Int64:   "int64_t",
-			Float32: "float",
-			Float64: "double",
-			Enum:    NewValueTypeFormatter(`Enum{{.}}`),
-			Struct:  NewValueTypeFormatter(`{{.PlainType}} *`),
-			Array:   NewValueTypeFormatter(`{{.PlainType}} *`),
-			Slice:   NewValueTypeFormatter(`{{.PlainType}} *`),
-		},
-	}
+	return &C{}
 }
 
-func (gen *C) Start(file *kmparser.File) error {
-	gen.translateTypes.TranslateTypes(file)
-	gen.translateViewer.TranslateViewerTypes(file)
-	gen.File = file
+func (gen *C) Start(file *kmparser.Content) (compiler Compiler, err error) {
+	gen.content = file
+	return NewTemplate(
+		[]string{`header`, `enums`, `enums_builder`, `struct_builder`, `struct`},
+		gen.functions(),
+		"c_template.*",
+	), nil
+}
 
-	for _, f := range []func() error{gen.start, gen.enums, gen.enumsBuilder, gen.structBuilder, gen.structs} {
-		if err := f(); err != nil {
-			return err
+func (gen *C) functions() (f TemplateFunctions) {
+	f = NewTemplateFunctions(gen, gen.content)
+
+	f.ToDefault = func(typ kmparser.Type) string {
+		t := typ.PlainSchema
+		switch t {
+		case "bool":
+			return "false"
+		case "char":
+			return `""`
+		default:
+			return "0"
 		}
 	}
 
-	return nil
-}
-
-func (gen *C) start() error {
-	imports := "karmem.h"
-	if p := gen.Header.GetTag("c.import"); p != nil {
-		imports = p.Value
-	}
-
-	largest := uint32(0)
-	for _, s := range gen.File.Struct {
-		if s.Size > largest {
-			largest = s.Size
+	f.ToPlainType = func(typ kmparser.Type) string {
+		t := typ.PlainSchema
+		if typ.Format == kmparser.TypeFormatEnum {
+			return fmt.Sprintf(`Enum%s`, t)
+		}
+		switch t {
+		case "byte":
+			return "uint8_t"
+		case "bool":
+			return "bool"
+		case "char":
+			return "uint8_t *"
+		case "uint8":
+			return "uint8_t"
+		case "uint16":
+			return "uint16_t"
+		case "uint32":
+			return "uint32_t"
+		case "uint64":
+			return "uint64_t"
+		case "int8":
+			return "int8_t"
+		case "int16":
+			return "int16_t"
+		case "int32":
+			return "int32_t"
+		case "int64":
+			return "int64_t"
+		case "float32":
+			return "float"
+		case "float64":
+			return "double"
+		default:
+			return t
 		}
 	}
 
-	return gen.template.ExecuteTemplate(gen.buf, `header`, struct {
-		Package, Import string
-		Largest         uint32
-	}{
-		Import:  imports,
-		Largest: largest,
-	})
+	f.ToType = func(typ kmparser.Type) string {
+		p := f.ToPlainType(typ)
+		switch {
+		case typ.PlainSchema == "char":
+			return p
+		case typ.Model == kmparser.TypeModelSlice, typ.Model == kmparser.TypeModelSliceLimited:
+			return fmt.Sprintf(`%s *`, p)
+		case typ.Model == kmparser.TypeModelArray:
+			return fmt.Sprintf(`%s`, p)
+		default:
+			return p
+		}
+	}
+
+	f.ToPlainTypeView = func(typ kmparser.Type) string {
+		p := f.ToPlainType(typ)
+		switch typ.Format {
+		case kmparser.TypeFormatStruct, kmparser.TypeFormatTable:
+			return fmt.Sprintf(`%sViewer *`, p)
+		default:
+			return p
+		}
+	}
+
+	f.ToTypeView = func(typ kmparser.Type) string {
+		p := f.ToPlainTypeView(typ)
+		if typ.PlainSchema == "char" {
+			return p
+		}
+		switch typ.Model {
+		case kmparser.TypeModelArray, kmparser.TypeModelSlice, kmparser.TypeModelSliceLimited:
+			switch typ.Format {
+			case kmparser.TypeFormatStruct, kmparser.TypeFormatTable:
+				return fmt.Sprintf(`%sViewer *`, f.ToPlainType(typ))
+			default:
+				return fmt.Sprintf(`%s *`, p)
+			}
+		default:
+			return p
+		}
+	}
+
+	return f
 }
 
-func (gen *C) enums() error {
-	return gen.template.ExecuteTemplate(gen.buf, `enums`, gen.File.Enum)
+func (gen *C) Language() string { return "c" }
+
+func (gen *C) Options() map[string]string {
+	return map[string]string{"prefix": "", "import": "karmem.h"}
 }
 
-func (gen *C) enumsBuilder() error {
-	return gen.template.ExecuteTemplate(gen.buf, `enums_builder`, gen.File.Enum)
-}
-
-func (gen *C) structs() error {
-	return gen.template.ExecuteTemplate(gen.buf, `struct`, gen.File.Struct)
-}
-
-func (gen *C) structBuilder() error {
-	return gen.template.ExecuteTemplate(gen.buf, `struct_builder`, gen.File.Struct)
-}
-
-func (gen *C) Save(output io.Writer) error {
-	_, err := io.Copy(output, gen.buf)
-	return err
-}
+func (gen *C) Extensions() []string { return []string{`.h`} }

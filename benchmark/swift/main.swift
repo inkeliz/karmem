@@ -1,11 +1,14 @@
 import karmem
 import km
+import Foundation
 
 var InputMemory: [UInt8] = Array(repeating: 0, count: 8_000_000)
 var OutputMemory: [UInt8] = Array(repeating: 0, count: 8_000_001)
 
 @_cdecl("InputMemoryPointer")
 func InputMemoryPointer() -> UInt32 {
+    var str = Data(count: 1000)
+    str.append(Data(count: 1000))
     return UInt32(Int(bitPattern: InputMemory.withUnsafeBufferPointer({ return UnsafePointer($0.baseAddress!) })))
 }
 

@@ -6,6 +6,7 @@
 #include "{{FromTags "import"}}"
 
 uint8_t _Null[{{.Size.Largest}}];
+KarmemReader _NullReader = KarmemNewReader(&_Null, {{.Size.Largest}});
 {{end}}
 
 {{define "enums"}}
@@ -54,48 +55,7 @@ EnumPacketIdentifier {{$root.Data.Name}}PacketIdentifier({{$root.Data.Name}} * x
 }
 
 void {{$root.Data.Name}}Reset({{$root.Data.Name}} * x) {
-    if (x == 0) {
-        return;
-    }
-
-{{- range $field := $root.Data.Fields }}
-{{- if $field.Data.Type.IsBasic }}
-{{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
-    {{- if $field.Data.Type.IsEnum}}
-    x->{{ $field.Data.Name }} = 0;
-    {{- else }}
-    x->{{ $field.Data.Name }} = {{ToDefault $field.Data.Type}};
-    {{- end}}
-{{- else}}
-    {{ ToPlainType $field.Data.Type }}Reset(&x->{{$field.Data.Name}});
-{{- end}}
-{{- end }}
-{{- if $field.Data.Type.IsArray }}
-{{- if not $field.Data.Type.IsNative}}
-    uint32_t __{{$field.Data.Name}}Index = 0;
-    while (__{{$field.Data.Name}}Index < {{$field.Data.Type.Length}}) {
-        {{ToPlainType $field.Data.Type}}Reset(&x->{{$field.Data.Name}}[__{{$field.Data.Name}}Index]);
-        __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1;
-    }
-{{- else}}
-    uint32_t __{{$field.Data.Name}}Index = 0;
-    while (__{{$field.Data.Name}}Index < {{$field.Data.Type.Length}}) {
-        x->{{$field.Data.Name}}[__{{$field.Data.Name}}Index] = {{ToDefault $field.Data.Type}};
-        __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1;
-    }
-{{- end}}
-{{- end }}
-{{- if $field.Data.Type.IsSlice }}
-{{- if not $field.Data.Type.IsNative}}
-    uint32_t __{{$field.Data.Name}}Index = 0;
-    while (__{{$field.Data.Name}}Index < x->_{{$field.Data.Name}}_len) {
-        {{ToPlainType $field.Data.Type}}Reset(&x->{{$field.Data.Name}}[__{{$field.Data.Name}}Index]);
-        __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1;
-    }
-{{- end}}
-    x->_{{$field.Data.Name}}_len = 0;
-{{- end }}
-{{- end }}
+    {{$root.Data.Name}}Read(x, ({{$root.Data.Name}}Viewer *) &_Null, &_NullReader);
 }
 
 uint32_t {{$root.Data.Name}}Write({{$root.Data.Name}} * x, KarmemWriter * writer, uint32_t start) {

@@ -6,6 +6,7 @@ const Allocator = std.mem.Allocator;
 const mem = @import("std").mem;
 
 var _Null: [{{.Size.Largest}}]u8 = [_]u8{ 0 } ** {{.Size.Largest}};
+var _NullReader: karmem.Reader = karmem.NewReader(std.heap.page_allocator, _Null[0..{{.Size.Largest}}]);
 {{end}}
 
 {{define "enums"}}
@@ -52,40 +53,7 @@ pub const {{$root.Data.Name}} = struct {
     }  
 
     pub fn Reset(x: *{{$root.Data.Name}}) void {
-{{- range $field := $root.Data.Fields }}
-{{- if $field.Data.Type.IsBasic }}
-    {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
-        {{- if $field.Data.Type.IsEnum}}
-        x.{{ $field.Data.Name }} = Default{{ToType $field.Data.Type}};
-        {{- else }}
-        x.{{ $field.Data.Name }} = {{ToDefault $field.Data.Type}};
-        {{- end}}
-    {{- else}}
-        {{ ToPlainType $field.Data.Type }}.Reset(&x.{{$field.Data.Name}});
-    {{- end}}
-{{- end }}
-{{- if $field.Data.Type.IsArray }}
-    {{- if not $field.Data.Type.IsNative}}
-        var __{{$field.Data.Name}}Index: usize = 0;
-        while (__{{$field.Data.Name}}Index < x.{{$field.Data.Name}}.len) {
-            {{ToPlainType $field.Data.Type}}.Reset(&x.{{$field.Data.Name}}[__{{$field.Data.Name}}Index]);
-            __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1;
-        }
-    {{- else}}
-        x.{{$field.Data.Name}} = [_]{{ToPlainType $field.Data.Type}}{ {{ToDefault $field.Data.Type}} } ** {{$field.Data.Type.Length}};
-    {{- end}}
-{{- end }}
-{{- if $field.Data.Type.IsSlice }}
-    {{- if not $field.Data.Type.IsNative}}
-        var __{{$field.Data.Name}}Index: usize = 0;
-        while (__{{$field.Data.Name}}Index < x.{{$field.Data.Name}}.len) {
-            {{ToPlainType $field.Data.Type}}.Reset(&x.{{$field.Data.Name}}[__{{$field.Data.Name}}Index]);
-            __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1;
-        }
-    {{- end}}
-        x.{{$field.Data.Name}}.len = 0;
-{{- end }}
-{{- end }}
+        {{$root.Data.Name}}.Read(x, @ptrCast(*{{$root.Data.Name}}Viewer, &_Null[0]), &_NullReader) catch unreachable;
     }
 
     pub fn WriteAsRoot(x: *{{$root.Data.Name}}, writer: *karmem.Writer) Allocator.Error!u32 {

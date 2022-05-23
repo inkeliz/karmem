@@ -9,6 +9,7 @@
     var _ unsafe.Pointer
 
     var _Null = make([]byte, {{.Size.Largest}})
+    var _NullReader = karmem.NewReader(_Null)
 {{end}}
 
 {{define "enums"}}
@@ -57,32 +58,7 @@
         }
 
         func (x *{{$root.Data.Name}}) Reset() {
-        {{- range $field := $root.Data.Fields }}
-            {{- if $field.Data.Type.IsBasic }}
-                {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
-                    x.{{ $field.Data.Name }} = {{ToDefault $field.Data.Type}}
-                {{- else}}
-                    x.{{ $field.Data.Name }}.Reset()
-                {{- end}}
-            {{- end }}
-            {{- if $field.Data.Type.IsArray }}
-                {{- if not $field.Data.Type.IsNative}}
-                    for i := range x.{{$field.Data.Name}} {
-                    x.{{$field.Data.Name}}[i].Reset()
-                    }
-                {{- else}}
-                    x.{{$field.Data.Name}} = {{ToType $field.Data.Type}}{}
-                {{- end}}
-            {{- end }}
-            {{- if $field.Data.Type.IsSlice }}
-                {{- if not $field.Data.Type.IsNative}}
-                    for i := range x.{{$field.Data.Name}} {
-                    x.{{$field.Data.Name}}[i].Reset()
-                    }
-                {{- end}}
-                x.{{$field.Data.Name}} = x.{{$field.Data.Name}}[:0]
-            {{- end }}
-        {{- end }}
+        x.Read((*{{$root.Data.Name}}Viewer)(unsafe.Pointer(&_Null)), _NullReader)
         }
 
         func (x *{{$root.Data.Name}}) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {

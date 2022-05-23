@@ -2,6 +2,7 @@
 import * as karmem from '{{FromTags "import"}}'
 
 let _Null = new StaticArray<u8>({{.Size.Largest}})
+let _NullReader = karmem.NewReader(_Null)
 
 {{- end}}
 {{define "enums"}}
@@ -38,38 +39,7 @@ export class {{$root.Data.Name}} {
     }
 
     static Reset(x: {{$root.Data.Name}}): void {
-        {{- range $field := $root.Data.Fields }}
-        {{- if $field.Data.Type.IsBasic }}
-        {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
-        x.{{ $field.Data.Name }} = {{ToDefault $field.Data.Type}};
-        {{- else}}
-        {{ToPlainType $field.Data.Type}}.Reset(x.{{ $field.Data.Name }});
-        {{- end}}
-        {{- end }}
-        {{- if $field.Data.Type.IsArray }}
-        let __{{$field.Data.Name}}Len = x.{{$field.Data.Name}}.length;
-        for (let i = 0; i < __{{$field.Data.Name}}Len; i++) {
-            {{- if not $field.Data.Type.IsNative}}
-            {{ToPlainType $field.Data.Type}}.Reset(x.{{$field.Data.Name}}[i]);
-            {{- else}}
-            x.{{$field.Data.Name}}[i] = {{ToDefault $field.Data.Type}};
-            {{- end}}
-        }
-        {{- end }}
-        {{- if $field.Data.Type.IsSlice }}
-        {{- if $field.Data.Type.IsString}}
-        x.{{$field.Data.Name}} = ""
-        {{- else }}
-        {{- if not $field.Data.Type.IsNative}}
-        let __{{$field.Data.Name}}Len = x.{{$field.Data.Name}}.length;
-        for (let i = 0; i < __{{$field.Data.Name}}Len; i++) {
-            {{ToPlainType $field.Data.Type}}.Reset(x.{{$field.Data.Name}}[i]);
-        }
-        {{- end}}
-        x.{{$field.Data.Name}}.length = 0;
-        {{- end }}
-        {{- end }}
-        {{- end }}
+        this.Read(x, changetype<{{$root.Data.Name}}Viewer>(changetype<usize>(_Null)), _NullReader)
     }
 
     @inline

@@ -41,10 +41,10 @@ pub const EnumPacketIdentifier = enum(u64) {
     {{range $root := .Structs}}
 pub const {{$root.Data.Name}} = struct {
 {{- range $field := $root.Data.Fields }}
-    {{ $field.Data.Name }}: {{ToType $field.Data.Type}},
+    {{ $field.Data.Name }}: {{ToType $field.Data.Type}} = {{- if or (and $field.Data.Type.IsBasic $field.Data.Type.IsNative) $field.Data.Type.IsEnum }}{{- if $field.Data.Type.IsEnum}} Default{{ToType $field.Data.Type}} {{- else }} {{ToDefault $field.Data.Type}}{{- end}}{{- else}}{{- if $field.Data.Type.IsBasic }} New{{ToType $field.Data.Type}}(){{- else}} {{- if $field.Data.Type.IsArray}} [_]{{ToPlainType $field.Data.Type}}{ {{- if $field.Data.Type.IsNative}}{{ToDefault $field.Data.Type}}{{- else }}New{{ToPlainType $field.Data.Type}}(){{- end}}} ** {{$field.Data.Type.Length}}{{- else}} {{- if $field.Data.Type.IsString}} &[_]u8{} {{- else }} &[_]{{ToPlainType $field.Data.Type}}{}{{- end}}{{- end}}{{- end }}{{- end}},
 
     {{- if $field.Data.Type.IsSlice }}
-    _{{ $field.Data.Name }}Capacity: usize,
+    _{{ $field.Data.Name }}Capacity: usize = 0,
     {{- end }}
 {{- end }}
 
@@ -213,14 +213,8 @@ pub const {{$root.Data.Name}} = struct {
 
 
 pub fn New{{$root.Data.Name}}() {{$root.Data.Name}} {
-    return {{$root.Data.Name}} {
-{{- range $field := $root.Data.Fields }}
-        .{{$field.Data.Name}} ={{- if or (and $field.Data.Type.IsBasic $field.Data.Type.IsNative) $field.Data.Type.IsEnum }}{{- if $field.Data.Type.IsEnum}} Default{{ToType $field.Data.Type}} {{- else }} {{ToDefault $field.Data.Type}}{{- end}}{{- else}}{{- if $field.Data.Type.IsBasic }} New{{ToType $field.Data.Type}}(){{- else}} {{- if $field.Data.Type.IsArray}} [_]{{ToPlainType $field.Data.Type}}{ {{- if $field.Data.Type.IsNative}}{{ToDefault $field.Data.Type}}{{- else }}New{{ToPlainType $field.Data.Type}}(){{- end}}} ** {{$field.Data.Type.Length}}{{- else}} {{- if $field.Data.Type.IsString}} &[_]u8{} {{- else }} &[_]{{ToPlainType $field.Data.Type}}{}{{- end}}{{- end}}{{- end }}{{- end}},
-    {{- if $field.Data.Type.IsSlice }}
-        ._{{ $field.Data.Name }}Capacity = 0,
-    {{- end }}
-{{- end}}
-    };
+    var r: {{$root.Data.Name}} = {{$root.Data.Name}} {};
+    return r;
 }
 
     {{- end }}

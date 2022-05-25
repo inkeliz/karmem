@@ -6,7 +6,6 @@
 #include "{{FromTags "import"}}"
 
 uint8_t _Null[{{.Size.Largest}}];
-KarmemReader _NullReader = KarmemNewReader(&_Null, {{.Size.Largest}});
 {{end}}
 
 {{define "enums"}}
@@ -29,6 +28,7 @@ const Enum{{$root.Data.Name}} Enum{{$root.Data.Name}}{{$field.Data.Name}} = {{$f
     {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
 
 typedef uint64_t EnumPacketIdentifier;
+{{$global := .}}
 {{- range $root := .Structs}}
 const EnumPacketIdentifier EnumPacketIdentifier{{$root.Data.Name}} = {{$root.Data.ID}}UL;
 {{- end }}
@@ -52,10 +52,6 @@ typedef struct {
 
 EnumPacketIdentifier {{$root.Data.Name}}PacketIdentifier({{$root.Data.Name}} * x) {
     return EnumPacketIdentifier{{$root.Data.Name}};
-}
-
-void {{$root.Data.Name}}Reset({{$root.Data.Name}} * x) {
-    {{$root.Data.Name}}Read(x, ({{$root.Data.Name}}Viewer *) &_Null, &_NullReader);
 }
 
 uint32_t {{$root.Data.Name}}Write({{$root.Data.Name}} * x, KarmemWriter * writer, uint32_t start) {
@@ -219,49 +215,14 @@ void {{$root.Data.Name}}ReadAsRoot({{$root.Data.Name}} * x, KarmemReader * reade
     return {{$root.Data.Name}}Read(x, New{{$root.Data.Name}}Viewer(reader, 0), reader);
 }
 
+void {{$root.Data.Name}}Reset({{$root.Data.Name}} * x) {
+    KarmemReader reader = KarmemNewReader(&_Null[0], {{$global.Size.Largest}});
+    {{$root.Data.Name}}Read(x, ({{$root.Data.Name}}Viewer *) &_Null, &reader);
+}
+
 {{$root.Data.Name}} New{{$root.Data.Name}}() {
-    {{$root.Data.Name}} r = ({{$root.Data.Name}}) {
-{{- range $field := $root.Data.Fields }}
-    {{- if $field.Data.Type.IsBasic }}
-        {{- if (or $field.Data.Type.IsNative $field.Data.Type.IsEnum) }}
-        .{{$field.Data.Name}} = {{ToDefault $field.Data.Type}},
-        {{- else }}
-        .{{$field.Data.Name}} = New{{ToPlainType $field.Data.Type}}(),
-        {{- end }}
-    {{- end }}
-    {{- if $field.Data.Type.IsArray }}
-        .{{ $field.Data.Name }} = {},
-    {{- end }}
-    {{- if $field.Data.Type.IsSlice}}
-        {{- if $field.Data.Type.IsString}}
-        .{{ $field.Data.Name }} = ({{ToPlainType $field.Data.Type}}) malloc(0),
-        {{- else }}
-        .{{ $field.Data.Name }} = ({{ToPlainType $field.Data.Type}} *) malloc(0),
-        {{- end}}
-        ._{{ $field.Data.Name }}_len = 0,
-        ._{{ $field.Data.Name }}_cap = 0,
-    {{- end}}
-{{- end}}
-    };
-
-{{- range $field := $root.Data.Fields }}
-{{- if $field.Data.Type.IsArray}}
-    size_t __{{ $field.Data.Name }}Index = 0;
-    while (__{{ $field.Data.Name }}Index < {{$field.Data.Type.Length}}) {
-    {{- if (and $field.Data.Type.IsNative (not $field.Data.Type.IsString)) }}
-        r.{{ $field.Data.Name }}[__{{ $field.Data.Name }}Index] = {{ToDefault $field.Data.Type}};
-    {{- else}}
-        {{- if $field.Data.Type.IsString}}
-        r.{{ $field.Data.Name }}[__{{ $field.Data.Name }}Index] = 0;
-        {{- else}}
-        r.{{ $field.Data.Name }}[__{{ $field.Data.Name }}Index] = New{{ToPlainType $field.Data.Type}}();
-        {{- end }}
-    {{- end}}
-        __{{ $field.Data.Name }}Index = __{{ $field.Data.Name }}Index + 1;
-    }
-{{- end }}
-{{- end}}
-
+    {{$root.Data.Name}} r;
+    memset(&r, 0, sizeof({{$root.Data.Name}}));
     return r;
 }
 

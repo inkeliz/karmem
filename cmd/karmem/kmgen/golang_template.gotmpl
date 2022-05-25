@@ -53,6 +53,10 @@
         {{- end }}
         }
 
+        func New{{$root.Data.Name}}() {{$root.Data.Name}} {
+        return {{$root.Data.Name}}{}
+        }
+
         func (x *{{$root.Data.Name}}) PacketIdentifier() PacketIdentifier {
         return PacketIdentifier{{$root.Data.Name}}
         }

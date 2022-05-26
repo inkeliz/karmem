@@ -1,13 +1,13 @@
 === RUN   TestEncodeObjectAPI
---- PASS: TestEncodeObjectAPI (0.84s)
+--- PASS: TestEncodeObjectAPI (0.82s)
+=== RUN   TestEncodeObjectAPI
+--- PASS: TestEncodeObjectAPI (0.73s)
+=== RUN   TestEncodeObjectAPI
+--- PASS: TestEncodeObjectAPI (0.75s)
 === RUN   TestEncodeObjectAPI
 --- PASS: TestEncodeObjectAPI (0.72s)
 === RUN   TestEncodeObjectAPI
---- PASS: TestEncodeObjectAPI (0.73s)
-=== RUN   TestEncodeObjectAPI
---- PASS: TestEncodeObjectAPI (0.70s)
-=== RUN   TestEncodeObjectAPI
---- PASS: TestEncodeObjectAPI (0.73s)
+--- PASS: TestEncodeObjectAPI (0.74s)
 === RUN   FuzzNRandom
 === RUN   FuzzNRandom/seed#0
 --- PASS: FuzzNRandom (0.01s)
@@ -23,7 +23,7 @@
 === RUN   FuzzContent/9ec8b66906aeadb3724c1173c39f581587542c75fcf789de2bbfb56252a5e5f0
 === RUN   FuzzContent/a4adf62fd2eb8fc7ec3209e73116b78654c68ba3269f0e64f9ae6d797feb41f0
 === RUN   FuzzContent/f76cb39946dee3e4d37a02bc9f52fd6b5bf485d30942032dd5d23599550167e3
---- PASS: FuzzContent (0.34s)
+--- PASS: FuzzContent (0.33s)
     --- PASS: FuzzContent/015a00e8d336b9dee362593599cc5cbf05a1123abdb5215712e459132f97cfd3 (0.00s)
     --- PASS: FuzzContent/0e10a3a17b4654127f376569215d408363e1d48f9191a9a34dc9ac185f3a802b (0.00s)
     --- PASS: FuzzContent/285acbaf8430bedf6851e3307be7d4bcb1d90b5b8ef332c67b6adb5a17a492de (0.00s)
@@ -47,11 +47,13 @@
 === RUN   FuzzRandom/97e1279bfbb15fc1d3b72e476653e42f423e2ddaf7a204549fa3071395e0afd9
 === RUN   FuzzRandom/994bf9456057662976233c21f56c03cbeb82b5405a7bcad352bf1fcf17d05ed8
 === RUN   FuzzRandom/a4d66e8e0b1d41743e449181de22ddfbd5efaeee30b3429ca7edfec5f115bc23
+=== RUN   FuzzRandom/b02df569f873ceea35ccb1aebd6e1711e6969555aaaa7fd9ce36aac9b69a34d4
 === RUN   FuzzRandom/c425b46e6cf22d3e5351ff01715ce523b5802934ee897a9b698724a19f2c9d3b
 === RUN   FuzzRandom/caf81e9797b19c76c1fc4dbf537d4d81f389524539f402d13aa01f93a65ac7e9
+=== RUN   FuzzRandom/d64697b012c7906ebe18f96573b936152509d93408c24ec721eeb8dfb5840166
 === RUN   FuzzRandom/da3d469497f0de66bd3e4762481ee77a9fa15f5f3ecdeab2e201206527d6d458
---- PASS: FuzzRandom (0.88s)
-    --- PASS: FuzzRandom/seed#0 (0.24s)
+--- PASS: FuzzRandom (1.02s)
+    --- PASS: FuzzRandom/seed#0 (0.26s)
     --- PASS: FuzzRandom/031d902368ad97355bde3c1f2425cc272f4bf6586b2a11a969e8c3f396f7121e (0.01s)
     --- PASS: FuzzRandom/2c31764d5cade7e4b807391d52cdbda4b3baa2d3d43b5c2ebb020f95dbd4d1a0 (0.00s)
     --- PASS: FuzzRandom/3152c0b6877c8ac81a4ddad9dd264e661e40f3249ccb2df1b4b698723db76adf (0.00s)
@@ -63,29 +65,31 @@
     --- PASS: FuzzRandom/97e1279bfbb15fc1d3b72e476653e42f423e2ddaf7a204549fa3071395e0afd9 (0.00s)
     --- PASS: FuzzRandom/994bf9456057662976233c21f56c03cbeb82b5405a7bcad352bf1fcf17d05ed8 (0.00s)
     --- PASS: FuzzRandom/a4d66e8e0b1d41743e449181de22ddfbd5efaeee30b3429ca7edfec5f115bc23 (0.00s)
+    --- PASS: FuzzRandom/b02df569f873ceea35ccb1aebd6e1711e6969555aaaa7fd9ce36aac9b69a34d4 (0.01s)
     --- PASS: FuzzRandom/c425b46e6cf22d3e5351ff01715ce523b5802934ee897a9b698724a19f2c9d3b (0.00s)
     --- PASS: FuzzRandom/caf81e9797b19c76c1fc4dbf537d4d81f389524539f402d13aa01f93a65ac7e9 (0.00s)
+    --- PASS: FuzzRandom/d64697b012c7906ebe18f96573b936152509d93408c24ec721eeb8dfb5840166 (0.00s)
     --- PASS: FuzzRandom/da3d469497f0de66bd3e4762481ee77a9fa15f5f3ecdeab2e201206527d6d458 (0.00s)
 goos: darwin
 goarch: arm64
 pkg: benchmark.karmem.org
 BenchmarkDecodeSumVec3
-BenchmarkDecodeSumVec3-8     	   25960	    230644 ns/op	    1248 B/op	       5 allocs/op
-BenchmarkDecodeSumVec3-8     	   25850	    231268 ns/op	    1248 B/op	       5 allocs/op
-BenchmarkDecodeSumVec3-8     	   26058	    230638 ns/op	    1248 B/op	       5 allocs/op
-BenchmarkDecodeSumVec3-8     	   26030	    231286 ns/op	    1248 B/op	       5 allocs/op
-BenchmarkDecodeSumVec3-8     	   25952	    231748 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	   26120	    230296 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	   25983	    230725 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	   26023	    230726 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	   25960	    230013 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkDecodeSumVec3-8     	   26085	    229445 ns/op	    1248 B/op	       5 allocs/op
 BenchmarkDecodeObjectAPI
-BenchmarkDecodeObjectAPI-8   	    9457	    624003 ns/op	  164348 B/op	       4 allocs/op
-BenchmarkDecodeObjectAPI-8   	    9453	    622483 ns/op	  164417 B/op	       4 allocs/op
-BenchmarkDecodeObjectAPI-8   	    9462	    622268 ns/op	  164261 B/op	       4 allocs/op
-BenchmarkDecodeObjectAPI-8   	    9486	    625624 ns/op	  163849 B/op	       4 allocs/op
-BenchmarkDecodeObjectAPI-8   	    9439	    624324 ns/op	  164659 B/op	       4 allocs/op
+BenchmarkDecodeObjectAPI-8   	    9475	    621589 ns/op	  164038 B/op	       4 allocs/op
+BenchmarkDecodeObjectAPI-8   	    9499	    622766 ns/op	  163626 B/op	       4 allocs/op
+BenchmarkDecodeObjectAPI-8   	    9476	    623954 ns/op	  164021 B/op	       4 allocs/op
+BenchmarkDecodeObjectAPI-8   	    9465	    621934 ns/op	  164210 B/op	       4 allocs/op
+BenchmarkDecodeObjectAPI-8   	    9463	    622838 ns/op	  164244 B/op	       4 allocs/op
 BenchmarkEncodeObjectAPI
-BenchmarkEncodeObjectAPI-8   	    8098	    714066 ns/op	    1232 B/op	       3 allocs/op
-BenchmarkEncodeObjectAPI-8   	    8061	    712346 ns/op	    1232 B/op	       3 allocs/op
-BenchmarkEncodeObjectAPI-8   	    8028	    714291 ns/op	    1232 B/op	       3 allocs/op
-BenchmarkEncodeObjectAPI-8   	    8038	    713853 ns/op	    1232 B/op	       3 allocs/op
-BenchmarkEncodeObjectAPI-8   	    8101	    713368 ns/op	    1232 B/op	       3 allocs/op
+BenchmarkEncodeObjectAPI-8   	    8000	    718052 ns/op	    1232 B/op	       3 allocs/op
+BenchmarkEncodeObjectAPI-8   	    8028	    716330 ns/op	    1232 B/op	       3 allocs/op
+BenchmarkEncodeObjectAPI-8   	    8019	    718365 ns/op	    1232 B/op	       3 allocs/op
+BenchmarkEncodeObjectAPI-8   	    8006	    717054 ns/op	    1232 B/op	       3 allocs/op
+BenchmarkEncodeObjectAPI-8   	    8002	    718663 ns/op	    1232 B/op	       3 allocs/op
 PASS
-ok  	benchmark.karmem.org	141.608s
+ok  	benchmark.karmem.org	141.892s

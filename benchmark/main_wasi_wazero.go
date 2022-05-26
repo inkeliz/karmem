@@ -21,7 +21,7 @@ func initWasm(b interface {
 }, fn ...string) Wasm {
 	w := &WasmWazero{}
 	var err error
-	runtime := wazero.NewRuntimeWithConfig(wazero.NewRuntimeConfigJIT().WithWasmCore2())
+	runtime := wazero.NewRuntimeWithConfig(wazero.NewRuntimeConfigCompiler().WithWasmCore2())
 	w.modules[0], err = wasi.InstantiateSnapshotPreview1(context.Background(), runtime)
 	if err != nil {
 		b.Fatal(err)
@@ -65,7 +65,12 @@ func initWasm(b interface {
 		b.Fatal(err)
 	}
 
-	w.mainModule, err = runtime.InstantiateModuleFromCodeWithConfig(context.Background(), wasifile, config)
+	compiledWasi, err := runtime.CompileModule(context.Background(), wasifile, wazero.NewCompileConfig())
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	w.mainModule, err = runtime.InstantiateModule(context.Background(), compiledWasi, config)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -109,7 +114,7 @@ func initWasm(b interface {
 }
 
 type WasmWazero struct {
-	modules    [5]api.Module
+	modules    [5]api.Closer
 	mainModule api.Module
 	input      uint64
 	output     uint64

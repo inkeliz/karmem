@@ -13,7 +13,7 @@ pub const Writer = struct {
         var offset: usize = self.memory.len;
         var total: usize = offset + len;
         if (total > self.capacity) {
-            var capacityTarget : usize = self.capacity * 2;
+            var capacityTarget: usize = self.capacity * 2;
             if (total > capacityTarget) {
                 capacityTarget = total;
             }
@@ -23,10 +23,6 @@ pub const Writer = struct {
         return @intCast(u32, offset);
     }
 
-    pub fn WriteAt(self: *Writer, offset: u32, src: [*]const u8, len: usize) void {
-        @memcpy(self.memory.ptr[offset..offset+len].ptr, src, len);
-    }
-
     pub fn Grow(self: *Writer, cap: usize) Allocator.Error!void {
         if (self.isFixed) {
             return std.mem.Allocator.Error.OutOfMemory;
@@ -34,6 +30,10 @@ pub const Writer = struct {
         const new_memory = try self.allocator.reallocAtLeast(self.memory.ptr[0..self.capacity], cap);
         self.memory.ptr = new_memory.ptr;
         self.capacity = new_memory.len;
+    }
+
+    pub fn WriteAt(self: *Writer, offset: u32, src: [*]const u8, len: usize) void {
+        @memcpy(self.memory.ptr[offset .. offset + len].ptr, src, len);
     }
 
     pub fn Bytes(self: *Writer) []u8 {
@@ -50,27 +50,27 @@ pub const Writer = struct {
 };
 
 pub fn NewWriter(allocator: Allocator, cap: usize) !Writer {
-    var r : Writer = .{
-       .memory = &[_]u8{},
-       .capacity = 0,
-       .allocator = allocator,
-       .isFixed = false,
-   };
+    var r: Writer = .{
+        .memory = &[_]u8{},
+        .capacity = 0,
+        .allocator = allocator,
+        .isFixed = false,
+    };
 
-   try Writer.Grow(&r, cap);
-   return r;
+    try Writer.Grow(&r, cap);
+    return r;
 }
 
 pub fn NewFixedWriter(slice: []u8) Writer {
-    var r : Writer = .{
-       .memory = slice,
-       .capacity = slice.len,
-       .allocator = std.heap.page_allocator,
-       .isFixed = true,
-   };
+    var r: Writer = .{
+        .memory = slice,
+        .capacity = slice.len,
+        .allocator = std.heap.page_allocator,
+        .isFixed = true,
+    };
 
-   Writer.Reset(&r);
-   return r;
+    Writer.Reset(&r);
+    return r;
 }
 
 pub const Reader = struct {
@@ -89,11 +89,10 @@ pub const Reader = struct {
         x.length = @intCast(u64, size);
         return true;
     }
-
 };
 
 pub fn NewReader(allocator: Allocator, memory: []u8) Reader {
-    return Reader {
+    return Reader{
         .memory = memory,
         .length = @intCast(u64, memory.len),
         .allocator = allocator,

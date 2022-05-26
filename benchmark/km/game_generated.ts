@@ -2,6 +2,7 @@
 import * as karmem from '../../assemblyscript/karmem'
 
 let _Null = new StaticArray<u8>(152)
+let _NullReader = karmem.NewReader(_Null)
 
 export type Color = u8;
 export const ColorRed : Color = 0
@@ -34,9 +35,7 @@ export class Vec3 {
     }
 
     static Reset(x: Vec3): void {
-        x.X = 0;
-        x.Y = 0;
-        x.Z = 0;
+        this.Read(x, changetype<Vec3Viewer>(changetype<usize>(_Null)), _NullReader)
     }
 
     @inline
@@ -95,8 +94,7 @@ export class WeaponData {
     }
 
     static Reset(x: WeaponData): void {
-        x.Damage = 0;
-        x.Range = 0;
+        this.Read(x, changetype<WeaponDataViewer>(changetype<usize>(_Null)), _NullReader)
     }
 
     @inline
@@ -151,7 +149,7 @@ export class Weapon {
     }
 
     static Reset(x: Weapon): void {
-        WeaponData.Reset(x.Data);
+        this.Read(x, changetype<WeaponViewer>(changetype<usize>(_Null)), _NullReader)
     }
 
     @inline
@@ -219,28 +217,7 @@ export class MonsterData {
     }
 
     static Reset(x: MonsterData): void {
-        Vec3.Reset(x.Pos);
-        x.Mana = 0;
-        x.Health = 0;
-        x.Name = ""
-        x.Team = 0;
-        x.Inventory.length = 0;
-        x.Color = 0;
-        let __HitboxLen = x.Hitbox.length;
-        for (let i = 0; i < __HitboxLen; i++) {
-            x.Hitbox[i] = 0;
-        }
-        x.Status.length = 0;
-        let __WeaponsLen = x.Weapons.length;
-        for (let i = 0; i < __WeaponsLen; i++) {
-            Weapon.Reset(x.Weapons[i]);
-        }
-        let __PathLen = x.Path.length;
-        for (let i = 0; i < __PathLen; i++) {
-            Vec3.Reset(x.Path[i]);
-        }
-        x.Path.length = 0;
-        x.IsAlive = false;
+        this.Read(x, changetype<MonsterDataViewer>(changetype<usize>(_Null)), _NullReader)
     }
 
     @inline
@@ -277,7 +254,7 @@ export class MonsterData {
         writer.WriteAt<u32>(offset + 24 + 4 + 4, 1)
         writer.WriteSliceAt<Uint8Array>(__NameOffset, __NameString);
         let __TeamOffset: u32 = offset + 36;
-        writer.WriteAt<u8>(__TeamOffset, u8(x.Team));
+        writer.WriteAt<Team>(__TeamOffset, x.Team);
         const __InventorySize: u32 = 1 * x.Inventory.length;
         let __InventoryOffset = writer.Alloc(__InventorySize);
         if (__InventoryOffset == 0) {
@@ -288,7 +265,7 @@ export class MonsterData {
         writer.WriteAt<u32>(offset + 37 + 4 + 4, 1)
         writer.WriteSliceAt<Array<u8>>(__InventoryOffset, x.Inventory);
         let __ColorOffset: u32 = offset + 49;
-        writer.WriteAt<u8>(__ColorOffset, u8(x.Color));
+        writer.WriteAt<Color>(__ColorOffset, x.Color);
         let __HitboxOffset: u32 = offset + 50;
         writer.WriteArrayAt<StaticArray<f64>>(__HitboxOffset, x.Hitbox);
         const __StatusSize: u32 = 4 * x.Status.length;
@@ -457,7 +434,7 @@ export class Monster {
     }
 
     static Reset(x: Monster): void {
-        MonsterData.Reset(x.Data);
+        this.Read(x, changetype<MonsterViewer>(changetype<usize>(_Null)), _NullReader)
     }
 
     @inline
@@ -514,11 +491,7 @@ export class Monsters {
     }
 
     static Reset(x: Monsters): void {
-        let __MonstersLen = x.Monsters.length;
-        for (let i = 0; i < __MonstersLen; i++) {
-            Monster.Reset(x.Monsters[i]);
-        }
-        x.Monsters.length = 0;
+        this.Read(x, changetype<MonstersViewer>(changetype<usize>(_Null)), _NullReader)
     }
 
     @inline
@@ -616,14 +589,12 @@ export class Vec3Viewer {
 
 @inline export function NewVec3Viewer(reader: karmem.Reader, offset: u32): Vec3Viewer {
     if (!reader.IsValidOffset(offset, 16)) {
-        return _NullVec3Viewer
+        return changetype<Vec3Viewer>(changetype<usize>(_Null))
     }
 
     let v: Vec3Viewer = changetype<Vec3Viewer>(reader.Pointer + offset)
     return v
 }
-
-let _NullVec3Viewer = changetype<Vec3Viewer>(changetype<usize>(_Null))
 @unmanaged
 export class WeaponDataViewer {
     private _0: u64;
@@ -651,17 +622,15 @@ export class WeaponDataViewer {
 
 @inline export function NewWeaponDataViewer(reader: karmem.Reader, offset: u32): WeaponDataViewer {
     if (!reader.IsValidOffset(offset, 8)) {
-        return _NullWeaponDataViewer
+        return changetype<WeaponDataViewer>(changetype<usize>(_Null))
     }
 
     let v: WeaponDataViewer = changetype<WeaponDataViewer>(reader.Pointer + offset)
     if (!reader.IsValidOffset(offset, v.SizeOf())) {
-        return _NullWeaponDataViewer
+        return changetype<WeaponDataViewer>(changetype<usize>(_Null))
     }
     return v
 }
-
-let _NullWeaponDataViewer = changetype<WeaponDataViewer>(changetype<usize>(_Null))
 @unmanaged
 export class WeaponViewer {
     private _0: u64;
@@ -673,27 +642,18 @@ export class WeaponViewer {
     @inline
     Data(reader: karmem.Reader): WeaponDataViewer {
         let offset: u32 = load<u32>(changetype<usize>(this) + 0);
-        if (!reader.IsValidOffset(offset, 16)) {
-            return _NullWeaponDataViewer
-        }
-        let v: WeaponDataViewer = changetype<WeaponDataViewer>(reader.Pointer + offset);
-        if (!reader.IsValidOffset(offset, v.SizeOf())) {
-            return _NullWeaponDataViewer
-        }
-        return v
+        return NewWeaponDataViewer(reader, offset)
     }
 }
 
 @inline export function NewWeaponViewer(reader: karmem.Reader, offset: u32): WeaponViewer {
     if (!reader.IsValidOffset(offset, 8)) {
-        return _NullWeaponViewer
+        return changetype<WeaponViewer>(changetype<usize>(_Null))
     }
 
     let v: WeaponViewer = changetype<WeaponViewer>(reader.Pointer + offset)
     return v
 }
-
-let _NullWeaponViewer = changetype<WeaponViewer>(changetype<usize>(_Null))
 @unmanaged
 export class MonsterDataViewer {
     private _0: u64;
@@ -723,7 +683,7 @@ export class MonsterDataViewer {
     @inline
     Pos(): Vec3Viewer {
         if ((<u32>4 + <u32>16) > this.SizeOf()) {
-            return _NullVec3Viewer;
+            return changetype<Vec3Viewer>(changetype<usize>(_Null));
         }
         return changetype<Vec3Viewer>(changetype<usize>(this) + 4);
     }
@@ -840,17 +800,15 @@ export class MonsterDataViewer {
 
 @inline export function NewMonsterDataViewer(reader: karmem.Reader, offset: u32): MonsterDataViewer {
     if (!reader.IsValidOffset(offset, 8)) {
-        return _NullMonsterDataViewer
+        return changetype<MonsterDataViewer>(changetype<usize>(_Null))
     }
 
     let v: MonsterDataViewer = changetype<MonsterDataViewer>(reader.Pointer + offset)
     if (!reader.IsValidOffset(offset, v.SizeOf())) {
-        return _NullMonsterDataViewer
+        return changetype<MonsterDataViewer>(changetype<usize>(_Null))
     }
     return v
 }
-
-let _NullMonsterDataViewer = changetype<MonsterDataViewer>(changetype<usize>(_Null))
 @unmanaged
 export class MonsterViewer {
     private _0: u64;
@@ -862,27 +820,18 @@ export class MonsterViewer {
     @inline
     Data(reader: karmem.Reader): MonsterDataViewer {
         let offset: u32 = load<u32>(changetype<usize>(this) + 0);
-        if (!reader.IsValidOffset(offset, 152)) {
-            return _NullMonsterDataViewer
-        }
-        let v: MonsterDataViewer = changetype<MonsterDataViewer>(reader.Pointer + offset);
-        if (!reader.IsValidOffset(offset, v.SizeOf())) {
-            return _NullMonsterDataViewer
-        }
-        return v
+        return NewMonsterDataViewer(reader, offset)
     }
 }
 
 @inline export function NewMonsterViewer(reader: karmem.Reader, offset: u32): MonsterViewer {
     if (!reader.IsValidOffset(offset, 8)) {
-        return _NullMonsterViewer
+        return changetype<MonsterViewer>(changetype<usize>(_Null))
     }
 
     let v: MonsterViewer = changetype<MonsterViewer>(reader.Pointer + offset)
     return v
 }
-
-let _NullMonsterViewer = changetype<MonsterViewer>(changetype<usize>(_Null))
 @unmanaged
 export class MonstersViewer {
     private _0: u64;
@@ -913,14 +862,12 @@ export class MonstersViewer {
 
 @inline export function NewMonstersViewer(reader: karmem.Reader, offset: u32): MonstersViewer {
     if (!reader.IsValidOffset(offset, 8)) {
-        return _NullMonstersViewer
+        return changetype<MonstersViewer>(changetype<usize>(_Null))
     }
 
     let v: MonstersViewer = changetype<MonstersViewer>(reader.Pointer + offset)
     if (!reader.IsValidOffset(offset, v.SizeOf())) {
-        return _NullMonstersViewer
+        return changetype<MonstersViewer>(changetype<usize>(_Null))
     }
     return v
 }
-
-let _NullMonstersViewer = changetype<MonstersViewer>(changetype<usize>(_Null))

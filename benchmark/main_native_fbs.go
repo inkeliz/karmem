@@ -4,7 +4,6 @@ package main
 
 import (
 	"benchmark.karmem.org/fbs"
-	"benchmark.karmem.org/km"
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
@@ -28,7 +27,7 @@ func initEncode() {
 	KStruct = &fbs.MonstersT{
 		Monsters: make([]*fbs.MonsterT, 1000),
 	}
-	var sum km.Vec3
+	var sum fbs.Vec3T
 	for i := range KStruct.Monsters {
 		KStruct.Monsters[i] = &fbs.MonsterT{
 			Pos:       &fbs.Vec3T{X: 1, Y: 2, Z: 3},
@@ -38,7 +37,7 @@ func initEncode() {
 			Team:      fbs.TeamAliens,
 			Inventory: make([]uint8, 100),
 			Color:     0,
-			Hitbox:    [5]float64{4.2, 313.12, 4.02, 90, -2942.123},
+			Hitbox:    []float64{4.2, 313.12, 4.02, 90, -2942.123},
 			Status:    []int32{23123, 83859, 30123123, 34123, -23111, -923, 93123, 11123},
 			Weapons: []*fbs.WeaponT{
 				{

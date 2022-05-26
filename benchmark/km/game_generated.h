@@ -414,6 +414,7 @@ MonsterViewer * MonstersViewer_Monsters(MonstersViewer * x, KarmemReader * reade
     return (MonsterViewer *) &reader->pointer[offset];
 }
 typedef uint64_t EnumPacketIdentifier;
+
 const EnumPacketIdentifier EnumPacketIdentifierVec3 = 10268726485798425099UL;
 const EnumPacketIdentifier EnumPacketIdentifierWeaponData = 15342010214468761012UL;
 const EnumPacketIdentifier EnumPacketIdentifierWeapon = 8029074423243608167UL;
@@ -430,15 +431,6 @@ typedef struct {
 
 EnumPacketIdentifier Vec3PacketIdentifier(Vec3 * x) {
     return EnumPacketIdentifierVec3;
-}
-
-void Vec3Reset(Vec3 * x) {
-    if (x == 0) {
-        return;
-    }
-    x->X = 0;
-    x->Y = 0;
-    x->Z = 0;
 }
 
 uint32_t Vec3Write(Vec3 * x, KarmemWriter * writer, uint32_t start) {
@@ -474,13 +466,14 @@ void Vec3ReadAsRoot(Vec3 * x, KarmemReader * reader) {
     return Vec3Read(x, NewVec3Viewer(reader, 0), reader);
 }
 
-Vec3 NewVec3() {
-    Vec3 r = (Vec3) {
-        .X = 0,
-        .Y = 0,
-        .Z = 0,
-    };
+void Vec3Reset(Vec3 * x) {
+    KarmemReader reader = KarmemNewReader(&_Null[0], 152);
+    Vec3Read(x, (Vec3Viewer *) &_Null, &reader);
+}
 
+Vec3 NewVec3() {
+    Vec3 r;
+    memset(&r, 0, sizeof(Vec3));
     return r;
 }
 typedef struct {
@@ -490,14 +483,6 @@ typedef struct {
 
 EnumPacketIdentifier WeaponDataPacketIdentifier(WeaponData * x) {
     return EnumPacketIdentifierWeaponData;
-}
-
-void WeaponDataReset(WeaponData * x) {
-    if (x == 0) {
-        return;
-    }
-    x->Damage = 0;
-    x->Range = 0;
 }
 
 uint32_t WeaponDataWrite(WeaponData * x, KarmemWriter * writer, uint32_t start) {
@@ -532,12 +517,14 @@ void WeaponDataReadAsRoot(WeaponData * x, KarmemReader * reader) {
     return WeaponDataRead(x, NewWeaponDataViewer(reader, 0), reader);
 }
 
-WeaponData NewWeaponData() {
-    WeaponData r = (WeaponData) {
-        .Damage = 0,
-        .Range = 0,
-    };
+void WeaponDataReset(WeaponData * x) {
+    KarmemReader reader = KarmemNewReader(&_Null[0], 152);
+    WeaponDataRead(x, (WeaponDataViewer *) &_Null, &reader);
+}
 
+WeaponData NewWeaponData() {
+    WeaponData r;
+    memset(&r, 0, sizeof(WeaponData));
     return r;
 }
 typedef struct {
@@ -546,13 +533,6 @@ typedef struct {
 
 EnumPacketIdentifier WeaponPacketIdentifier(Weapon * x) {
     return EnumPacketIdentifierWeapon;
-}
-
-void WeaponReset(Weapon * x) {
-    if (x == 0) {
-        return;
-    }
-    WeaponDataReset(&x->Data);
 }
 
 uint32_t WeaponWrite(Weapon * x, KarmemWriter * writer, uint32_t start) {
@@ -587,11 +567,14 @@ void WeaponReadAsRoot(Weapon * x, KarmemReader * reader) {
     return WeaponRead(x, NewWeaponViewer(reader, 0), reader);
 }
 
-Weapon NewWeapon() {
-    Weapon r = (Weapon) {
-        .Data = NewWeaponData(),
-    };
+void WeaponReset(Weapon * x) {
+    KarmemReader reader = KarmemNewReader(&_Null[0], 152);
+    WeaponRead(x, (WeaponViewer *) &_Null, &reader);
+}
 
+Weapon NewWeapon() {
+    Weapon r;
+    memset(&r, 0, sizeof(Weapon));
     return r;
 }
 typedef struct {
@@ -619,37 +602,6 @@ typedef struct {
 
 EnumPacketIdentifier MonsterDataPacketIdentifier(MonsterData * x) {
     return EnumPacketIdentifierMonsterData;
-}
-
-void MonsterDataReset(MonsterData * x) {
-    if (x == 0) {
-        return;
-    }
-    Vec3Reset(&x->Pos);
-    x->Mana = 0;
-    x->Health = 0;
-    x->_Name_len = 0;
-    x->Team = 0;
-    x->_Inventory_len = 0;
-    x->Color = 0;
-    uint32_t __HitboxIndex = 0;
-    while (__HitboxIndex < 5) {
-        x->Hitbox[__HitboxIndex] = 0;
-        __HitboxIndex = __HitboxIndex + 1;
-    }
-    x->_Status_len = 0;
-    uint32_t __WeaponsIndex = 0;
-    while (__WeaponsIndex < 4) {
-        WeaponReset(&x->Weapons[__WeaponsIndex]);
-        __WeaponsIndex = __WeaponsIndex + 1;
-    }
-    uint32_t __PathIndex = 0;
-    while (__PathIndex < x->_Path_len) {
-        Vec3Reset(&x->Path[__PathIndex]);
-        __PathIndex = __PathIndex + 1;
-    }
-    x->_Path_len = 0;
-    x->IsAlive = false;
 }
 
 uint32_t MonsterDataWrite(MonsterData * x, KarmemWriter * writer, uint32_t start) {
@@ -864,40 +816,14 @@ void MonsterDataReadAsRoot(MonsterData * x, KarmemReader * reader) {
     return MonsterDataRead(x, NewMonsterDataViewer(reader, 0), reader);
 }
 
-MonsterData NewMonsterData() {
-    MonsterData r = (MonsterData) {
-        .Pos = NewVec3(),
-        .Mana = 0,
-        .Health = 0,
-        .Name = (uint8_t *) malloc(0),
-        ._Name_len = 0,
-        ._Name_cap = 0,
-        .Team = 0,
-        .Inventory = (uint8_t *) malloc(0),
-        ._Inventory_len = 0,
-        ._Inventory_cap = 0,
-        .Color = 0,
-        .Hitbox = {},
-        .Status = (int32_t *) malloc(0),
-        ._Status_len = 0,
-        ._Status_cap = 0,
-        .Weapons = {},
-        .Path = (Vec3 *) malloc(0),
-        ._Path_len = 0,
-        ._Path_cap = 0,
-        .IsAlive = false,
-    };
-    size_t __HitboxIndex = 0;
-    while (__HitboxIndex < 5) {
-        r.Hitbox[__HitboxIndex] = 0;
-        __HitboxIndex = __HitboxIndex + 1;
-    }
-    size_t __WeaponsIndex = 0;
-    while (__WeaponsIndex < 4) {
-        r.Weapons[__WeaponsIndex] = NewWeapon();
-        __WeaponsIndex = __WeaponsIndex + 1;
-    }
+void MonsterDataReset(MonsterData * x) {
+    KarmemReader reader = KarmemNewReader(&_Null[0], 152);
+    MonsterDataRead(x, (MonsterDataViewer *) &_Null, &reader);
+}
 
+MonsterData NewMonsterData() {
+    MonsterData r;
+    memset(&r, 0, sizeof(MonsterData));
     return r;
 }
 typedef struct {
@@ -906,13 +832,6 @@ typedef struct {
 
 EnumPacketIdentifier MonsterPacketIdentifier(Monster * x) {
     return EnumPacketIdentifierMonster;
-}
-
-void MonsterReset(Monster * x) {
-    if (x == 0) {
-        return;
-    }
-    MonsterDataReset(&x->Data);
 }
 
 uint32_t MonsterWrite(Monster * x, KarmemWriter * writer, uint32_t start) {
@@ -947,11 +866,14 @@ void MonsterReadAsRoot(Monster * x, KarmemReader * reader) {
     return MonsterRead(x, NewMonsterViewer(reader, 0), reader);
 }
 
-Monster NewMonster() {
-    Monster r = (Monster) {
-        .Data = NewMonsterData(),
-    };
+void MonsterReset(Monster * x) {
+    KarmemReader reader = KarmemNewReader(&_Null[0], 152);
+    MonsterRead(x, (MonsterViewer *) &_Null, &reader);
+}
 
+Monster NewMonster() {
+    Monster r;
+    memset(&r, 0, sizeof(Monster));
     return r;
 }
 typedef struct {
@@ -962,18 +884,6 @@ typedef struct {
 
 EnumPacketIdentifier MonstersPacketIdentifier(Monsters * x) {
     return EnumPacketIdentifierMonsters;
-}
-
-void MonstersReset(Monsters * x) {
-    if (x == 0) {
-        return;
-    }
-    uint32_t __MonstersIndex = 0;
-    while (__MonstersIndex < x->_Monsters_len) {
-        MonsterReset(&x->Monsters[__MonstersIndex]);
-        __MonstersIndex = __MonstersIndex + 1;
-    }
-    x->_Monsters_len = 0;
 }
 
 uint32_t MonstersWrite(Monsters * x, KarmemWriter * writer, uint32_t start) {
@@ -1039,12 +949,13 @@ void MonstersReadAsRoot(Monsters * x, KarmemReader * reader) {
     return MonstersRead(x, NewMonstersViewer(reader, 0), reader);
 }
 
-Monsters NewMonsters() {
-    Monsters r = (Monsters) {
-        .Monsters = (Monster *) malloc(0),
-        ._Monsters_len = 0,
-        ._Monsters_cap = 0,
-    };
+void MonstersReset(Monsters * x) {
+    KarmemReader reader = KarmemNewReader(&_Null[0], 152);
+    MonstersRead(x, (MonstersViewer *) &_Null, &reader);
+}
 
+Monsters NewMonsters() {
+    Monsters r;
+    memset(&r, 0, sizeof(Monsters));
     return r;
 }

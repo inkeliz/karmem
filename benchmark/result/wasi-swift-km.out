@@ -1,16 +1,16 @@
 === RUN   TestEncodeObjectAPI
---- PASS: TestEncodeObjectAPI (2.56s)
+--- PASS: TestEncodeObjectAPI (2.58s)
 === RUN   TestEncodeObjectAPI
---- PASS: TestEncodeObjectAPI (2.46s)
+--- PASS: TestEncodeObjectAPI (2.50s)
 === RUN   TestEncodeObjectAPI
---- PASS: TestEncodeObjectAPI (2.46s)
+--- PASS: TestEncodeObjectAPI (2.50s)
 === RUN   TestEncodeObjectAPI
---- PASS: TestEncodeObjectAPI (2.46s)
+--- PASS: TestEncodeObjectAPI (2.52s)
 === RUN   TestEncodeObjectAPI
---- PASS: TestEncodeObjectAPI (2.46s)
+--- PASS: TestEncodeObjectAPI (2.49s)
 === RUN   FuzzNRandom
 === RUN   FuzzNRandom/seed#0
---- PASS: FuzzNRandom (0.02s)
+--- PASS: FuzzNRandom (0.01s)
     --- PASS: FuzzNRandom/seed#0 (0.00s)
 === RUN   FuzzContent
 === RUN   FuzzContent/015a00e8d336b9dee362593599cc5cbf05a1123abdb5215712e459132f97cfd3
@@ -23,7 +23,7 @@
 === RUN   FuzzContent/9ec8b66906aeadb3724c1173c39f581587542c75fcf789de2bbfb56252a5e5f0
 === RUN   FuzzContent/a4adf62fd2eb8fc7ec3209e73116b78654c68ba3269f0e64f9ae6d797feb41f0
 === RUN   FuzzContent/f76cb39946dee3e4d37a02bc9f52fd6b5bf485d30942032dd5d23599550167e3
---- PASS: FuzzContent (2.16s)
+--- PASS: FuzzContent (2.17s)
     --- PASS: FuzzContent/015a00e8d336b9dee362593599cc5cbf05a1123abdb5215712e459132f97cfd3 (0.00s)
     --- PASS: FuzzContent/0e10a3a17b4654127f376569215d408363e1d48f9191a9a34dc9ac185f3a802b (0.00s)
     --- PASS: FuzzContent/285acbaf8430bedf6851e3307be7d4bcb1d90b5b8ef332c67b6adb5a17a492de (0.00s)
@@ -47,45 +47,49 @@
 === RUN   FuzzRandom/97e1279bfbb15fc1d3b72e476653e42f423e2ddaf7a204549fa3071395e0afd9
 === RUN   FuzzRandom/994bf9456057662976233c21f56c03cbeb82b5405a7bcad352bf1fcf17d05ed8
 === RUN   FuzzRandom/a4d66e8e0b1d41743e449181de22ddfbd5efaeee30b3429ca7edfec5f115bc23
+=== RUN   FuzzRandom/b02df569f873ceea35ccb1aebd6e1711e6969555aaaa7fd9ce36aac9b69a34d4
 === RUN   FuzzRandom/c425b46e6cf22d3e5351ff01715ce523b5802934ee897a9b698724a19f2c9d3b
 === RUN   FuzzRandom/caf81e9797b19c76c1fc4dbf537d4d81f389524539f402d13aa01f93a65ac7e9
+=== RUN   FuzzRandom/d64697b012c7906ebe18f96573b936152509d93408c24ec721eeb8dfb5840166
 === RUN   FuzzRandom/da3d469497f0de66bd3e4762481ee77a9fa15f5f3ecdeab2e201206527d6d458
---- PASS: FuzzRandom (48.72s)
-    --- PASS: FuzzRandom/seed#0 (0.11s)
-    --- PASS: FuzzRandom/031d902368ad97355bde3c1f2425cc272f4bf6586b2a11a969e8c3f396f7121e (4.02s)
-    --- PASS: FuzzRandom/2c31764d5cade7e4b807391d52cdbda4b3baa2d3d43b5c2ebb020f95dbd4d1a0 (4.91s)
-    --- PASS: FuzzRandom/3152c0b6877c8ac81a4ddad9dd264e661e40f3249ccb2df1b4b698723db76adf (5.52s)
+--- PASS: FuzzRandom (4.04s)
+    --- PASS: FuzzRandom/seed#0 (0.10s)
+    --- PASS: FuzzRandom/031d902368ad97355bde3c1f2425cc272f4bf6586b2a11a969e8c3f396f7121e (0.21s)
+    --- PASS: FuzzRandom/2c31764d5cade7e4b807391d52cdbda4b3baa2d3d43b5c2ebb020f95dbd4d1a0 (0.15s)
+    --- PASS: FuzzRandom/3152c0b6877c8ac81a4ddad9dd264e661e40f3249ccb2df1b4b698723db76adf (0.09s)
     --- PASS: FuzzRandom/3ecdb9f8466a6536342f516e2e2b689791dd4e86f358912e9a3ab162756ffd68 (0.00s)
-    --- PASS: FuzzRandom/5684f91ef0c4effb9b0da6337b5112a02926d44e98768cc65bdaf190a3ade4ea (3.48s)
-    --- PASS: FuzzRandom/61528bdf1877db684cee075183a3b62ba7afea485c475a2b04ce9a1ba35a1290 (1.83s)
-    --- PASS: FuzzRandom/689c3a8fc0a0f0313fb2a8040844a74dc2ba1b83c84972ce9e160794b2714ce5 (5.42s)
-    --- PASS: FuzzRandom/7c9ca73ea91f213fd909e0f51200dd2200967bc35317dde46787189eabf60a39 (4.05s)
-    --- PASS: FuzzRandom/97e1279bfbb15fc1d3b72e476653e42f423e2ddaf7a204549fa3071395e0afd9 (3.33s)
-    --- PASS: FuzzRandom/994bf9456057662976233c21f56c03cbeb82b5405a7bcad352bf1fcf17d05ed8 (3.28s)
-    --- PASS: FuzzRandom/a4d66e8e0b1d41743e449181de22ddfbd5efaeee30b3429ca7edfec5f115bc23 (4.99s)
+    --- PASS: FuzzRandom/5684f91ef0c4effb9b0da6337b5112a02926d44e98768cc65bdaf190a3ade4ea (0.03s)
+    --- PASS: FuzzRandom/61528bdf1877db684cee075183a3b62ba7afea485c475a2b04ce9a1ba35a1290 (0.03s)
+    --- PASS: FuzzRandom/689c3a8fc0a0f0313fb2a8040844a74dc2ba1b83c84972ce9e160794b2714ce5 (0.09s)
+    --- PASS: FuzzRandom/7c9ca73ea91f213fd909e0f51200dd2200967bc35317dde46787189eabf60a39 (0.20s)
+    --- PASS: FuzzRandom/97e1279bfbb15fc1d3b72e476653e42f423e2ddaf7a204549fa3071395e0afd9 (0.03s)
+    --- PASS: FuzzRandom/994bf9456057662976233c21f56c03cbeb82b5405a7bcad352bf1fcf17d05ed8 (0.03s)
+    --- PASS: FuzzRandom/a4d66e8e0b1d41743e449181de22ddfbd5efaeee30b3429ca7edfec5f115bc23 (0.13s)
+    --- PASS: FuzzRandom/b02df569f873ceea35ccb1aebd6e1711e6969555aaaa7fd9ce36aac9b69a34d4 (0.15s)
     --- PASS: FuzzRandom/c425b46e6cf22d3e5351ff01715ce523b5802934ee897a9b698724a19f2c9d3b (0.00s)
     --- PASS: FuzzRandom/caf81e9797b19c76c1fc4dbf537d4d81f389524539f402d13aa01f93a65ac7e9 (0.00s)
-    --- PASS: FuzzRandom/da3d469497f0de66bd3e4762481ee77a9fa15f5f3ecdeab2e201206527d6d458 (4.67s)
+    --- PASS: FuzzRandom/d64697b012c7906ebe18f96573b936152509d93408c24ec721eeb8dfb5840166 (0.15s)
+    --- PASS: FuzzRandom/da3d469497f0de66bd3e4762481ee77a9fa15f5f3ecdeab2e201206527d6d458 (0.09s)
 goos: darwin
 goarch: arm64
 pkg: benchmark.karmem.org
 BenchmarkDecodeSumVec3
-BenchmarkDecodeSumVec3-8     	      58	  95664582 ns/op	    2992 B/op	      35 allocs/op
-BenchmarkDecodeSumVec3-8     	      55	  98842474 ns/op	    2992 B/op	      35 allocs/op
-BenchmarkDecodeSumVec3-8     	      55	  94886678 ns/op	    2992 B/op	      35 allocs/op
-BenchmarkDecodeSumVec3-8     	      56	  97288496 ns/op	    2992 B/op	      35 allocs/op
-BenchmarkDecodeSumVec3-8     	      54	 102426765 ns/op	    2992 B/op	      35 allocs/op
+BenchmarkDecodeSumVec3-8     	      62	  95168773 ns/op	    2992 B/op	      35 allocs/op
+BenchmarkDecodeSumVec3-8     	      56	 101316263 ns/op	    2992 B/op	      35 allocs/op
+BenchmarkDecodeSumVec3-8     	      60	  96103778 ns/op	    2992 B/op	      35 allocs/op
+BenchmarkDecodeSumVec3-8     	      60	  96641545 ns/op	    2992 B/op	      35 allocs/op
+BenchmarkDecodeSumVec3-8     	      60	  95871251 ns/op	    2992 B/op	      35 allocs/op
 BenchmarkDecodeObjectAPI
-BenchmarkDecodeObjectAPI-8   	      79	  71446513 ns/op	  285742 B/op	      35 allocs/op
-BenchmarkDecodeObjectAPI-8   	      79	  73790063 ns/op	  285742 B/op	      35 allocs/op
-BenchmarkDecodeObjectAPI-8   	      76	  75111338 ns/op	  296863 B/op	      35 allocs/op
-BenchmarkDecodeObjectAPI-8   	      78	  76332842 ns/op	  289354 B/op	      35 allocs/op
-BenchmarkDecodeObjectAPI-8   	      75	  76906904 ns/op	  300768 B/op	      35 allocs/op
+BenchmarkDecodeObjectAPI-8   	      81	  84192671 ns/op	  278786 B/op	      35 allocs/op
+BenchmarkDecodeObjectAPI-8   	      75	  77169706 ns/op	  300768 B/op	      35 allocs/op
+BenchmarkDecodeObjectAPI-8   	      73	  78066601 ns/op	  308898 B/op	      35 allocs/op
+BenchmarkDecodeObjectAPI-8   	      76	  72424901 ns/op	  296863 B/op	      35 allocs/op
+BenchmarkDecodeObjectAPI-8   	      75	  74506127 ns/op	  300768 B/op	      35 allocs/op
 BenchmarkEncodeObjectAPI
-BenchmarkEncodeObjectAPI-8   	     146	  41350591 ns/op	    2976 B/op	      33 allocs/op
-BenchmarkEncodeObjectAPI-8   	     145	  41395558 ns/op	    2976 B/op	      33 allocs/op
-BenchmarkEncodeObjectAPI-8   	     134	  43103865 ns/op	    2976 B/op	      33 allocs/op
-BenchmarkEncodeObjectAPI-8   	     147	  41099887 ns/op	    2976 B/op	      33 allocs/op
-BenchmarkEncodeObjectAPI-8   	     146	  45323712 ns/op	    2976 B/op	      33 allocs/op
+BenchmarkEncodeObjectAPI-8   	     136	  48072037 ns/op	    2976 B/op	      33 allocs/op
+BenchmarkEncodeObjectAPI-8   	     181	  41251583 ns/op	    2976 B/op	      33 allocs/op
+BenchmarkEncodeObjectAPI-8   	     147	  44266618 ns/op	    2976 B/op	      33 allocs/op
+BenchmarkEncodeObjectAPI-8   	     146	  40818412 ns/op	    2976 B/op	      33 allocs/op
+BenchmarkEncodeObjectAPI-8   	     147	  40467158 ns/op	    2976 B/op	      33 allocs/op
 PASS
-ok  	benchmark.karmem.org	267.228s
+ok  	benchmark.karmem.org	219.059s

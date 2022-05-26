@@ -1,0 +1,75 @@
+image: fedora/latest
+shell: true
+packages:
+  - curl
+  - nodejs
+  - zig
+  - clang
+  - tar
+  - wget
+  - dpkg
+  - git
+  - diffutils
+  - bzip2
+sources:
+  - https://github.com/inkeliz/karmem.git
+  - https://github.com/emscripten-core/emsdk.git
+environment:
+  PATH: /home/build/sdk/go/bin:/home/build/go/bin:/usr/bin:/usr/local/bin/:/usr/local/bin/tinygo:/usr/local/lib/tinygo:/home/build/emsdk:/home/build/emsdk/upstream/emscripten:$PATH
+  GOROOT: /home/build/sdk/go
+secret:
+  - 66c957f4-6e1b-4e45-864e-d96582c443b2
+tasks:
+  - allow_ssh: |
+      mkdir -p ~/.ssh
+      touch ~/.ssh/authorized_keys
+      echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGeyBRVA3mwtptbxaOMokWvNNB8pv2k9Dmonb1zGxucz ed25519-key-20200515" > ~/.ssh/authorized_keys
+  - install_go: |
+      mkdir -p ~/sdk
+      wget -q https://dl.google.com/go/go1.18.2.linux-amd64.tar.gz
+      tar -xzf go1.18.2.linux-amd64.tar.gz -C ~/sdk
+  - install_emascripten: |
+      mkdir -p ~/sdk
+      cd emsdk
+      ./emsdk install latest
+      ./emsdk activate latest
+      # source ./emsdk_env.sh
+  - install_tinygo: |
+      wget -q https://github.com/tinygo-org/tinygo/releases/download/v0.23.0/tinygo_0.23.0_amd64.deb
+      sudo dpkg -i tinygo_0.23.0_amd64.deb
+  - install_as: |
+      cd karmem
+      npm install
+  - clear: |
+      rm -r ~/karmem/benchmark/testdata/wasi/*
+  - test_karmem: | 
+      cd karmem/cmd
+
+  - test_generate: |
+      cd karmem/benchmark
+      go run karmem.org/cmd/karmem build --golang -o "km" testdata/game.km
+      go run karmem.org/cmd/karmem build --assemblyscript -o "km" testdata/game.km
+      go run karmem.org/cmd/karmem build --zig -o "km" testdata/game.km
+      go run karmem.org/cmd/karmem build --swift -o "km" testdata/game.km
+      go run karmem.org/cmd/karmem build --c -o "km" testdata/game.km
+  - test_golang: |
+      cd karmem/benchmark
+      go test -tags km -v -bench=. .
+  - test_tinygo: |
+      cd karmem/benchmark
+      tinygo build -target "wasi" -tags "km" -o "testdata/wasi/go.wasi" -gc conservative --no-debug -opt 2 -scheduler none -wasm-abi generic .
+      go test -tags wasi,wazero,km,golang -v -bench=. .
+  - test_zig: |
+      cd karmem/benchmark
+      zig build install -Dtarget="wasm32-wasi" -Drelease-fast
+      go test -tags wasi,wazero,km,zig -v -bench=. .
+  - test_c: |
+      cd karmem/benchmark
+      emcc c/main.c -o testdata/wasi/c.wasm -s "EXPORTED_FUNCTIONS=_InputMemoryPointer,_OutputMemoryPointer,__start,_KBenchmarkDecodeSumVec3,_KBenchmarkDecodeObjectAPI,_KBenchmarkEncodeObjectAPI, _KBenchmarkDecodeSumVec3" --no-entry -sALLOW_MEMORY_GROWTH -O3 -flto
+      go test -tags wasi,wazero,km,c -v -bench=. .
+  - test_as: |
+      cd karmem/benchmark
+      ../node_modules/.bin/asc main.ts -Ospeed --optimizeLevel 3 --target release --zeroFilledMemory --exportStart "_start" --outFile "./testdata/wasi/as.wasi"
+      go test -tags wasi,wazero,km,assemblyscript -v -bench=. .
+  - exit: |
+      exit

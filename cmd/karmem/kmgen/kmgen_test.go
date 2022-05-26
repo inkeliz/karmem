@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"karmem.org/cmd/karmem/kmparser"
 	"os"
-	"strings"
 	"testing"
 )
 
@@ -24,21 +23,6 @@ func TestGolangGenerator(t *testing.T) {
 		}
 
 		for _, gen := range Generators {
-			k := k.Clone()
-
-			k.Headers["Package"] = k.Header.Name
-			for o, d := range gen.Options() {
-				if v := k.Header.GetTag(gen.Language() + "." + o); v != nil {
-					k.Headers[strings.Title(o)] = strings.TrimSpace(v.Value)
-				} else {
-					if d != "" {
-						k.Headers[strings.Title(o)] = strings.TrimSpace(d)
-					}
-				}
-			}
-
-			//fmt.Println(k.Headers["Package"], len(k.Headers["Package"]))
-
 			compiler, err := gen.Start(k)
 			if err != nil {
 				t.Error(err)

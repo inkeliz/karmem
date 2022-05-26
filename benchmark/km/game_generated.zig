@@ -5,6 +5,9 @@ const testing = std.testing;
 const Allocator = std.mem.Allocator;
 const mem = @import("std").mem;
 
+var _Null: [152]u8 = [_]u8{ 0 } ** 152;
+var _NullReader: karmem.Reader = karmem.NewReader(std.heap.page_allocator, _Null[0..152]);
+
 
 pub const EnumColor = enum(u8) {
     Red = 0,
@@ -34,18 +37,16 @@ pub const EnumPacketIdentifier = enum(u64) {
 
     
 pub const Vec3 = struct {
-    X: f32,
-    Y: f32,
-    Z: f32,
+    X: f32 = 0,
+    Y: f32 = 0,
+    Z: f32 = 0,
 
     pub fn PacketIdentifier() EnumPacketIdentifier {
         return EnumPacketIdentifier.Vec3;
     }  
 
     pub fn Reset(x: *Vec3) void {
-        x.X = 0;
-        x.Y = 0;
-        x.Z = 0;
+        Vec3.Read(x, @ptrCast(*Vec3Viewer, &_Null[0]), &_NullReader) catch unreachable;
     }
 
     pub fn WriteAsRoot(x: *Vec3, writer: *karmem.Writer) Allocator.Error!u32 {
@@ -84,23 +85,19 @@ pub const Vec3 = struct {
 
 
 pub fn NewVec3() Vec3 {
-    return Vec3 {
-        .X = 0,
-        .Y = 0,
-        .Z = 0,
-    };
+    var r: Vec3 = Vec3 {};
+    return r;
 }
 pub const WeaponData = struct {
-    Damage: i32,
-    Range: i32,
+    Damage: i32 = 0,
+    Range: i32 = 0,
 
     pub fn PacketIdentifier() EnumPacketIdentifier {
         return EnumPacketIdentifier.WeaponData;
     }  
 
     pub fn Reset(x: *WeaponData) void {
-        x.Damage = 0;
-        x.Range = 0;
+        WeaponData.Read(x, @ptrCast(*WeaponDataViewer, &_Null[0]), &_NullReader) catch unreachable;
     }
 
     pub fn WriteAsRoot(x: *WeaponData, writer: *karmem.Writer) Allocator.Error!u32 {
@@ -138,20 +135,18 @@ pub const WeaponData = struct {
 
 
 pub fn NewWeaponData() WeaponData {
-    return WeaponData {
-        .Damage = 0,
-        .Range = 0,
-    };
+    var r: WeaponData = WeaponData {};
+    return r;
 }
 pub const Weapon = struct {
-    Data: WeaponData,
+    Data: WeaponData = NewWeaponData(),
 
     pub fn PacketIdentifier() EnumPacketIdentifier {
         return EnumPacketIdentifier.Weapon;
     }  
 
     pub fn Reset(x: *Weapon) void {
-        WeaponData.Reset(&x.Data);
+        Weapon.Read(x, @ptrCast(*WeaponViewer, &_Null[0]), &_NullReader) catch unreachable;
     }
 
     pub fn WriteAsRoot(x: *Weapon, writer: *karmem.Writer) Allocator.Error!u32 {
@@ -187,54 +182,33 @@ pub const Weapon = struct {
 
 
 pub fn NewWeapon() Weapon {
-    return Weapon {
-        .Data = NewWeaponData(),
-    };
+    var r: Weapon = Weapon {};
+    return r;
 }
 pub const MonsterData = struct {
-    Pos: Vec3,
-    Mana: i16,
-    Health: i16,
-    Name: []u8,
-    _NameCapacity: usize,
-    Team: EnumTeam,
-    Inventory: []u8,
-    _InventoryCapacity: usize,
-    Color: EnumColor,
-    Hitbox: [5]f64,
-    Status: []i32,
-    _StatusCapacity: usize,
-    Weapons: [4]Weapon,
-    Path: []Vec3,
-    _PathCapacity: usize,
-    IsAlive: bool,
+    Pos: Vec3 = NewVec3(),
+    Mana: i16 = 0,
+    Health: i16 = 0,
+    Name: []u8 = &[_]u8{},
+    _NameCapacity: usize = 0,
+    Team: EnumTeam = DefaultEnumTeam,
+    Inventory: []u8 = &[_]u8{},
+    _InventoryCapacity: usize = 0,
+    Color: EnumColor = DefaultEnumColor,
+    Hitbox: [5]f64 = [_]f64{0} ** 5,
+    Status: []i32 = &[_]i32{},
+    _StatusCapacity: usize = 0,
+    Weapons: [4]Weapon = [_]Weapon{NewWeapon()} ** 4,
+    Path: []Vec3 = &[_]Vec3{},
+    _PathCapacity: usize = 0,
+    IsAlive: bool = false,
 
     pub fn PacketIdentifier() EnumPacketIdentifier {
         return EnumPacketIdentifier.MonsterData;
     }  
 
     pub fn Reset(x: *MonsterData) void {
-        Vec3.Reset(&x.Pos);
-        x.Mana = 0;
-        x.Health = 0;
-    x.Name.len = 0;
-        x.Team = DefaultEnumTeam;
-    x.Inventory.len = 0;
-        x.Color = DefaultEnumColor;
-        x.Hitbox = [_]f64{ 0 } ** 5;
-    x.Status.len = 0;
-        var __WeaponsIndex: usize = 0;
-        while (__WeaponsIndex < x.Weapons.len) {
-            Weapon.Reset(&x.Weapons[__WeaponsIndex]);
-            __WeaponsIndex = __WeaponsIndex + 1;
-        }
-        var __PathIndex: usize = 0;
-        while (__PathIndex < x.Path.len) {
-            Vec3.Reset(&x.Path[__PathIndex]);
-            __PathIndex = __PathIndex + 1;
-        }
-    x.Path.len = 0;
-        x.IsAlive = false;
+        MonsterData.Read(x, @ptrCast(*MonsterDataViewer, &_Null[0]), &_NullReader) catch unreachable;
     }
 
     pub fn WriteAsRoot(x: *MonsterData, writer: *karmem.Writer) Allocator.Error!u32 {
@@ -353,7 +327,7 @@ pub const MonsterData = struct {
         }
         x.Name.len = __NameLen;
         x.Team = MonsterDataViewer.Team(viewer);
-        var __InventorySlice: []const u8 = MonsterDataViewer.Inventory(viewer, reader);
+        var __InventorySlice: []u8 = MonsterDataViewer.Inventory(viewer, reader);
         var __InventoryLen: usize = __InventorySlice.len;
         if (__InventoryLen > x._InventoryCapacity) {
             var __InventoryCapacityTarget: usize = __InventoryLen;
@@ -381,7 +355,7 @@ pub const MonsterData = struct {
         }
         x.Inventory.len = __InventoryLen;
         x.Color = MonsterDataViewer.Color(viewer);
-        var __HitboxSlice: []const f64 = MonsterDataViewer.Hitbox(viewer);
+        var __HitboxSlice: []f64 = MonsterDataViewer.Hitbox(viewer);
         var __HitboxLen: usize = __HitboxSlice.len;
         if (__HitboxLen > x.Hitbox.len) {
             __HitboxLen = x.Hitbox.len;
@@ -395,7 +369,7 @@ pub const MonsterData = struct {
             x.Hitbox[__HitboxIndex] = 0;
             __HitboxIndex = __HitboxIndex + 1;
         }
-        var __StatusSlice: []const i32 = MonsterDataViewer.Status(viewer, reader);
+        var __StatusSlice: []i32 = MonsterDataViewer.Status(viewer, reader);
         var __StatusLen: usize = __StatusSlice.len;
         if (__StatusLen > x._StatusCapacity) {
             var __StatusCapacityTarget: usize = __StatusLen;
@@ -470,34 +444,18 @@ pub const MonsterData = struct {
 
 
 pub fn NewMonsterData() MonsterData {
-    return MonsterData {
-        .Pos = NewVec3(),
-        .Mana = 0,
-        .Health = 0,
-        .Name = &[_]u8{},
-        ._NameCapacity = 0,
-        .Team = DefaultEnumTeam,
-        .Inventory = &[_]u8{},
-        ._InventoryCapacity = 0,
-        .Color = DefaultEnumColor,
-        .Hitbox = [_]f64{0} ** 5,
-        .Status = &[_]i32{},
-        ._StatusCapacity = 0,
-        .Weapons = [_]Weapon{NewWeapon()} ** 4,
-        .Path = &[_]Vec3{},
-        ._PathCapacity = 0,
-        .IsAlive = false,
-    };
+    var r: MonsterData = MonsterData {};
+    return r;
 }
 pub const Monster = struct {
-    Data: MonsterData,
+    Data: MonsterData = NewMonsterData(),
 
     pub fn PacketIdentifier() EnumPacketIdentifier {
         return EnumPacketIdentifier.Monster;
     }  
 
     pub fn Reset(x: *Monster) void {
-        MonsterData.Reset(&x.Data);
+        Monster.Read(x, @ptrCast(*MonsterViewer, &_Null[0]), &_NullReader) catch unreachable;
     }
 
     pub fn WriteAsRoot(x: *Monster, writer: *karmem.Writer) Allocator.Error!u32 {
@@ -533,25 +491,19 @@ pub const Monster = struct {
 
 
 pub fn NewMonster() Monster {
-    return Monster {
-        .Data = NewMonsterData(),
-    };
+    var r: Monster = Monster {};
+    return r;
 }
 pub const Monsters = struct {
-    Monsters: []Monster,
-    _MonstersCapacity: usize,
+    Monsters: []Monster = &[_]Monster{},
+    _MonstersCapacity: usize = 0,
 
     pub fn PacketIdentifier() EnumPacketIdentifier {
         return EnumPacketIdentifier.Monsters;
     }  
 
     pub fn Reset(x: *Monsters) void {
-        var __MonstersIndex: usize = 0;
-        while (__MonstersIndex < x.Monsters.len) {
-            Monster.Reset(&x.Monsters[__MonstersIndex]);
-            __MonstersIndex = __MonstersIndex + 1;
-        }
-    x.Monsters.len = 0;
+        Monsters.Read(x, @ptrCast(*MonstersViewer, &_Null[0]), &_NullReader) catch unreachable;
     }
 
     pub fn WriteAsRoot(x: *Monsters, writer: *karmem.Writer) Allocator.Error!u32 {
@@ -624,10 +576,8 @@ pub const Monsters = struct {
 
 
 pub fn NewMonsters() Monsters {
-    return Monsters {
-        .Monsters = &[_]Monster{},
-        ._MonstersCapacity = 0,
-    };
+    var r: Monsters = Monsters {};
+    return r;
 }
 
 
@@ -650,13 +600,9 @@ pub const Vec3Viewer = struct {
 
 };
 
-var NullVec3Viewer = Vec3Viewer {
-    ._data = [_]u8{0} ** 16
-};
-
 pub fn NewVec3Viewer(reader: *karmem.Reader, offset: u32) *const Vec3Viewer {
     if (!karmem.Reader.IsValidOffset(reader, offset, 16)) {
-        return &NullVec3Viewer;
+        return @ptrCast(*Vec3Viewer, &_Null[0]);
     }
     var v = @ptrCast(*align(1) const Vec3Viewer, reader.memory[offset..offset+16]);
     return v;
@@ -684,17 +630,13 @@ pub const WeaponDataViewer = struct {
 
 };
 
-var NullWeaponDataViewer = WeaponDataViewer {
-    ._data = [_]u8{0} ** 16
-};
-
 pub fn NewWeaponDataViewer(reader: *karmem.Reader, offset: u32) *const WeaponDataViewer {
     if (!karmem.Reader.IsValidOffset(reader, offset, 8)) {
-        return &NullWeaponDataViewer;
+        return @ptrCast(*WeaponDataViewer, &_Null[0]);
     }
     var v = @ptrCast(*align(1) const WeaponDataViewer, reader.memory[offset..offset+8]);
     if (!karmem.Reader.IsValidOffset(reader, offset, WeaponDataViewer.Size(v))) {
-        return &NullWeaponDataViewer;
+        return @ptrCast(*WeaponDataViewer, &_Null[0]);
     }
     return v;
 }
@@ -708,25 +650,14 @@ pub const WeaponViewer = struct {
     }
     pub fn Data(x: *const WeaponViewer, reader: *karmem.Reader) *const WeaponDataViewer {
         var offset = @ptrCast(*align(1) const u32, x._data[0..0+4]).*;
-        if (!karmem.Reader.IsValidOffset(reader, offset, 16)) {
-            return &NullWeaponDataViewer;
-        }
-        var v = @ptrCast(*align(1) const WeaponDataViewer, reader.memory[offset..offset+16]);
-        if (!karmem.Reader.IsValidOffset(reader, offset, WeaponDataViewer.Size(v))) {
-            return &NullWeaponDataViewer;
-        }
-        return v;
+         return NewWeaponDataViewer(reader, offset);
     }
 
 };
 
-var NullWeaponViewer = WeaponViewer {
-    ._data = [_]u8{0} ** 8
-};
-
 pub fn NewWeaponViewer(reader: *karmem.Reader, offset: u32) *const WeaponViewer {
     if (!karmem.Reader.IsValidOffset(reader, offset, 8)) {
-        return &NullWeaponViewer;
+        return @ptrCast(*WeaponViewer, &_Null[0]);
     }
     var v = @ptrCast(*align(1) const WeaponViewer, reader.memory[offset..offset+8]);
     return v;
@@ -741,7 +672,7 @@ pub const MonsterDataViewer = struct {
     }
     pub fn Pos(x: *const MonsterDataViewer) *const Vec3Viewer {
         if ((4 + 16) > MonsterDataViewer.Size(x)) {
-            return &NullVec3Viewer;
+            return @ptrCast(*Vec3Viewer, &_Null[0]);
         }
         return @ptrCast(*const Vec3Viewer, x._data[4..4+@sizeOf(*const Vec3Viewer)]);
     }
@@ -779,7 +710,7 @@ pub const MonsterDataViewer = struct {
         }
         return @ptrCast(*align(1) const EnumTeam, x._data[36..36+@sizeOf(EnumTeam)]).*;
     }
-    pub fn Inventory(x: *const MonsterDataViewer, reader: *karmem.Reader) []const u8 {
+    pub fn Inventory(x: *const MonsterDataViewer, reader: *karmem.Reader) []u8 {
         if ((37 + 12) > MonsterDataViewer.Size(x)) {
             return &[_]u8{};
         }
@@ -793,7 +724,7 @@ pub const MonsterDataViewer = struct {
             length = 128;
         }
         var slice = [2]usize{@ptrToInt(reader.memory.ptr)+offset, length};
-        return @ptrCast(*[]const u8, &slice).*;
+        return @ptrCast(*[]u8, &slice).*;
     }
     pub fn Color(x: *const MonsterDataViewer) EnumColor {
         if ((49 + 1) > MonsterDataViewer.Size(x)) {
@@ -801,14 +732,14 @@ pub const MonsterDataViewer = struct {
         }
         return @ptrCast(*align(1) const EnumColor, x._data[49..49+@sizeOf(EnumColor)]).*;
     }
-    pub fn Hitbox(x: *const MonsterDataViewer) []const f64 {
+    pub fn Hitbox(x: *const MonsterDataViewer) []f64 {
         if ((50 + 40) > MonsterDataViewer.Size(x)) {
             return &[_]f64{};
         }
         var slice = [2]usize{@ptrToInt(x)+50, 5};
-        return @ptrCast(*align(1) const []const f64, &slice).*;
+        return @ptrCast(*align(1) const []f64, &slice).*;
     }
-    pub fn Status(x: *const MonsterDataViewer, reader: *karmem.Reader) []const i32 {
+    pub fn Status(x: *const MonsterDataViewer, reader: *karmem.Reader) []i32 {
         if ((90 + 12) > MonsterDataViewer.Size(x)) {
             return &[_]i32{};
         }
@@ -822,7 +753,7 @@ pub const MonsterDataViewer = struct {
             length = 10;
         }
         var slice = [2]usize{@ptrToInt(reader.memory.ptr)+offset, length};
-        return @ptrCast(*[]const i32, &slice).*;
+        return @ptrCast(*[]i32, &slice).*;
     }
     pub fn Weapons(x: *const MonsterDataViewer) []const WeaponViewer {
         if ((102 + 32) > MonsterDataViewer.Size(x)) {
@@ -856,17 +787,13 @@ pub const MonsterDataViewer = struct {
 
 };
 
-var NullMonsterDataViewer = MonsterDataViewer {
-    ._data = [_]u8{0} ** 152
-};
-
 pub fn NewMonsterDataViewer(reader: *karmem.Reader, offset: u32) *const MonsterDataViewer {
     if (!karmem.Reader.IsValidOffset(reader, offset, 8)) {
-        return &NullMonsterDataViewer;
+        return @ptrCast(*MonsterDataViewer, &_Null[0]);
     }
     var v = @ptrCast(*align(1) const MonsterDataViewer, reader.memory[offset..offset+8]);
     if (!karmem.Reader.IsValidOffset(reader, offset, MonsterDataViewer.Size(v))) {
-        return &NullMonsterDataViewer;
+        return @ptrCast(*MonsterDataViewer, &_Null[0]);
     }
     return v;
 }
@@ -880,25 +807,14 @@ pub const MonsterViewer = struct {
     }
     pub fn Data(x: *const MonsterViewer, reader: *karmem.Reader) *const MonsterDataViewer {
         var offset = @ptrCast(*align(1) const u32, x._data[0..0+4]).*;
-        if (!karmem.Reader.IsValidOffset(reader, offset, 152)) {
-            return &NullMonsterDataViewer;
-        }
-        var v = @ptrCast(*align(1) const MonsterDataViewer, reader.memory[offset..offset+152]);
-        if (!karmem.Reader.IsValidOffset(reader, offset, MonsterDataViewer.Size(v))) {
-            return &NullMonsterDataViewer;
-        }
-        return v;
+         return NewMonsterDataViewer(reader, offset);
     }
 
 };
 
-var NullMonsterViewer = MonsterViewer {
-    ._data = [_]u8{0} ** 8
-};
-
 pub fn NewMonsterViewer(reader: *karmem.Reader, offset: u32) *const MonsterViewer {
     if (!karmem.Reader.IsValidOffset(reader, offset, 8)) {
-        return &NullMonsterViewer;
+        return @ptrCast(*MonsterViewer, &_Null[0]);
     }
     var v = @ptrCast(*align(1) const MonsterViewer, reader.memory[offset..offset+8]);
     return v;
@@ -930,17 +846,13 @@ pub const MonstersViewer = struct {
 
 };
 
-var NullMonstersViewer = MonstersViewer {
-    ._data = [_]u8{0} ** 24
-};
-
 pub fn NewMonstersViewer(reader: *karmem.Reader, offset: u32) *const MonstersViewer {
     if (!karmem.Reader.IsValidOffset(reader, offset, 8)) {
-        return &NullMonstersViewer;
+        return @ptrCast(*MonstersViewer, &_Null[0]);
     }
     var v = @ptrCast(*align(1) const MonstersViewer, reader.memory[offset..offset+8]);
     if (!karmem.Reader.IsValidOffset(reader, offset, MonstersViewer.Size(v))) {
-        return &NullMonstersViewer;
+        return @ptrCast(*MonstersViewer, &_Null[0]);
     }
     return v;
 }

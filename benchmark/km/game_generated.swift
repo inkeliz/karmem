@@ -804,7 +804,12 @@ public struct MonsterDataViewer {
                return karmem.NewSlice(UnsafeRawPointer($0), 0, 0, UInt8(0))
             }
         }
-        return karmem.NewSlice(UnsafeRawPointer(reader.pointer + Int(offset)), size / 1, 1, UInt8(0))
+
+        var length = size / 1
+        if (length > 512) {
+            length = 512
+        }
+        return karmem.NewSlice(UnsafeRawPointer(reader.pointer + Int(offset)), length, 1, UInt8(0))
     }
     @inline(__always)
     public func Team() -> EnumTeam {
@@ -837,7 +842,12 @@ public struct MonsterDataViewer {
                return karmem.NewSlice(UnsafeRawPointer($0), 0, 0, 0)
             }
         }
-        return karmem.NewSlice(UnsafeRawPointer(reader.pointer + Int(offset)), size / 1, 1, 0)
+
+        var length = size / 1
+        if (length > 128) {
+            length = 128
+        }
+        return karmem.NewSlice(UnsafeRawPointer(reader.pointer + Int(offset)), length, 1, 0)
     }
     @inline(__always)
     public func Color() -> EnumColor {
@@ -881,7 +891,12 @@ public struct MonsterDataViewer {
                return karmem.NewSlice(UnsafeRawPointer($0), 0, 0, 0)
             }
         }
-        return karmem.NewSlice(UnsafeRawPointer(reader.pointer + Int(offset)), size / 4, 4, 0)
+
+        var length = size / 4
+        if (length > 10) {
+            length = 10
+        }
+        return karmem.NewSlice(UnsafeRawPointer(reader.pointer + Int(offset)), length, 4, 0)
     }
     @inline(__always)
     public func Weapons() -> karmem.Slice<WeaponViewer> {
@@ -914,7 +929,12 @@ public struct MonsterDataViewer {
                return karmem.NewSlice(UnsafeRawPointer($0), 0, 0, Vec3Viewer())
             }
         }
-        return karmem.NewSlice(UnsafeRawPointer(reader.pointer + Int(offset)), size / 16, 16, Vec3Viewer())
+
+        var length = size / 16
+        if (length > 2000) {
+            length = 2000
+        }
+        return karmem.NewSlice(UnsafeRawPointer(reader.pointer + Int(offset)), length, 16, Vec3Viewer())
     }
     @inline(__always)
     public func IsAlive() -> Bool {
@@ -1003,7 +1023,12 @@ public struct MonstersViewer {
                return karmem.NewSlice(UnsafeRawPointer($0), 0, 0, MonsterViewer())
             }
         }
-        return karmem.NewSlice(UnsafeRawPointer(reader.pointer + Int(offset)), size / 8, 8, MonsterViewer())
+
+        var length = size / 8
+        if (length > 2000) {
+            length = 2000
+        }
+        return karmem.NewSlice(UnsafeRawPointer(reader.pointer + Int(offset)), length, 8, MonsterViewer())
     }
 }
 

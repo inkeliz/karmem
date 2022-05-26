@@ -18,6 +18,8 @@ github.com/tetratelabs/wazero v0.0.0-20220506015640-0561190cb9af h1:5XXl5YM+VZsv
 github.com/tetratelabs/wazero v0.0.0-20220506015640-0561190cb9af/go.mod h1:Y4X/zO4sC2dJjZG9GDYNRbJGogfqFYJY/BbyKlOxXGI=
 github.com/tetratelabs/wazero v0.0.0-20220520075501-ec3ada35a059 h1:dW1TqjUsbagUMSaJEOBkPKmUeeLpBAP/PnwKAdV7qcM=
 github.com/tetratelabs/wazero v0.0.0-20220520075501-ec3ada35a059/go.mod h1:Y4X/zO4sC2dJjZG9GDYNRbJGogfqFYJY/BbyKlOxXGI=
+github.com/tetratelabs/wazero v0.0.0-20220523092326-5ed31d3c495d h1:OVaIrGwhWWvBsztdGYShF5XQUrf+n3d4rsEahI4NahI=
+github.com/tetratelabs/wazero v0.0.0-20220523092326-5ed31d3c495d/go.mod h1:Y4X/zO4sC2dJjZG9GDYNRbJGogfqFYJY/BbyKlOxXGI=
 github.com/vmihailenco/msgpack v4.0.4+incompatible h1:dSLoQfGFAo3F6OoNhwUmLwVgaUXK79GlxNBwueZn0xI=
 github.com/vmihailenco/msgpack v4.0.4+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=

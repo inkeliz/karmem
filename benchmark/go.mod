@@ -3,13 +3,12 @@ module benchmark.karmem.org
 go 1.18
 
 replace karmem.org => ../
-replace github.com/tetratelabs/wazero => ../../wazero
 
 require (
 	github.com/google/flatbuffers v2.0.6+incompatible
 	github.com/google/gofuzz v1.2.0
 	github.com/r3labs/diff/v3 v3.0.0
-	github.com/tetratelabs/wazero v0.0.0-20220520075501-ec3ada35a059
+	github.com/tetratelabs/wazero v0.0.0-20220523092326-5ed31d3c495d
 	golang.org/x/crypto v0.0.0-20220513210258-46612604a0f9
 	golang.org/x/text v0.3.7
 	karmem.org v0.0.0-20220511165140-adc37bce9562

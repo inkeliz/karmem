@@ -6,5 +6,5 @@ zig/zig-cache
 zig/zig-out
 benchmark/zig-cache
 benchmark/zig-out
-benchmark/.build
+benchmark/.builds
 swift/Sources

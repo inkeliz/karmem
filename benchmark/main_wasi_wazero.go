@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
-	"github.com/tetratelabs/wazero/wasi"
+	"github.com/tetratelabs/wazero/wasi_snapshot_preview1"
 	"golang.org/x/text/encoding/unicode"
 	"os"
 	"path/filepath"
@@ -21,8 +21,9 @@ func initWasm(b interface {
 }, fn ...string) Wasm {
 	w := &WasmWazero{}
 	var err error
-	runtime := wazero.NewRuntimeWithConfig(wazero.NewRuntimeConfigCompiler().WithWasmCore2())
-	w.modules[0], err = wasi.InstantiateSnapshotPreview1(context.Background(), runtime)
+	w.runtime = wazero.NewRuntimeWithConfig(wazero.NewRuntimeConfigCompiler().WithWasmCore2())
+
+	_, err = wasi_snapshot_preview1.Instantiate(context.Background(), w.runtime)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -44,7 +45,7 @@ func initWasm(b interface {
 		return getStringImpl(ptr)
 	}
 
-	w.modules[1], err = runtime.NewModuleBuilder("env").
+	_, err = w.runtime.NewModuleBuilder("env").
 		ExportFunction("abort", func(msg, file, line, column int32) {
 			var m string
 			m += fmt.Sprint(`msg:`, __getString(msg))
@@ -55,7 +56,7 @@ func initWasm(b interface {
 		}).
 		ExportFunction("emscripten_notify_memory_growth", func(_ int32) {
 		}).
-		Instantiate(context.Background())
+		Instantiate(context.Background(), w.runtime)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -65,12 +66,12 @@ func initWasm(b interface {
 		b.Fatal(err)
 	}
 
-	compiledWasi, err := runtime.CompileModule(context.Background(), wasifile, wazero.NewCompileConfig())
+	compiledWasi, err := w.runtime.CompileModule(context.Background(), wasifile, wazero.NewCompileConfig())
 	if err != nil {
 		b.Fatal(err)
 	}
 
-	w.mainModule, err = runtime.InstantiateModule(context.Background(), compiledWasi, config)
+	w.mainModule, err = w.runtime.InstantiateModule(context.Background(), compiledWasi, config)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -114,7 +115,7 @@ func initWasm(b interface {
 }
 
 type WasmWazero struct {
-	modules    [5]api.Closer
+	runtime    wazero.Runtime
 	mainModule api.Module
 	input      uint64
 	output     uint64
@@ -143,10 +144,5 @@ func (w *WasmWazero) Run(s string, v ...uint64) ([]uint64, error) {
 }
 
 func (w *WasmWazero) Close() error {
-	for _, m := range w.modules {
-		if m != nil {
-			m.Close(context.Background())
-		}
-	}
-	return w.mainModule.Close(context.Background())
+	return w.runtime.Close(context.Background())
 }

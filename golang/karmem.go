@@ -11,6 +11,8 @@ var (
 )
 
 func init() {
+	panic("Force error")
+	
 	if s := unsafe.Sizeof(int(0)); s != 4 && s != 8 {
 		panic("karmem only supports 32bits and 64bits")
 	}

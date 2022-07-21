@@ -36,7 +36,7 @@ tasks:
       # source ./emsdk_env.sh
   - install_tinygo: |
       wget -q https://github.com/tinygo-org/tinygo/releases/download/v0.24.0/tinygo_0.24.0_amd64.deb
-      sudo dpkg -i tinygo_0.23.0_amd64.deb
+      sudo dpkg -i tinygo_0.24.0_amd64.deb
   - install_as: |
       cd karmem
       npm install

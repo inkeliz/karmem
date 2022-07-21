@@ -1,7 +1,7 @@
 {
   "name": "karmem",
   "description": "Karmem: fast serialization format.",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "type": "module",
   "scripts": {
     "test": "node assemblyscript/tests",

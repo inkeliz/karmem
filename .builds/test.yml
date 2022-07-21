@@ -12,8 +12,8 @@ packages:
   - diffutils
   - bzip2
 sources:
-  - https://github.com/inkeliz/karmem.git
-  - https://github.com/emscripten-core/emsdk.git
+  - https://github.com/inkeliz/karmem
+  - https://github.com/emscripten-core/emsdk
 environment:
   PATH: /home/build/sdk/go/bin:/home/build/go/bin:/usr/bin:/usr/local/bin/:/usr/local/bin/tinygo:/usr/local/lib/tinygo:/home/build/emsdk:/home/build/emsdk/upstream/emscripten:$PATH
   GOROOT: /home/build/sdk/go
@@ -26,8 +26,8 @@ tasks:
       echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGeyBRVA3mwtptbxaOMokWvNNB8pv2k9Dmonb1zGxucz ed25519-key-20200515" > ~/.ssh/authorized_keys
   - install_go: |
       mkdir -p ~/sdk
-      wget -q https://dl.google.com/go/go1.18.2.linux-amd64.tar.gz
-      tar -xzf go1.18.2.linux-amd64.tar.gz -C ~/sdk
+      wget -q https://dl.google.com/go/go1.18.4.linux-amd64.tar.gz
+      tar -xzf go1.18.4.linux-amd64.tar.gz -C ~/sdk
   - install_emascripten: |
       mkdir -p ~/sdk
       cd emsdk
@@ -35,7 +35,7 @@ tasks:
       ./emsdk activate latest
       # source ./emsdk_env.sh
   - install_tinygo: |
-      wget -q https://github.com/tinygo-org/tinygo/releases/download/v0.23.0/tinygo_0.23.0_amd64.deb
+      wget -q https://github.com/tinygo-org/tinygo/releases/download/v0.24.0/tinygo_0.24.0_amd64.deb
       sudo dpkg -i tinygo_0.23.0_amd64.deb
   - install_as: |
       cd karmem

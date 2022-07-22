@@ -92,11 +92,15 @@ export class Reader {
 export class Slice<T> {
     [key: number]: T;
 
-    @inline constructor(
-        readonly ptr: usize,
-        readonly length: u32,
-        private readonly size: u32
-    ) {}
+    readonly ptr: usize;
+    readonly length: i32;
+    private readonly size: i32;
+
+    @inline constructor(ptr: usize, length: u32, size: u32) {
+        this.ptr = ptr;
+        this.length = <i32>length;
+        this.size = <i32>size;
+    }
 
     @inline Length(): i32 {
         return this.length;

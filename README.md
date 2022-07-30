@@ -163,38 +163,38 @@ Using similar schema with Flatbuffers and Karmem. Karmem is almost 10 times fast
 **Native (MacOS/ARM64 - M1):**
 
 ```
-name               flatbuffers/op    karmem/op    delta
-EncodeObjectAPI-8    1.46ms ± 0%    0.32ms ± 0%   -78.22%  (p=0.008 n=5+5)
-DecodeObjectAPI-8    2.16ms ± 0%    0.15ms ± 0%   -93.14%  (p=0.008 n=5+5)
-DecodeSumVec3-8       887µs ± 1%      99µs ± 1%   -88.86%  (p=0.008 n=5+5)
+name               old time/op    new time/op    delta
+EncodeObjectAPI-8    2.54ms ± 0%    0.51ms ± 0%   -79.85%  (p=0.008 n=5+5)
+DecodeObjectAPI-8    3.57ms ± 0%    0.20ms ± 0%   -94.30%  (p=0.008 n=5+5)
+DecodeSumVec3-8      1.44ms ± 0%    0.16ms ± 0%   -88.86%  (p=0.008 n=5+5)
 
-name               flatbuffers/op   karmem/op   delta
+name               old alloc/op   new alloc/op   delta
 EncodeObjectAPI-8    12.1kB ± 0%     0.0kB       -100.00%  (p=0.008 n=5+5)
-DecodeObjectAPI-8    2.74MB ± 0%    0.03MB ± 0%   -98.83%  (p=0.008 n=5+5)
-DecodeSumVec3-8       0.00B          0.00B           ~     (all equal)    
+DecodeObjectAPI-8    2.87MB ± 0%    0.00MB       -100.00%  (p=0.008 n=5+5)
+DecodeSumVec3-8       0.00B          0.00B           ~     (all equal)
 
-name               flatbuffers/op  karmem/op  delta
+name               old allocs/op  new allocs/op  delta
 EncodeObjectAPI-8     1.00k ± 0%     0.00k       -100.00%  (p=0.008 n=5+5)
-DecodeObjectAPI-8      108k ± 0%        1k ± 0%   -99.07%  (p=0.008 n=5+5)
+DecodeObjectAPI-8      110k ± 0%        0k       -100.00%  (p=0.008 n=5+5)
 DecodeSumVec3-8        0.00           0.00           ~     (all equal)
 ```
 
 **WebAssembly on Wazero (MacOS/ARM64 - M1):**
 
 ```
-name               flatbuffers/op    karmem/op    delta
-EncodeObjectAPI-8    10.1ms ± 0%     2.5ms ± 0%  -75.27%  (p=0.016 n=4+5)
-DecodeObjectAPI-8    31.1ms ± 0%     1.2ms ± 0%  -96.18%  (p=0.008 n=5+5)
-DecodeSumVec3-8      4.44ms ± 0%    0.47ms ± 0%  -89.41%  (p=0.008 n=5+5)
+name               old time/op    new time/op    delta
+EncodeObjectAPI-8    17.2ms ± 0%     4.0ms ± 0%  -76.51%  (p=0.008 n=5+5)
+DecodeObjectAPI-8    50.7ms ± 2%     1.9ms ± 0%  -96.18%  (p=0.008 n=5+5)
+DecodeSumVec3-8      5.74ms ± 0%    0.75ms ± 0%  -86.87%  (p=0.008 n=5+5)
 
-name               flatbuffers/op   karmem/op   delta
-EncodeObjectAPI-8    3.02kB ± 0%    3.02kB ± 0%     ~     (all equal)
-DecodeObjectAPI-8    2.16MB ± 0%    0.01MB ± 0%  -99.45%  (p=0.008 n=5+5)
+name               old alloc/op   new alloc/op   delta
+EncodeObjectAPI-8    3.28kB ± 0%    3.02kB ± 0%   -7.80%  (p=0.008 n=5+5)
+DecodeObjectAPI-8    3.47MB ± 2%    0.02MB ± 0%  -99.56%  (p=0.008 n=5+5)
 DecodeSumVec3-8      1.25kB ± 0%    1.25kB ± 0%     ~     (all equal)
 
-name               flatbuffers/op  karmem/op  delta
+name               old allocs/op  new allocs/op  delta
 EncodeObjectAPI-8      4.00 ± 0%      4.00 ± 0%     ~     (all equal)
-DecodeObjectAPI-8      5.00 ± 0%      5.00 ± 0%     ~     (all equal)
+DecodeObjectAPI-8      5.00 ± 0%      4.00 ± 0%  -20.00%  (p=0.008 n=5+5)
 DecodeSumVec3-8        5.00 ± 0%      5.00 ± 0%     ~     (all equal)
 ```
 
@@ -207,7 +207,7 @@ karmem-serialized data.
 
 ```
 name             old time/op    new time/op    delta
-DecodeSumVec3-8    93.7µs ± 0%    98.8µs ± 1%  +5.38%  (p=0.008 n=5+5)
+DecodeSumVec3-8     154µs ± 0%     160µs ± 0%  +4.36%  (p=0.008 n=5+5)
 
 name             old alloc/op   new alloc/op   delta
 DecodeSumVec3-8     0.00B          0.00B         ~     (all equal)
@@ -223,20 +223,20 @@ That is an comparison with all supported languages.
 **WebAssembly on Wazero (MacOS/ARM64 - M1):**
 
 ```
-name \ time/op     result/wasi-go-km.out  result/wasi-as-km.out  result/wasi-zig-km.out  result/wasi-c-km.out  result/wasi-swift-km.out
-DecodeSumVec3-8               470µs ± 0%             932µs ± 0%              231µs ± 0%            230µs ± 0%              97822µs ± 5%
-DecodeObjectAPI-8            1.19ms ± 0%            3.70ms ± 0%             0.62ms ± 0%           0.56ms ± 0%              74.72ms ± 4%
-EncodeObjectAPI-8            2.52ms ± 0%            2.98ms ± 2%             0.71ms ± 0%           0.67ms ± 0%              42.45ms ± 7%
+name \ time/op     result/wasi-go-km.out  result/wasi-as-km.out  result/wasi-zig-km.out  result/wasi-swift-km.out  result/wasi-c-km.out
+DecodeSumVec3-8               754µs ± 0%            1642µs ± 0%              370µs ± 0%               9040µs ± 3%            369µs ± 0%
+DecodeObjectAPI-8            1.94ms ± 0%            6.09ms ± 0%             1.03ms ± 0%              30.77ms ±32%           0.89ms ± 1%
+EncodeObjectAPI-8            4.04ms ± 0%            4.48ms ± 0%             1.15ms ± 0%               8.22ms ± 0%           1.03ms ± 0%
 
-name \ alloc/op    result/wasi-go-km.out  result/wasi-as-km.out  result/wasi-zig-km.out  result/wasi-c-km.out  result/wasi-swift-km.out
-DecodeSumVec3-8              1.25kB ± 0%           12.72kB ± 0%             1.25kB ± 0%           1.25kB ± 0%               2.99kB ± 0%
-DecodeObjectAPI-8            11.9kB ± 1%            74.2kB ± 0%            164.3kB ± 0%            1.2kB ± 0%              291.7kB ± 3%
-EncodeObjectAPI-8            3.02kB ± 0%           38.38kB ± 0%             1.23kB ± 0%           1.23kB ± 0%               2.98kB ± 0%
+name \ alloc/op    result/wasi-go-km.out  result/wasi-as-km.out  result/wasi-zig-km.out  result/wasi-swift-km.out  result/wasi-c-km.out
+DecodeSumVec3-8              1.25kB ± 0%           21.62kB ± 0%             1.25kB ± 0%               1.82kB ± 0%           1.25kB ± 0%
+DecodeObjectAPI-8            15.2kB ± 0%           121.2kB ± 0%            276.1kB ± 1%              108.4kB ± 3%            1.2kB ± 0%
+EncodeObjectAPI-8            3.02kB ± 0%           57.65kB ± 0%             1.23kB ± 0%               1.81kB ± 0%           1.23kB ± 0%
 
-name \ allocs/op   result/wasi-go-km.out  result/wasi-as-km.out  result/wasi-zig-km.out  result/wasi-c-km.out  result/wasi-swift-km.out
-DecodeSumVec3-8                5.00 ± 0%              5.00 ± 0%               5.00 ± 0%             5.00 ± 0%                35.00 ± 0%
-DecodeObjectAPI-8              5.00 ± 0%              4.00 ± 0%               4.00 ± 0%             4.00 ± 0%                35.00 ± 0%
-EncodeObjectAPI-8              4.00 ± 0%              3.00 ± 0%               3.00 ± 0%             3.00 ± 0%                33.00 ± 0%
+name \ allocs/op   result/wasi-go-km.out  result/wasi-as-km.out  result/wasi-zig-km.out  result/wasi-swift-km.out  result/wasi-c-km.out
+DecodeSumVec3-8                5.00 ± 0%              5.00 ± 0%               5.00 ± 0%                32.00 ± 0%             5.00 ± 0%
+DecodeObjectAPI-8              4.00 ± 0%              4.00 ± 0%               4.00 ± 0%                32.00 ± 0%             4.00 ± 0%
+EncodeObjectAPI-8              4.00 ± 0%              3.00 ± 0%               3.00 ± 0%                30.00 ± 0%             3.00 ± 0%
 ```
 
 # Languages
@@ -245,15 +245,15 @@ Currently, we have focus on WebAssembly, and because of that those are the langu
 
 - AssemblyScript
 - Golang/TinyGo
-- ~~Swift/SwiftWasm~~
+- Swift/SwiftWasm
 - Zig
-- C
+- C/Emscripten
 
 ### Features
 
 | Features | Golang | Zig | AssemblyScript | Swift | C |
 |--|-- | -- | --| -- | -- |
-| Performance | Good | Excellent | Good | Horrible | Excellent |
+| Performance | Good | Excellent | Good | Poor | Excellent |
 | Priority | High | High | High | Low | High |
 | **Encoding** | | | | | |
 | Object Encoding | ✔️ |✔️ |✔️ | ✔️ | ✔️|

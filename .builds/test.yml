@@ -11,6 +11,9 @@ packages:
   - git
   - diffutils
   - bzip2
+  - lld-libs
+  - lld
+  - llvm
 sources:
   - https://github.com/inkeliz/karmem
   - https://github.com/emscripten-core/emsdk
@@ -40,11 +43,17 @@ tasks:
   - install_as: |
       cd karmem
       npm install
+  - install_swiftwasm: |
+      cd ~
+      wget -q https://github.com/swiftwasm/swift/releases/download/swift-wasm-5.7-SNAPSHOT-2022-07-29-a/swift-wasm-5.7-SNAPSHOT-2022-07-29-a-amazonlinux2_x86_64.tar.gz
+      tar -xzf swift-wasm-5.7-SNAPSHOT-2022-07-29-a-amazonlinux2_x86_64.tar.gz
   - clear: |
       rm -r ~/karmem/benchmark/testdata/wasi/*
   - test_karmem: | 
-      cd karmem/cmd
-
+      cd ~/karmem/cmd/karmem/kmgen
+      go test .
+      cd ~/karmem/cmd/karmem/kmparser
+      go test .
   - test_generate: |
       cd karmem/benchmark
       go run karmem.org/cmd/karmem build --golang -o "km" testdata/game.km
@@ -71,5 +80,10 @@ tasks:
       cd karmem/benchmark
       ../node_modules/.bin/asc main.ts -Ospeed --optimizeLevel 3 --target release --zeroFilledMemory --exportStart "_start" --outFile "./testdata/wasi/as.wasi"
       go test -tags wasi,wazero,km,assemblyscript -v -bench=. .
+  - test_swift: |
+      cd karmem/benchmark
+      ~/swift-wasm-5.7-SNAPSHOT-2022-07-29-a/usr/bin/swift build --triple wasm32-unknown-wasi -v -c release
+      ~/swift-wasm-5.7-SNAPSHOT-2022-07-29-a/usr/bin/swiftc -L ".build/wasm32-unknown-wasi/release" -o "testdata/wasi/swift.wasi" -module-name benchmark -emit-executable @.build/wasm32-unknown-wasi/release/benchmark.product/Objects.LinkFileList -target wasm32-unknown-wasi -sdk ~/swift-wasm-5.7-SNAPSHOT-2022-07-29-a/usr/share/wasi-sysroot -L ~/swift-wasm-5.7-SNAPSHOT-2022-07-29-a/usr/lib -O -Xlinker "--export=_start" -Xlinker "--export=InputMemoryPointer" -Xlinker "--export=OutputMemoryPointer" -Xlinker "--export=KBenchmarkEncodeObjectAPI"  -Xlinker "--export=KBenchmarkDecodeObjectAPI" -Xlinker "--export=KBenchmarkDecodeSumVec3"
+      go test -tags wasi,wazero,km,swift -v -bench=. .
   - exit: |
       exit

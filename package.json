@@ -17,7 +17,7 @@
   "author": "inkeliz",
   "license": "MIT",
   "devDependencies": {
-    "assemblyscript": "0.20.6"
+    "assemblyscript": "0.20.16"
   },
   "exports": {
     ".": {

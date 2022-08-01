@@ -3,7 +3,7 @@
 Karmem is a fast binary serialization format. The priority of Karmem is to be
 easy to use while been fast as possible. It's optimized to take Golang and
 TinyGo's maximum performance and is efficient for repeatable reads, reading
-different content of the same type. Karmem has proven to be ten times faster
+different content of the same type. Karmem demonstrates to be ten times faster
 than Google Flatbuffers, with the additional overhead of bounds-checking
 included.
 
@@ -409,7 +409,7 @@ releases page or run it with go.
 karmem build --assemblyscript -o "output-folder" your-schema.km
 ```
 
-*If you already have Golang installed, you can use `go karmem.org/cmd build --zig -o "output-folder" your-schema.km`
+*If you already have Golang installed, you can use `go karmem.org/cmd/karmem build --zig -o "output-folder" your-schema.km`
 instead.*
 
 **Commands:**

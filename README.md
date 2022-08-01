@@ -46,7 +46,7 @@ That is a small example of how use Karmem.
 
 ### Schema
 
-```
+```go
 karmem app @golang.package(`app`);  
   
 enum SocialNetwork uint8 { Unknown; Facebook; Instagram; Twitter; TikTok; }  
@@ -74,7 +74,7 @@ Generate the code using `go run karmem.org/cmd/karmem build --golang -o "km" app
 
 In order to encode, use should create an native struct and then encode it.
 
-```
+```go
 var writerPool = sync.Pool{New: func() any { return karmem.NewWriter(1024) }}
 
 func main() {
@@ -119,7 +119,7 @@ func main() {
 Instead of decoding it to another struct, you can read some fields directly, without any additional decoding. In this
 example, we only need the username of each profile.
 
-```
+```go
 func decodes(encoded []byte) {
 	reader := karmem.NewReader(encoded)
 	account := app.NewAccountDataViewer(reader, 0)
@@ -138,7 +138,7 @@ Notice, we use `NewAccountDataViewer`, any `Viewer` is just a Viewer, and doesn'
 You can also decode it to an existent struct. In some cases, it's better if you re-use the same struct for multiples
 reads.
 
-```
+```go
 var accountPool = sync.Pool{New: func() any { return new(app.AccountData) }}
 
 func decodes(encoded []byte) {
@@ -274,7 +274,7 @@ Karmem uses a custom schema language, which defines structs, enums and types.
 
 The schema is very simple to understand and define:
 
-```
+```go
 karmem game @golang.package(`km`) @assemblyscript.import(`../../assemblyscript/karmem`);
 
 enum Team uint8 {Humans;Orcs;Zombies;Robots;Aliens;}
@@ -348,7 +348,7 @@ Inline structs, as the name suggests, are inlined when used. That reduces the si
 However, it can't have their definition changed. In order words: you can't edit the description of one inline struct
 without breaking compatibility.
 
-```
+```go
 struct Vec3 inline {
 X float32;
 Y float32;
@@ -363,7 +363,7 @@ change of this struct (for instance, change it to `float64` or adding new fields
 Tables can be used when backward compatibility matters. For example, tables can have new fields append at the bottom
 without breaking compatibility.
 
-```
+```go
 struct User table {
 Name []char;
 Email []char;
@@ -373,7 +373,7 @@ Password []char;
 
 Let's consider that you need another field... For tables, it's not an issue:
 
-```
+```go
 struct User table {
 Name []char;
 Email []char;

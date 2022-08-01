@@ -37,7 +37,7 @@ Why not use [Witx](https://github.com/jedisct1/witx-codegen)? It is good project
 more complex and defines not just data-structure, but functions, which I'm trying to avoid. Also, it is not intended to
 be portable to non-wasm. Why not use [Flatbuffers](https://google.github.io/flatbuffers/)? We tried, but it's not fast
 enough and also causes panics due to the lack of bound-checking. Why not use [Cap'n'Proto](https://capnproto.org/)? It's
-a good alternative but lacks implementation for Zig and AssemblyScript, which is top-priority, it also have more
+a good alternative but lacks implementation for Zig and AssemblyScript, which is top-priority, it also has more
 allocations and the generated API is harder to use, compared than Karmem.
 
 # Usage

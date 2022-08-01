@@ -15,7 +15,7 @@ included.
 - [🧐 Motivation](#Motivation)
 - [🧠 Usage](#Usage)
 - [🏃 Benchmark](#Benchmark)
-- [🌎Languages](#Languages)
+- [🌎 Languages](#Languages)
 - [📙 Schema](#Schema)
     - Example
     - Types

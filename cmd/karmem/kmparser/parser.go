@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/blake2b"
 	"io"
 	"strconv"
 	"strings"
 	"unicode"
 	"unsafe"
+
+	"golang.org/x/crypto/blake2b"
 )
 
 // Reader reads and decodes Karmem files.
@@ -331,13 +332,10 @@ func (r *Reader) enumFieldValue() parserFunc {
 			r.error = fmt.Errorf(`invalid enum type`)
 		}
 
-		for i := range r.Parsed.Enums {
-			fs := r.Parsed.Enums[i].Data.Fields
-			for i := range fs {
-				if fs[i].Data.Name == f.Name && &fs[i].Data != f {
-					r.error = fmt.Errorf(`duplicated enum field name of %s`, f.Name)
-					return nil
-				}
+		for i := range t.Fields {
+			if t.Fields[i].Data.Name == f.Name && &t.Fields[i].Data != f {
+				r.error = fmt.Errorf(`duplicated enum field name of %s`, f.Name)
+				return nil
 			}
 		}
 

@@ -237,7 +237,7 @@ typedef struct {
     uint8_t _data[{{$root.Data.Size.Total}}];
 } {{$root.Data.Name}}Viewer;
 
-uint8_t {{$root.Data.Name}}ViewerSize({{$root.Data.Name}}Viewer * x) {
+uint32_t {{$root.Data.Name}}ViewerSize({{$root.Data.Name}}Viewer * x) {
 {{- if $root.Data.IsTable}}
     uint32_t r;
     memcpy(&r, x, 4);

@@ -13,6 +13,9 @@ import (
 	"golang.org/x/crypto/blake2b"
 )
 
+//go:generate go run ../main.go build -golang kmgen.km
+//go:generate go run ../main.go fmt -s kmgen.km
+
 // Reader reads and decodes Karmem files.
 type Reader struct {
 	Parsed Content
@@ -191,7 +194,7 @@ func (r *Reader) enumInit() parserFunc {
 		r.error = errors.New(`invalid enum, expecting "enum Name [byte|uint8|unit16|uint32|uint64|int8|int16|int32|int64] {}"`)
 	}
 	r.skip(len("enum "))
-	r.Parsed.Enums = append(r.Parsed.Enums, Enum{})
+	r.Parsed.Enums = append(r.Parsed.Enums, Enum{Data: EnumData{IsSequential: true}})
 	return r.skipSpace(r.enumName)
 }
 
@@ -233,10 +236,16 @@ func (r *Reader) enumType() parserFunc {
 	t := &r.Parsed.Enums[len(r.Parsed.Enums)-1].Data
 	switch {
 	case unicodeSpaceTab(b):
-		if len(t.Type.Schema) == 0 {
-			return r.enumType
+		return r.enumType
+
+	case b == '@':
+		if t.Type.Schema == "" {
+			r.error = fmt.Errorf(`invalid enum, expecting "[type] [@tag()] {" got tag before the type: "%s"`, string(b))
+			return nil
 		}
-		return r.skipSpace(r.enumType)
+
+		t.Tags = append(t.Tags, Tag{})
+		return func() parserFunc { return r.tagsInit(&t.Tags[len(t.Tags)-1], r.enumType) }
 
 	case b == '{':
 		t.Fields = append(t.Fields, EnumField{})
@@ -320,6 +329,10 @@ func (r *Reader) enumFieldValue() parserFunc {
 	case b == ';':
 		if len(f.Value) == 0 {
 			f.Value = strconv.Itoa(len(t.Fields) - 1)
+		} else {
+			if f.Value != strconv.Itoa(len(t.Fields)-1) {
+				t.IsSequential = false
+			}
 		}
 
 		switch t.Type.Schema {
@@ -391,6 +404,17 @@ func (r *Reader) enumEnd() parserFunc {
 			r.error = fmt.Errorf(`duplicated enum name of %s`, f.Name)
 			return nil
 		}
+		var hasDefault bool
+		for _, v := range t.Fields {
+			if v.Data.Value == "0" {
+				hasDefault = true
+				break
+			}
+		}
+		if !hasDefault {
+			r.error = fmt.Errorf(`enum "%s" doesn't have default value. It must have one enum with value 0`, t.Name)
+			return nil
+		}
 		return r.bodyInit
 	case unicode.IsSpace(b):
 		return r.enumEnd
@@ -436,7 +460,7 @@ func (r *Reader) structName() parserFunc {
 		return r.structName
 
 	default:
-		r.error = fmt.Errorf(`invalid struct name, expecting "struct Name [inline | table] {}" got "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid struct name, expecting "struct [name] [inline | table] [@tag()] {}" got "%s"`, string(b))
 		return nil
 	}
 }
@@ -446,6 +470,9 @@ func (r *Reader) structTypeEnd() parserFunc {
 	t := &r.Parsed.Structs[len(r.Parsed.Structs)-1].Data
 
 	switch {
+	case b == '@':
+		t.Tags = append(t.Tags, Tag{})
+		return func() parserFunc { return r.tagsInit(&t.Tags[len(t.Tags)-1], r.structTypeEnd) }
 	case b == '{':
 		if t.Class == StructClassNone {
 			r.error = errors.New(`invalid struct, missing type (inline/table)"`)

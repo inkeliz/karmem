@@ -5,7 +5,7 @@ enum UserRegion uint32 {
 }
 
 enum RepeatedUserRegion uint32 {
-    Undefined = 255;
+    Undefined = 0;
     Asia;
     Africa;
     NorthAmerica;

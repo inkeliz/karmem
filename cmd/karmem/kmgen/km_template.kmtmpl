@@ -1,0 +1,27 @@
+{{- define "header"}}karmem {{.Module}} {{- range $tag := .Tags }} @{{$tag.Name}}(`{{$tag.Value}}`){{- end }};
+{{end}}
+{{- define "enums"}}
+{{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+{{- range $root := .Enums}}
+enum {{$root.Data.Name}} {{$root.Data.Type.Schema}}{{range $tag := $root.Data.Tags }} @{{$tag.Name}}(`{{$tag.Value}}`){{ end }} {
+{{- if $root.Data.IsSequential}}
+    {{- range $field := $root.Data.Fields}}
+    {{$field.Data.Name}} {{- range $tag := $field.Data.Tags }} @{{$tag.Name}}(`{{$tag.Value}}`){{ end }};
+    {{- end}}
+{{- else}}
+    {{- range $field := $root.Data.Fields}}
+    {{$field.Data.Name}} = {{$field.Data.Value}} {{- range $tag := $field.Data.Tags }} @{{$tag.Name}}(`{{$tag.Value}}`){{ end }};
+    {{- end}}
+{{- end}}
+}
+{{ end }}
+{{ end }}
+{{- define "struct"}}
+{{- range $root := .Structs}}
+struct {{$root.Data.Name}} {{FromStructClass $root.Data.Class}}{{range $tag := $root.Data.Tags }} @{{$tag.Name}}(`{{$tag.Value}}`){{ end }} {
+    {{- range $field := $root.Data.Fields}}
+    {{ToNamePadding $field $root}} {{$field.Data.Type.Schema}} {{- range $tag := $field.Data.Tags }} @{{$tag.Name}}(`{{$tag.Value}}`){{ end }};
+    {{- end}}
+}
+{{ end }}
+{{- end }}

@@ -3,6 +3,7 @@ package kmgen
 import (
 	"embed"
 	"io"
+	"strings"
 	"text/template"
 
 	"karmem.org/cmd/karmem/kmparser"
@@ -34,7 +35,15 @@ type Compiler struct {
 }
 
 type TemplateFunctions struct {
-	FromTags func(s string) string
+	FromTags        func(s string) string
+	FromStructClass func(cls kmparser.StructClass) string
+
+	ToNamePadding func(val any, root any) string
+
+	ToStructName   func(val any) string
+	ToFieldName    func(val any) string
+	ToEnumName     func(val any) string
+	ToFunctionName func(val any) string
 
 	ToDefault       func(typ kmparser.Type) string
 	ToPlainDefault  func(typ kmparser.Type) string
@@ -66,6 +75,41 @@ func NewTemplateFunctions(gen Generator, content *kmparser.Content) TemplateFunc
 
 			return def
 		},
+		FromStructClass: func(cls kmparser.StructClass) string {
+			switch cls {
+			case kmparser.StructClassTable:
+				return "table"
+			case kmparser.StructClassInline:
+				return "inline"
+			default:
+				panic("invalid struct class")
+			}
+		},
+		ToNamePadding: func(val any, root any) string {
+			var largest int
+			var name string
+			switch val := val.(type) {
+			case kmparser.StructField:
+				name = strings.TrimSpace(val.Data.Name)
+				root := root.(kmparser.Struct)
+				for i := range root.Data.Fields {
+					if l := len(root.Data.Fields[i].Data.Name); l > largest {
+						largest = l
+					}
+				}
+			case kmparser.EnumField:
+				name = strings.TrimSpace(val.Data.Name)
+				root := root.(kmparser.Enum)
+				for i := range root.Data.Fields {
+					if l := len(root.Data.Fields[i].Data.Name); l > largest {
+						largest = l
+					}
+				}
+			default:
+				panic("invalid type")
+			}
+			return name + strings.Repeat(" ", largest-len(name))
+		},
 	}
 }
 
@@ -79,7 +123,8 @@ func NewTemplate(modules []string, funcs TemplateFunctions, pattern ...string) (
 	for i, v := range pattern {
 		t := template.New("")
 		t = t.Funcs(template.FuncMap{
-			"FromTags": funcs.FromTags,
+			"FromTags":        funcs.FromTags,
+			"FromStructClass": funcs.FromStructClass,
 
 			"ToDefault":      funcs.ToDefault,
 			"ToPlainDefault": funcs.ToPlainDefault,
@@ -88,6 +133,8 @@ func NewTemplate(modules []string, funcs TemplateFunctions, pattern ...string) (
 			"ToType":          funcs.ToType,
 			"ToPlainTypeView": funcs.ToPlainTypeView,
 			"ToTypeView":      funcs.ToTypeView,
+
+			"ToNamePadding": funcs.ToNamePadding,
 		})
 		t, err := t.ParseFS(templateFiles, v)
 		if err != nil {

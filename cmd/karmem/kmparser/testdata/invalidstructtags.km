@@ -1,0 +1,5 @@
+karmem demo;
+
+struct Test @foo(`1`) @bar(`2`) inline {
+    Field int32;
+}

@@ -1,11 +1,12 @@
 package kmparser
 
 import (
-	"golang.org/x/crypto/blake2b"
 	"os"
 	"strings"
 	"testing"
 	"unsafe"
+
+	"golang.org/x/crypto/blake2b"
 )
 
 func TestNewReader(t *testing.T) {
@@ -19,6 +20,18 @@ func TestNewReader(t *testing.T) {
 	r := NewReader(path, f)
 	if _, err := r.Parser(); err != nil {
 		t.Error(err)
+	}
+
+	if len(r.Parsed.Enums) == 0 {
+		t.Error("no enums")
+	}
+
+	if r.Parsed.Enums[0].Data.Name != "UserRegion" {
+		t.Error("invalid enum name")
+	}
+
+	if r.Parsed.Enums[0].Data.Type.Schema != "uint32" {
+		t.Error("invalid enum type")
 	}
 }
 
@@ -75,6 +88,128 @@ func TestInlineOfEnums2(t *testing.T) {
 	r := NewReader(path, f)
 	if _, err := r.Parser(); err == nil {
 		t.Error("inline of enum is not valid")
+	}
+}
+
+func TestInvalidEnums(t *testing.T) {
+	path := "testdata/invalidenum.km"
+	f, err := os.Open(path)
+	if err != nil {
+		t.Error(f)
+		return
+	}
+
+	r := NewReader(path, f)
+	if _, err := r.Parser(); err == nil {
+		t.Error("inline of enum is not valid")
+	}
+}
+
+func TestInvalidEnums2(t *testing.T) {
+	path := "testdata/invalidenum2.km"
+	f, err := os.Open(path)
+	if err != nil {
+		t.Error(f)
+		return
+	}
+
+	r := NewReader(path, f)
+	if _, err := r.Parser(); err == nil {
+		t.Error("inline of enum is not valid")
+	}
+}
+
+func TestInvalidEnums3(t *testing.T) {
+	path := "testdata/invalidenum3.km"
+	f, err := os.Open(path)
+	if err != nil {
+		t.Error(f)
+		return
+	}
+
+	r := NewReader(path, f)
+	if _, err := r.Parser(); err == nil {
+		t.Error("inline of enum is not valid")
+	}
+}
+
+func TestTagsEnum(t *testing.T) {
+	path := "testdata/enumtags.km"
+	f, err := os.Open(path)
+	if err != nil {
+		t.Error(f)
+		return
+	}
+
+	r := NewReader(path, f)
+	if _, err := r.Parser(); err != nil {
+		t.Error(err)
+	}
+
+	if len(r.Parsed.Enums) == 0 {
+		t.Error("no enums")
+	}
+
+	if r.Parsed.Enums[0].Data.Tags[0].Name != "foo" || r.Parsed.Enums[0].Data.Tags[1].Name != "bar" {
+		t.Error("invalid tags")
+	}
+
+	if r.Parsed.Enums[0].Data.Tags[0].Value != "val1" || r.Parsed.Enums[0].Data.Tags[1].Value != "val2" {
+		t.Error("invalid tags")
+	}
+}
+
+func TestInvalidTagsEnum(t *testing.T) {
+	path := "testdata/invalidenumtags.km"
+	f, err := os.Open(path)
+	if err != nil {
+		t.Error(f)
+		return
+	}
+
+	r := NewReader(path, f)
+	if _, err := r.Parser(); err == nil {
+		t.Error("tags before type in enum is not valid")
+	}
+}
+
+func TestTagsStruct(t *testing.T) {
+	path := "testdata/structtags.km"
+	f, err := os.Open(path)
+	if err != nil {
+		t.Error(f)
+		return
+	}
+
+	r := NewReader(path, f)
+	if _, err := r.Parser(); err != nil {
+		t.Error(err)
+	}
+
+	if len(r.Parsed.Structs) == 0 {
+		t.Error("no enums")
+	}
+
+	if r.Parsed.Structs[0].Data.Tags[0].Name != "foo" || r.Parsed.Structs[0].Data.Tags[1].Name != "bar" {
+		t.Error("invalid tags")
+	}
+
+	if r.Parsed.Structs[0].Data.Tags[0].Value != "1" || r.Parsed.Structs[0].Data.Tags[1].Value != "2" {
+		t.Error("invalid tags")
+	}
+}
+
+func TestInvalidTagsStruct(t *testing.T) {
+	path := "testdata/invalidstructtags.km"
+	f, err := os.Open(path)
+	if err != nil {
+		t.Error(f)
+		return
+	}
+
+	r := NewReader(path, f)
+	if _, err := r.Parser(); err == nil {
+		t.Error("tags before type in enum is not valid")
 	}
 }
 

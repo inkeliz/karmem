@@ -1,30 +1,10 @@
 karmem kmparser;
 
-struct Tag inline {
-    Name  []char;
-    Value []char;
-}
-
-struct StructSize table {
-	Minimum    uint32;
-	Content    uint32;
-	Padding    uint32;
-	Total      uint32;
-	TotalGroup []uint8;
-}
-
-struct StructFieldSize table {
-	Minimum    uint32;
-	Allocation uint32;
-	Field      uint32;
-}
-
 enum StructClass uint8 {
     None;
     Table;
     Inline;
 }
-
 
 enum TypeModel uint8 {
     None;
@@ -42,13 +22,32 @@ enum TypeFormat uint8 {
     Table;
 }
 
-struct Type table {
-    Schema []char;
-    PlainSchema []char;
-    Length uint32;
 
-    Format TypeFormat;
-    Model  TypeModel;
+struct Tag inline {
+    Name  []char;
+    Value []char;
+}
+
+struct StructSize table {
+    Minimum    uint32;
+    Content    uint32;
+    Padding    uint32;
+    Total      uint32;
+    TotalGroup []uint8;
+}
+
+struct StructFieldSize table {
+    Minimum    uint32;
+    Allocation uint32;
+    Field      uint32;
+}
+
+struct Type table {
+    Schema      []char;
+    PlainSchema []char;
+    Length      uint32;
+    Format      TypeFormat;
+    Model       TypeModel;
 }
 
 struct EnumFieldData table {
@@ -62,9 +61,11 @@ struct EnumField inline {
 }
 
 struct EnumData table {
-    Name []char;
-    Type Type;
-    Fields []EnumField;
+    Name         []char;
+    Type         Type;
+    Fields       []EnumField;
+    Tags         []Tag;
+    IsSequential bool;
 }
 
 struct Enum inline {
@@ -72,11 +73,11 @@ struct Enum inline {
 }
 
 struct StructFieldData table {
-	Name    []char;
-	Type    Type;
-    Offset  uint32;
-	Tags    []Tag;
-	Size    StructFieldSize;
+    Name   []char;
+    Type   Type;
+    Offset uint32;
+    Tags   []Tag;
+    Size   StructFieldSize;
 }
 
 struct StructField inline {
@@ -84,11 +85,12 @@ struct StructField inline {
 }
 
 struct StructData table {
-	ID      uint64;
-	Name    []char;
-	Size    StructSize;
-	Fields  []StructField;
-	Class   StructClass;
+    ID     uint64;
+    Name   []char;
+    Size   StructSize;
+    Fields []StructField;
+    Class  StructClass;
+    Tags   []Tag;
 }
 
 struct Struct inline {

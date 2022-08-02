@@ -1,0 +1,10 @@
+karmem demo;
+
+enum TestEnum @something() uint8 {
+    A;
+    B;
+}
+
+struct TestEnumTable inline {
+    TEnum TestEnum;
+}

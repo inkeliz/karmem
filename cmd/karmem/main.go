@@ -38,6 +38,16 @@ func main() {
 			}
 			return b.Execute()
 		}
+	case "fmt":
+		fallthrough
+	case "format":
+		fn = func() error {
+			f, err := NewFormat()
+			if err != nil {
+				return err
+			}
+			return f.Execute()
+		}
 	}
 
 	if fn == nil {
@@ -162,5 +172,70 @@ func (b *Build) Execute() error {
 		}
 	}
 
+	return nil
+}
+
+type Format struct {
+	Build
+	save bool
+}
+
+func NewFormat() (f *Format, _ error) {
+	f = new(Format)
+	flags := flag.NewFlagSet("build", flag.ExitOnError)
+
+	f.language = make([]bool, len(kmgen.Generators))
+	flags.BoolVar(&f.save, "s", false, "Save and override the original schema file.")
+	if err := flags.Parse(flag.Args()[1:]); err != nil {
+		return nil, err
+	}
+
+	f.input = flags.Arg(0)
+
+	if f.input == "help" {
+		flags.Usage()
+		return nil, errHelpOnly
+	}
+
+	return f, nil
+}
+
+func (b *Format) Execute() error {
+	parsed, err := b.ParseIDL()
+	if err != nil {
+		return err
+	}
+
+	gen := kmgen.KarmemSchemaGenerator()
+	compiler, err := gen.Start(parsed)
+	if err != nil {
+		return err
+	}
+
+	for _, c := range compiler.Template {
+		var buffer bytes.Buffer
+
+		for _, n := range compiler.Modules {
+			if err := c.ExecuteTemplate(&buffer, n, kmgen.TemplateData{Content: parsed}); err != nil {
+				return err
+			}
+		}
+
+		outputFile := os.Stdout
+		if b.save {
+			outputFile, err = os.Create(b.input)
+			if err != nil {
+				return err
+			}
+		}
+
+		if err := gen.Finish(outputFile, &buffer); err != nil {
+			return err
+		}
+
+		if err := outputFile.Close(); err != nil {
+			return err
+		}
+	}
 	return nil
 }

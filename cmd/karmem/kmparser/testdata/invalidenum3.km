@@ -1,0 +1,11 @@
+karmem demo;
+
+enum TestEnum uint8 {
+    A = 100;
+    B;
+    C;
+}
+
+struct TestEnumTable inline {
+    TEnum TestEnum;
+}

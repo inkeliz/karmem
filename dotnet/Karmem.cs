@@ -5,47 +5,92 @@ using System.Text;
 namespace Karmem;
 
 /// <summary>
-///     IViewer is the interface implemented by all viewers, in the
-///     generated code.
+///     IViewer is one marker interface implemented by all
+///     viewers living in the generated code.
+///
+///     The implementer MUST be on STRUCT and have one ulong field
+///     at index 0.
 /// </summary>
-public interface IViewer { public void KarmemSetPtr(ulong ptr); }
+public interface IViewer { }
 
 /// <summary>
-///     The Slice is equivalent of Span<T> but holds one array of struct Viewer. It's not possible
-///     to use Span<T> because the Viewer is one struct.
+///     The Slice is similar to Span<T>, but supports more than 2GB, assuming that the Reader is unmanaged.
+///     The Slice doesn't copy the values, instead it's just an encapsulation over the existent Reader data,
+///     beware that is unsafe to use if Reader.Dispose or Reader.Reset is called.
 ///
-///     The struct MUST have one ulong at the beginning of the struct (0 index).
+///     If T is one IViewer, the given T is expected to be one struct and MUST have one ulong at the
+///     beginning of the struct (0 index).
 /// </summary>
-public unsafe struct Slice<T> where T: IViewer
+public unsafe ref struct Slice<T>
 {
     private readonly ulong _ptr;
-    private readonly uint _length;
-    private readonly uint _stride;
+    private readonly ulong _length;
+    private readonly ulong _stride;
+    private readonly bool _isViewer;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Slice(ulong ptr, uint length, uint stride)
     {
+        var x = new int[] { 0 };
+        var y = x.LongLength;
+ 
+
         _ptr = ptr;
-        _length = length;
-        _stride = stride;
+        _length = (ulong)length;
+        _stride = (ulong)stride;
+        _isViewer = typeof(IViewer).IsAssignableFrom(typeof(T));
     }
 
-    public int Length => (int)this._length;
+    public ulong Length => this._length;
 
-    public int Count => Length;
+    public ulong Count => Length;
 
+    /// <summary>
+    ///     Return the element at the given index.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T Get(int index)
+    public T Get(ulong index)
     {
-        var d = default(T);
-        d.KarmemSetPtr(_ptr + (ulong)(index * _stride));
-        return d;
-    }
+        ulong d = 0;
+        if (this._isViewer)
+        {
+            // The IViewer MUST have one ulong at the beginning of the struct.
+            // In order words: ulong have the same memory layout of struct { [FieldOffset(0)]private ulong _ptr = 0; },
+            // as expected. So, the d is the same as such struct, populated with the _ptr field.
+            d = (_ptr + (ulong)(index * _stride));
+        }
+        else
+        {
+            // ulong is the largest primitive type, so everything can be casted
+            // from ulong to T.
+            d = *(ulong*)(_ptr + (ulong)(index * _stride));
+        }
 
-    public T this[int index]
+        return Unsafe.As<ulong, T>(ref d);
+    }
+    
+    public T this[ulong index]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => Get(index);
+    }
+    
+    public T this[int index]
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => Get((ulong)index);
+    }
+    
+    public T this[uint index]
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => Get((ulong)index);
+    }
+    
+    public T this[long index]
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => Get((ulong)index);
     }
 }
 

@@ -1,5 +1,4 @@
 {{- define "header"}}
-using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Karmem;
@@ -198,14 +197,19 @@ public unsafe struct {{$root.Data.Name}} {
             this._{{$field.Data.Name}}[i] = {{ToPlainDefault $field.Data.Type}};
         }
         {{- else}}
+        var __{{$field.Data.Name}}Span = CollectionsMarshal.AsSpan(this._{{$field.Data.Name}});
         for (var i = (ulong)0; i < __{{$field.Data.Name}}Len; i++) {
             if (i >= __{{$field.Data.Name}}Len) {
                 this._{{$field.Data.Name}}[(int)i].Reset();
             } else {
                 if (i >= (ulong)this._{{$field.Data.Name}}.Count) {
-                    this._{{$field.Data.Name}}.Add({{ToPlainDefault $field.Data.Type}});
+                    var __{{$field.Data.Name}}Item = {{ToPlainDefault $field.Data.Type}};
+                    __{{$field.Data.Name}}Item.Read(__{{$field.Data.Name}}Slice[i], reader);
+                    this._{{$field.Data.Name}}.Add(__{{$field.Data.Name}}Item);
+                } else {
+                    ref var __{{$field.Data.Name}}Item = ref __{{$field.Data.Name}}Span[(int)i];
+                    __{{$field.Data.Name}}Item.Read(__{{$field.Data.Name}}Slice[i], reader);
                 }
-                this._{{$field.Data.Name}}[(int)i].Read(__{{$field.Data.Name}}Slice[i], reader);
             }
         }
         {{- end }}

@@ -176,10 +176,10 @@ public unsafe struct {{$root.Data.Name}} {
         {{- if $field.Data.Type.IsSlice}}
         var __{{$field.Data.Name}}Slice = viewer.{{$field.Data.Name}}(reader);
         var __{{$field.Data.Name}}Len = __{{$field.Data.Name}}Slice.Length;
-        if (this._{{$field.Data.Name}}.Count > __{{$field.Data.Name}}Len) {
-            this._{{$field.Data.Name}}.RemoveRange((int)(__{{$field.Data.Name}}Len - this._{{$field.Data.Name}}.Count), (int)(this._{{$field.Data.Name}}.Count));
+        if (this._{{$field.Data.Name}}.Count > (int)__{{$field.Data.Name}}Len) {
+            this._{{$field.Data.Name}}.RemoveRange((int)__{{$field.Data.Name}}Len - (int)this._{{$field.Data.Name}}.Count, (int)(this._{{$field.Data.Name}}.Count));
         }
-        if (this._{{$field.Data.Name}}.Capacity > __{{$field.Data.Name}}Len) {
+        if (this._{{$field.Data.Name}}.Capacity > (int)__{{$field.Data.Name}}Len) {
             this._{{$field.Data.Name}}.EnsureCapacity((int)__{{$field.Data.Name}}Len);
         }
         {{- else}}
@@ -187,25 +187,25 @@ public unsafe struct {{$root.Data.Name}} {
         var __{{$field.Data.Name}}Len = __{{$field.Data.Name}}Slice.Length;
         {{- end }}
         {{- if $field.Data.Type.IsNative}}
-        for (var i = (int)0; i < __{{$field.Data.Name}}Len; i++) {
-            if (i >= this._{{$field.Data.Name}}.Count) {
+        for (var i = (ulong)0; i < __{{$field.Data.Name}}Len; i++) {
+            if (i >= (ulong)this._{{$field.Data.Name}}.Count) {
                 this._{{$field.Data.Name}}.Add(__{{$field.Data.Name}}Slice[i]);
             } else {
-                this._{{$field.Data.Name}}[i] = __{{$field.Data.Name}}Slice[i];
+                this._{{$field.Data.Name}}[(int)i] = __{{$field.Data.Name}}Slice[i];
             }
         }
         for (var i = (int)__{{$field.Data.Name}}Len; i < this._{{$field.Data.Name}}.Count; i++) {
             this._{{$field.Data.Name}}[i] = {{ToPlainDefault $field.Data.Type}};
         }
         {{- else}}
-        for (var i = (int)0; i < __{{$field.Data.Name}}Len; i++) {
+        for (var i = (ulong)0; i < __{{$field.Data.Name}}Len; i++) {
             if (i >= __{{$field.Data.Name}}Len) {
-                this._{{$field.Data.Name}}[i].Reset();
+                this._{{$field.Data.Name}}[(int)i].Reset();
             } else {
-                if (i >= this._{{$field.Data.Name}}.Count) {
+                if (i >= (ulong)this._{{$field.Data.Name}}.Count) {
                     this._{{$field.Data.Name}}.Add({{ToPlainDefault $field.Data.Type}});
                 }
-                this._{{$field.Data.Name}}[i].Read(__{{$field.Data.Name}}Slice[i], reader);
+                this._{{$field.Data.Name}}[(int)i].Read(__{{$field.Data.Name}}Slice[i], reader);
             }
         }
         {{- end }}
@@ -252,11 +252,6 @@ public unsafe struct {{$root.Data.Name}}Viewer : IViewer {
         {{- end }}
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void KarmemSetPtr(ulong ptr) {
-        _ptr = ptr;
-    }
-
     {{- range $field := $root.Data.Fields }}
     public {{ToTypeView $field.Data.Type}} {{$field.Data.Name}}({{- if not $field.Data.Type.IsInline}}Karmem.Reader reader{{- end}}) {
     {{- if $root.Data.IsTable}}
@@ -281,11 +276,7 @@ public unsafe struct {{$root.Data.Name}}Viewer : IViewer {
         return new {{ToTypeView $field.Data.Type}}(this._ptr + {{$field.Data.Offset}});
             {{- end}}
         {{- else}}
-        {{- if $field.Data.Type.IsNative}}
-        return new {{ToTypeView $field.Data.Type}}((void*)(this._ptr + {{$field.Data.Offset}}), {{$field.Data.Type.Length}});
-        {{- else }}
         return new {{ToTypeView $field.Data.Type}}(this._ptr + {{$field.Data.Offset}}, {{$field.Data.Type.Length}}, {{ $field.Data.Size.Allocation }});
-        {{- end }}
         {{- end}}
     {{- else }}
         var offset = *(uint*)(this._ptr + {{$field.Data.Offset}});
@@ -308,11 +299,7 @@ public unsafe struct {{$root.Data.Name}}Viewer : IViewer {
         {{- if $field.Data.Type.IsString}}
         return Marshal.PtrToStringUTF8((IntPtr)(reader.Memory.ToInt64() + offset), (int)length);
         {{- else}}
-        {{- if $field.Data.Type.IsNative}}
-        return new {{ToTypeView $field.Data.Type}}((void*)(this._ptr + {{$field.Data.Offset}}), {{$field.Data.Type.Length}});
-        {{- else }}
         return new {{ToTypeView $field.Data.Type}}((ulong)(reader.Memory.ToInt64()) + offset, length, {{ $field.Data.Size.Allocation }});
-        {{- end }}
         {{- end}}
         {{- else}}
         return {{ToType $field.Data.Type}}Viewer.New{{ToType $field.Data.Type}}Viewer(reader, offset);

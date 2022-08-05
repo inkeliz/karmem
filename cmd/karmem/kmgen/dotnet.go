@@ -129,7 +129,7 @@ func (gen *DotNet) functions() (f TemplateFunctions) {
 			case kmparser.TypeFormatStruct, kmparser.TypeFormatTable:
 				return fmt.Sprintf(`Karmem.Slice<%sViewer>`, f.ToPlainType(typ))
 			default:
-				return fmt.Sprintf(`Span<%s>`, f.ToPlainType(typ))
+				return fmt.Sprintf(`Karmem.Slice<%s>`, f.ToPlainType(typ))
 			}
 		default:
 			return p

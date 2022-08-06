@@ -4,6 +4,28 @@ using System.Runtime.InteropServices;
 using Karmem;
 
 namespace {{FromTags "package"}};
+
+public static unsafe class _Globals
+{
+    private static long _largest = {{.Size.Largest}};
+    private static IntPtr? _null = null;
+    private static Karmem.Reader? _nullReader = null;
+
+    public static IntPtr Null()
+    {
+        if (_null == null)
+        {
+            _null = Marshal.AllocHGlobal(0);
+            Unsafe.InitBlockUnaligned(_null.Value.ToPointer(), 0, (uint)_largest);
+        }
+        return _null.Value;
+    }
+    public static Karmem.Reader NullReader()
+    {
+        _nullReader ??= Karmem.Reader.NewReader(Null(), _largest, _largest);
+        return _nullReader.Value;
+    }
+}
 {{end}}
 
 {{define "enums"}}
@@ -50,7 +72,7 @@ public unsafe struct {{$root.Data.Name}} {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Reset() {
-        // Read((*{{$root.Data.Name}}Viewer)(unsafe.Pointer(&_Null)), _NullReader);
+        this.ReadAsRoot(_Globals.NullReader());
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -236,12 +258,12 @@ public unsafe struct {{$root.Data.Name}}Viewer : IViewer {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static {{$root.Data.Name}}Viewer New{{$root.Data.Name}}Viewer(Karmem.Reader reader, uint offset) {
         if (!reader.IsValidOffset(offset, {{$root.Data.Size.Minimum}})) {
-            return new {{$root.Data.Name}}Viewer();
+            return new {{$root.Data.Name}}Viewer((ulong)_Globals.Null().ToInt64());
         }
         var v = new {{$root.Data.Name}}Viewer((ulong)(reader.Memory.ToInt64() + offset));
         {{- if $root.Data.IsTable}}
         if (!reader.IsValidOffset(offset, v.KarmemSizeOf())) {
-            return new {{$root.Data.Name}}Viewer();
+            return new {{$root.Data.Name}}Viewer((ulong)_Globals.Null().ToInt64());
         }
         {{- end}}
         return v;
@@ -264,9 +286,9 @@ public unsafe struct {{$root.Data.Name}}Viewer : IViewer {
             return {{ToDefault $field.Data.Type}};
         {{- else}}
             {{- if or $field.Data.Type.IsSlice $field.Data.Type.IsArray}}
-            return new {{ToTypeView $field.Data.Type}}();
+            return new {{ToTypeView $field.Data.Type}}(0, 0, 0);
             {{- else }}
-            return new {{ToTypeView $field.Data.Type}}();
+            return new {{ToTypeView $field.Data.Type}}((ulong)_Globals.Null().ToInt64());
             {{- end }}
         {{- end}}
         }

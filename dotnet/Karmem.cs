@@ -166,7 +166,8 @@ public unsafe struct Writer
             var target = Capacity * 2;
             if (target < total) target = total * 2;
 
-            Memory = Marshal.ReAllocHGlobal(Memory, new IntPtr(Convert.ToInt64(target)));
+            Memory = Marshal.ReAllocHGlobal(Memory, (IntPtr)target);
+            Unsafe.InitBlockUnaligned((void*)(Memory.ToInt64() + ptr), 0, (uint)(target - ptr));
             Capacity = target;
             Size = total;
         }

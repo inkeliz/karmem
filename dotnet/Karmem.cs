@@ -367,7 +367,7 @@ public struct Reader
     /// <summary>
     ///     Creates a new reader from unmanaged memory, with the given size and capacity.
     /// </summary>
-    public static Reader NewReader(IntPtr memory, int size, int capacity)
+    public static Reader NewReader(IntPtr memory, long size, long capacity)
     {
         return new Reader(memory, size, capacity, null);
     }

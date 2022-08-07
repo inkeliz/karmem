@@ -79,12 +79,13 @@ namespace dotnet
             var sum = new Vec3();
             for (var i = (ulong)0; i < monstersList.Count; i++)
             {
-                var path = monstersList[i].Data(this.Reader).Path(this.Reader);
-                for (var p = (ulong)0; p < path.Count; p++)
+                var paths = monstersList[i].Data(this.Reader).Path(this.Reader);
+                for (var p = (ulong)0; p < paths.Count; p++)
                 {
-                    sum._X += path[p].X();
-                    sum._Y += path[p].Y();
-                    sum._Z += path[p].Z();
+                    var path = paths[p];
+                    sum._X += path.X();
+                    sum._Y += path.Y();
+                    sum._Z += path.Z();
                 }
             }
             

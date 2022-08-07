@@ -8,21 +8,22 @@ namespace {{FromTags "package"}};
 public static unsafe class _Globals
 {
     private static long _largest = {{.Size.Largest}};
-    private static IntPtr? _null = null;
+    private static nuint? _null = null;
     private static Karmem.Reader? _nullReader = null;
 
-    public static IntPtr Null()
+    public static nuint Null()
     {
         if (_null == null)
         {
-            _null = Marshal.AllocHGlobal(0);
-            Unsafe.InitBlockUnaligned(_null.Value.ToPointer(), 0, (uint)_largest);
+            var n = Marshal.AllocHGlobal(0);
+            Unsafe.InitBlockUnaligned(n.ToPointer(), 0, (uint)_largest);
+            _null = (nuint)n.ToPointer();
         }
         return _null.Value;
     }
     public static Karmem.Reader NullReader()
     {
-        _nullReader ??= Karmem.Reader.NewReader(Null(), _largest, _largest);
+        _nullReader ??= Karmem.Reader.NewReader(new IntPtr((long)Null()), _largest, _largest);
         return _nullReader.Value;
     }
 }
@@ -248,38 +249,38 @@ public unsafe struct {{$root.Data.Name}} {
 {{define "struct_builder"}}
     {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
     {{- range $root := .Structs}}
-[StructLayout(LayoutKind.Explicit, Size=4)]
+[StructLayout(LayoutKind.Sequential, Pack=0, Size={{$root.Data.Size.Total}})]
 public unsafe struct {{$root.Data.Name}}Viewer : IViewer {
-    [FieldOffset(0)]private ulong _ptr = 0;
+    {{- range $key, $padding := $root.Data.Size.TotalGroup }}
+    private readonly long _{{$key}};
+    {{- end}}
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public {{$root.Data.Name}}Viewer(ulong ptr) { _ptr = ptr; }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static {{$root.Data.Name}}Viewer New{{$root.Data.Name}}Viewer(Karmem.Reader reader, uint offset) {
+    public static ref {{$root.Data.Name}}Viewer New{{$root.Data.Name}}Viewer(Karmem.Reader reader, uint offset) {
         if (!reader.IsValidOffset(offset, {{$root.Data.Size.Minimum}})) {
-            return new {{$root.Data.Name}}Viewer((ulong)_Globals.Null().ToInt64());
+            return ref *({{$root.Data.Name}}Viewer*)_Globals.Null();
         }
-        var v = new {{$root.Data.Name}}Viewer((ulong)(reader.Memory.ToInt64() + offset));
+        ref {{$root.Data.Name}}Viewer v = ref *({{$root.Data.Name}}Viewer*)(reader.MemoryPointer + offset);
         {{- if $root.Data.IsTable}}
         if (!reader.IsValidOffset(offset, v.KarmemSizeOf())) {
-            return new {{$root.Data.Name}}Viewer((ulong)_Globals.Null().ToInt64());
+            return ref *({{$root.Data.Name}}Viewer*)_Globals.Null();
         }
         {{- end}}
-        return v;
+        return ref v;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private uint KarmemSizeOf() {
         {{- if $root.Data.IsTable}}
-        return *(uint*)(this._ptr);
+        return *(uint*)Unsafe.AsPointer(ref this);
         {{- else}}
         return {{$root.Data.Size.Total}};
         {{- end }}
     }
 
     {{- range $field := $root.Data.Fields }}
-    public {{ToTypeView $field.Data.Type}} {{$field.Data.Name}}({{- if not $field.Data.Type.IsInline}}Karmem.Reader reader{{- end}}) {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public {{- if not (or (or $field.Data.Type.IsSlice $field.Data.Type.IsArray) (or $field.Data.Type.IsNative $field.Data.Type.IsEnum)) }} ref{{- end}} {{ToTypeView $field.Data.Type}} {{$field.Data.Name}}({{- if not $field.Data.Type.IsInline}}Karmem.Reader reader{{- end}}) {
     {{- if $root.Data.IsTable}}
         if ({{$field.Data.Offset}} + {{$field.Data.Size.Field}} > this.KarmemSizeOf()) {
         {{- if or (and $field.Data.Type.IsBasic $field.Data.Type.IsNative) (or $field.Data.Type.IsString $field.Data.Type.IsEnum) }}
@@ -288,7 +289,7 @@ public unsafe struct {{$root.Data.Name}}Viewer : IViewer {
             {{- if or $field.Data.Type.IsSlice $field.Data.Type.IsArray}}
             return new {{ToTypeView $field.Data.Type}}(0, 0, 0);
             {{- else }}
-            return new {{ToTypeView $field.Data.Type}}((ulong)_Globals.Null().ToInt64());
+            return ref *({{ToTypeView $field.Data.Type}}*)(_Globals.Null());
             {{- end }}
         {{- end}}
         }
@@ -297,17 +298,17 @@ public unsafe struct {{$root.Data.Name}}Viewer : IViewer {
     {{- if $field.Data.Type.IsInline}}
         {{- if not $field.Data.Type.IsArray}}
             {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
-        return *({{ToTypeView $field.Data.Type}}*)(this._ptr + {{$field.Data.Offset}});
+        return *({{ToTypeView $field.Data.Type}}*)((nuint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}});
             {{- else}}
-        return new {{ToTypeView $field.Data.Type}}(this._ptr + {{$field.Data.Offset}});
+        return ref *({{ToTypeView $field.Data.Type}}*)((nuint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}});
             {{- end}}
         {{- else}}
-        return new {{ToTypeView $field.Data.Type}}(this._ptr + {{$field.Data.Offset}}, {{$field.Data.Type.Length}}, {{ $field.Data.Size.Allocation }});
+        return new {{ToTypeView $field.Data.Type}}((nuint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}}, {{$field.Data.Type.Length}}, {{ $field.Data.Size.Allocation }});
         {{- end}}
     {{- else }}
-        var offset = *(uint*)(this._ptr + {{$field.Data.Offset}});
+        var offset = *(uint*)((uint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}});
         {{- if $field.Data.Type.IsSlice}}
-        var size = *(uint*)(this._ptr + {{$field.Data.Offset}} + 4);
+        var size = *(uint*)((uint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}} + 4);
         if (!reader.IsValidOffset(offset, size)) {
         {{- if $field.Data.Type.IsString }}
             return "";
@@ -325,10 +326,10 @@ public unsafe struct {{$root.Data.Name}}Viewer : IViewer {
         {{- if $field.Data.Type.IsString}}
         return Marshal.PtrToStringUTF8((IntPtr)(reader.Memory.ToInt64() + offset), (int)length);
         {{- else}}
-        return new {{ToTypeView $field.Data.Type}}((ulong)(reader.Memory.ToInt64()) + offset, length, {{ $field.Data.Size.Allocation }});
+        return new {{ToTypeView $field.Data.Type}}(reader.MemoryPointer + offset, length, {{ $field.Data.Size.Allocation }});
         {{- end}}
         {{- else}}
-        return {{ToType $field.Data.Type}}Viewer.New{{ToType $field.Data.Type}}Viewer(reader, offset);
+        return ref {{ToType $field.Data.Type}}Viewer.New{{ToType $field.Data.Type}}Viewer(reader, offset);
         {{- end}}
     {{- end}}
     }

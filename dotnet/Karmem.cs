@@ -8,7 +8,7 @@ namespace Karmem;
 ///     IViewer is one marker interface implemented by all
 ///     viewers living in the generated code.
 ///
-///     The implementer MUST be on STRUCT and have one ulong field
+///     The implementer MUST be on STRUCT and have one nuint field
 ///     at index 0.
 /// </summary>
 public interface IViewer { }
@@ -18,75 +18,60 @@ public interface IViewer { }
 ///     The Slice doesn't copy the values, instead it's just an encapsulation over the existent Reader data,
 ///     beware that is unsafe to use if Reader.Dispose or Reader.Reset is called.
 ///
-///     If T is one IViewer, the given T is expected to be one struct and MUST have one ulong at the
+///     If T is one IViewer, the given T is expected to be one struct and MUST have one nuint at the
 ///     beginning of the struct (0 index).
 /// </summary>
 public unsafe ref struct Slice<T>
 {
-    private readonly ulong _ptr;
-    private readonly ulong _length;
-    private readonly ulong _stride;
+    private readonly nuint _ptr;
+    private readonly uint _length;
+    private readonly uint _stride;
     private readonly bool _isViewer;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Slice(ulong ptr, uint length, uint stride)
+    public Slice(nuint ptr, uint length, uint stride)
     {
         _ptr = ptr;
-        _length = (ulong)length;
-        _stride = (ulong)stride;
+        _length = length;
+        _stride = stride;
         _isViewer = typeof(IViewer).IsAssignableFrom(typeof(T));
     }
 
-    public ulong Length => this._length;
+    public uint Length => this._length;
 
-    public ulong Count => Length;
+    public uint Count => Length;
 
     /// <summary>
     ///     Return the element at the given index.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T Get(ulong index)
+    public ref T Get(uint index)
     {
-        ulong d = 0;
-        if (this._isViewer)
-        {
-            // The IViewer MUST have one ulong at the beginning of the struct.
-            // In order words: ulong have the same memory layout of struct { [FieldOffset(0)]private ulong _ptr = 0; },
-            // as expected. So, the d is the same as such struct, populated with the _ptr field.
-            d = (_ptr + (ulong)(index * _stride));
-        }
-        else
-        {
-            // ulong is the largest primitive type, so everything can be casted
-            // from ulong to T.
-            d = *(ulong*)(_ptr + (ulong)(index * _stride));
-        }
-
-        return Unsafe.As<ulong, T>(ref d);
+        return ref Unsafe.As<ulong, T>(ref *(ulong*)(_ptr + index * _stride));
     }
     
     public T this[ulong index]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => Get(index);
+        get => Get((uint)index);
     }
     
     public T this[int index]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => Get((ulong)index);
+        get => Get((uint)index);
     }
     
     public T this[uint index]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => Get((ulong)index);
+        get => Get((uint)index);
     }
     
     public T this[long index]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => Get((ulong)index);
+        get => Get((uint)index);
     }
 }
 
@@ -99,6 +84,7 @@ public unsafe ref struct Slice<T>
 public unsafe struct Writer
 {
     public IntPtr Memory;
+    public nuint MemoryPointer;
     public long Size = 0;
     public long Capacity;
     private readonly bool _isFixed = false;
@@ -107,12 +93,14 @@ public unsafe struct Writer
     public Writer(int capacity)
     {
         Memory = Marshal.AllocHGlobal(capacity);
+        MemoryPointer = (nuint)(Memory.ToPointer());
         Capacity = capacity;
     }
 
     public Writer(IntPtr memory, int capacity, GCHandle? gcHandle)
     {
         Memory = memory;
+        MemoryPointer = (nuint)(Memory.ToPointer());
         Capacity = capacity;
         _isFixed = true;
         _handle = gcHandle;
@@ -164,6 +152,7 @@ public unsafe struct Writer
 
             Memory = Marshal.ReAllocHGlobal(Memory, (IntPtr)target);
             Unsafe.InitBlockUnaligned((void*)(Memory.ToInt64() + ptr), 0, (uint)(target - ptr));
+            MemoryPointer = (nuint)(Memory.ToPointer());
             Capacity = target;
             Size = total;
         }
@@ -346,9 +335,10 @@ public unsafe struct Writer
 ///     A struct to read KARMEM encoded data. That is consumed by generated code.
 ///     The backed buffer must not be modified when any data-viewer is using it.
 /// </summary>
-public struct Reader
+public unsafe struct Reader
 {
     public IntPtr Memory;
+    public nuint MemoryPointer;
     public long Size;
     public readonly long Capacity;
     public GCHandle? Handle;
@@ -356,6 +346,7 @@ public struct Reader
     public Reader(IntPtr memory, long size, long capacity, GCHandle? gcHandle)
     {
         Memory = memory;
+        MemoryPointer = (nuint)(Memory.ToPointer());
         Size = size;
         Capacity = capacity;
         Handle = gcHandle;

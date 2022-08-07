@@ -8,21 +8,22 @@ namespace km;
 public static unsafe class _Globals
 {
     private static long _largest = 152;
-    private static IntPtr? _null = null;
+    private static nuint? _null = null;
     private static Karmem.Reader? _nullReader = null;
 
-    public static IntPtr Null()
+    public static nuint Null()
     {
         if (_null == null)
         {
-            _null = Marshal.AllocHGlobal(0);
-            Unsafe.InitBlockUnaligned(_null.Value.ToPointer(), 0, (uint)_largest);
+            var n = Marshal.AllocHGlobal(0);
+            Unsafe.InitBlockUnaligned(n.ToPointer(), 0, (uint)_largest);
+            _null = (nuint)n.ToPointer();
         }
         return _null.Value;
     }
     public static Karmem.Reader NullReader()
     {
-        _nullReader ??= Karmem.Reader.NewReader(Null(), _largest, _largest);
+        _nullReader ??= Karmem.Reader.NewReader(new IntPtr((long)Null()), _largest, _largest);
         return _nullReader.Value;
     }
 }
@@ -601,147 +602,165 @@ public unsafe struct Monsters {
     }
 }
 
-[StructLayout(LayoutKind.Explicit, Size=4)]
+[StructLayout(LayoutKind.Sequential, Pack=0, Size=16)]
 public unsafe struct Vec3Viewer : IViewer {
-    [FieldOffset(0)]private ulong _ptr = 0;
+    private readonly long _0;
+    private readonly long _1;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vec3Viewer(ulong ptr) { _ptr = ptr; }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vec3Viewer NewVec3Viewer(Karmem.Reader reader, uint offset) {
+    public static ref Vec3Viewer NewVec3Viewer(Karmem.Reader reader, uint offset) {
         if (!reader.IsValidOffset(offset, 16)) {
-            return new Vec3Viewer((ulong)_Globals.Null().ToInt64());
+            return ref *(Vec3Viewer*)_Globals.Null();
         }
-        var v = new Vec3Viewer((ulong)(reader.Memory.ToInt64() + offset));
-        return v;
+        ref Vec3Viewer v = ref *(Vec3Viewer*)(reader.MemoryPointer + offset);
+        return ref v;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private uint KarmemSizeOf() {
         return 16;
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float X() {
-        return *(float*)(this._ptr + 0);
+        return *(float*)((nuint)Unsafe.AsPointer(ref this) + 0);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float Y() {
-        return *(float*)(this._ptr + 4);
+        return *(float*)((nuint)Unsafe.AsPointer(ref this) + 4);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float Z() {
-        return *(float*)(this._ptr + 8);
+        return *(float*)((nuint)Unsafe.AsPointer(ref this) + 8);
     }
 }
     
-[StructLayout(LayoutKind.Explicit, Size=4)]
+[StructLayout(LayoutKind.Sequential, Pack=0, Size=16)]
 public unsafe struct WeaponDataViewer : IViewer {
-    [FieldOffset(0)]private ulong _ptr = 0;
+    private readonly long _0;
+    private readonly long _1;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public WeaponDataViewer(ulong ptr) { _ptr = ptr; }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WeaponDataViewer NewWeaponDataViewer(Karmem.Reader reader, uint offset) {
+    public static ref WeaponDataViewer NewWeaponDataViewer(Karmem.Reader reader, uint offset) {
         if (!reader.IsValidOffset(offset, 8)) {
-            return new WeaponDataViewer((ulong)_Globals.Null().ToInt64());
+            return ref *(WeaponDataViewer*)_Globals.Null();
         }
-        var v = new WeaponDataViewer((ulong)(reader.Memory.ToInt64() + offset));
+        ref WeaponDataViewer v = ref *(WeaponDataViewer*)(reader.MemoryPointer + offset);
         if (!reader.IsValidOffset(offset, v.KarmemSizeOf())) {
-            return new WeaponDataViewer((ulong)_Globals.Null().ToInt64());
+            return ref *(WeaponDataViewer*)_Globals.Null();
         }
-        return v;
+        return ref v;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private uint KarmemSizeOf() {
-        return *(uint*)(this._ptr);
+        return *(uint*)Unsafe.AsPointer(ref this);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int Damage() {
         if (4 + 4 > this.KarmemSizeOf()) {
             return 0;
         }
-        return *(int*)(this._ptr + 4);
+        return *(int*)((nuint)Unsafe.AsPointer(ref this) + 4);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int Range() {
         if (8 + 4 > this.KarmemSizeOf()) {
             return 0;
         }
-        return *(int*)(this._ptr + 8);
+        return *(int*)((nuint)Unsafe.AsPointer(ref this) + 8);
     }
 }
     
-[StructLayout(LayoutKind.Explicit, Size=4)]
+[StructLayout(LayoutKind.Sequential, Pack=0, Size=8)]
 public unsafe struct WeaponViewer : IViewer {
-    [FieldOffset(0)]private ulong _ptr = 0;
+    private readonly long _0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public WeaponViewer(ulong ptr) { _ptr = ptr; }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static WeaponViewer NewWeaponViewer(Karmem.Reader reader, uint offset) {
+    public static ref WeaponViewer NewWeaponViewer(Karmem.Reader reader, uint offset) {
         if (!reader.IsValidOffset(offset, 8)) {
-            return new WeaponViewer((ulong)_Globals.Null().ToInt64());
+            return ref *(WeaponViewer*)_Globals.Null();
         }
-        var v = new WeaponViewer((ulong)(reader.Memory.ToInt64() + offset));
-        return v;
+        ref WeaponViewer v = ref *(WeaponViewer*)(reader.MemoryPointer + offset);
+        return ref v;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private uint KarmemSizeOf() {
         return 8;
     }
-    public WeaponDataViewer Data(Karmem.Reader reader) {
-        var offset = *(uint*)(this._ptr + 0);
-        return WeaponDataViewer.NewWeaponDataViewer(reader, offset);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ref WeaponDataViewer Data(Karmem.Reader reader) {
+        var offset = *(uint*)((uint)Unsafe.AsPointer(ref this) + 0);
+        return ref WeaponDataViewer.NewWeaponDataViewer(reader, offset);
     }
 }
     
-[StructLayout(LayoutKind.Explicit, Size=4)]
+[StructLayout(LayoutKind.Sequential, Pack=0, Size=152)]
 public unsafe struct MonsterDataViewer : IViewer {
-    [FieldOffset(0)]private ulong _ptr = 0;
+    private readonly long _0;
+    private readonly long _1;
+    private readonly long _2;
+    private readonly long _3;
+    private readonly long _4;
+    private readonly long _5;
+    private readonly long _6;
+    private readonly long _7;
+    private readonly long _8;
+    private readonly long _9;
+    private readonly long _10;
+    private readonly long _11;
+    private readonly long _12;
+    private readonly long _13;
+    private readonly long _14;
+    private readonly long _15;
+    private readonly long _16;
+    private readonly long _17;
+    private readonly long _18;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MonsterDataViewer(ulong ptr) { _ptr = ptr; }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MonsterDataViewer NewMonsterDataViewer(Karmem.Reader reader, uint offset) {
+    public static ref MonsterDataViewer NewMonsterDataViewer(Karmem.Reader reader, uint offset) {
         if (!reader.IsValidOffset(offset, 8)) {
-            return new MonsterDataViewer((ulong)_Globals.Null().ToInt64());
+            return ref *(MonsterDataViewer*)_Globals.Null();
         }
-        var v = new MonsterDataViewer((ulong)(reader.Memory.ToInt64() + offset));
+        ref MonsterDataViewer v = ref *(MonsterDataViewer*)(reader.MemoryPointer + offset);
         if (!reader.IsValidOffset(offset, v.KarmemSizeOf())) {
-            return new MonsterDataViewer((ulong)_Globals.Null().ToInt64());
+            return ref *(MonsterDataViewer*)_Globals.Null();
         }
-        return v;
+        return ref v;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private uint KarmemSizeOf() {
-        return *(uint*)(this._ptr);
+        return *(uint*)Unsafe.AsPointer(ref this);
     }
-    public Vec3Viewer Pos() {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ref Vec3Viewer Pos() {
         if (4 + 16 > this.KarmemSizeOf()) {
-            return new Vec3Viewer((ulong)_Globals.Null().ToInt64());
+            return ref *(Vec3Viewer*)(_Globals.Null());
         }
-        return new Vec3Viewer(this._ptr + 4);
+        return ref *(Vec3Viewer*)((nuint)Unsafe.AsPointer(ref this) + 4);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public short Mana() {
         if (20 + 2 > this.KarmemSizeOf()) {
             return 0;
         }
-        return *(short*)(this._ptr + 20);
+        return *(short*)((nuint)Unsafe.AsPointer(ref this) + 20);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public short Health() {
         if (22 + 2 > this.KarmemSizeOf()) {
             return 0;
         }
-        return *(short*)(this._ptr + 22);
+        return *(short*)((nuint)Unsafe.AsPointer(ref this) + 22);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string Name(Karmem.Reader reader) {
         if (24 + 12 > this.KarmemSizeOf()) {
             return "";
         }
-        var offset = *(uint*)(this._ptr + 24);
-        var size = *(uint*)(this._ptr + 24 + 4);
+        var offset = *(uint*)((uint)Unsafe.AsPointer(ref this) + 24);
+        var size = *(uint*)((uint)Unsafe.AsPointer(ref this) + 24 + 4);
         if (!reader.IsValidOffset(offset, size)) {
             return "";
         }
@@ -751,18 +770,20 @@ public unsafe struct MonsterDataViewer : IViewer {
         }
         return Marshal.PtrToStringUTF8((IntPtr)(reader.Memory.ToInt64() + offset), (int)length);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Team Team() {
         if (36 + 1 > this.KarmemSizeOf()) {
             return 0;
         }
-        return *(Team*)(this._ptr + 36);
+        return *(Team*)((nuint)Unsafe.AsPointer(ref this) + 36);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Karmem.Slice<byte> Inventory(Karmem.Reader reader) {
         if (37 + 12 > this.KarmemSizeOf()) {
             return new Karmem.Slice<byte>(0, 0, 0);
         }
-        var offset = *(uint*)(this._ptr + 37);
-        var size = *(uint*)(this._ptr + 37 + 4);
+        var offset = *(uint*)((uint)Unsafe.AsPointer(ref this) + 37);
+        var size = *(uint*)((uint)Unsafe.AsPointer(ref this) + 37 + 4);
         if (!reader.IsValidOffset(offset, size)) {
             return new Karmem.Slice<byte>();
         }
@@ -770,26 +791,29 @@ public unsafe struct MonsterDataViewer : IViewer {
         if (length > 128) {
             length = 128;
         }
-        return new Karmem.Slice<byte>((ulong)(reader.Memory.ToInt64()) + offset, length, 1);
+        return new Karmem.Slice<byte>(reader.MemoryPointer + offset, length, 1);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Color Color() {
         if (49 + 1 > this.KarmemSizeOf()) {
             return 0;
         }
-        return *(Color*)(this._ptr + 49);
+        return *(Color*)((nuint)Unsafe.AsPointer(ref this) + 49);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Karmem.Slice<double> Hitbox() {
         if (50 + 40 > this.KarmemSizeOf()) {
             return new Karmem.Slice<double>(0, 0, 0);
         }
-        return new Karmem.Slice<double>(this._ptr + 50, 5, 8);
+        return new Karmem.Slice<double>((nuint)Unsafe.AsPointer(ref this) + 50, 5, 8);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Karmem.Slice<int> Status(Karmem.Reader reader) {
         if (90 + 12 > this.KarmemSizeOf()) {
             return new Karmem.Slice<int>(0, 0, 0);
         }
-        var offset = *(uint*)(this._ptr + 90);
-        var size = *(uint*)(this._ptr + 90 + 4);
+        var offset = *(uint*)((uint)Unsafe.AsPointer(ref this) + 90);
+        var size = *(uint*)((uint)Unsafe.AsPointer(ref this) + 90 + 4);
         if (!reader.IsValidOffset(offset, size)) {
             return new Karmem.Slice<int>();
         }
@@ -797,20 +821,22 @@ public unsafe struct MonsterDataViewer : IViewer {
         if (length > 10) {
             length = 10;
         }
-        return new Karmem.Slice<int>((ulong)(reader.Memory.ToInt64()) + offset, length, 4);
+        return new Karmem.Slice<int>(reader.MemoryPointer + offset, length, 4);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Karmem.Slice<WeaponViewer> Weapons() {
         if (102 + 32 > this.KarmemSizeOf()) {
             return new Karmem.Slice<WeaponViewer>(0, 0, 0);
         }
-        return new Karmem.Slice<WeaponViewer>(this._ptr + 102, 4, 8);
+        return new Karmem.Slice<WeaponViewer>((nuint)Unsafe.AsPointer(ref this) + 102, 4, 8);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Karmem.Slice<Vec3Viewer> Path(Karmem.Reader reader) {
         if (134 + 12 > this.KarmemSizeOf()) {
             return new Karmem.Slice<Vec3Viewer>(0, 0, 0);
         }
-        var offset = *(uint*)(this._ptr + 134);
-        var size = *(uint*)(this._ptr + 134 + 4);
+        var offset = *(uint*)((uint)Unsafe.AsPointer(ref this) + 134);
+        var size = *(uint*)((uint)Unsafe.AsPointer(ref this) + 134 + 4);
         if (!reader.IsValidOffset(offset, size)) {
             return new Karmem.Slice<Vec3Viewer>();
         }
@@ -818,71 +844,70 @@ public unsafe struct MonsterDataViewer : IViewer {
         if (length > 2000) {
             length = 2000;
         }
-        return new Karmem.Slice<Vec3Viewer>((ulong)(reader.Memory.ToInt64()) + offset, length, 16);
+        return new Karmem.Slice<Vec3Viewer>(reader.MemoryPointer + offset, length, 16);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsAlive() {
         if (146 + 1 > this.KarmemSizeOf()) {
             return false;
         }
-        return *(bool*)(this._ptr + 146);
+        return *(bool*)((nuint)Unsafe.AsPointer(ref this) + 146);
     }
 }
     
-[StructLayout(LayoutKind.Explicit, Size=4)]
+[StructLayout(LayoutKind.Sequential, Pack=0, Size=8)]
 public unsafe struct MonsterViewer : IViewer {
-    [FieldOffset(0)]private ulong _ptr = 0;
+    private readonly long _0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MonsterViewer(ulong ptr) { _ptr = ptr; }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MonsterViewer NewMonsterViewer(Karmem.Reader reader, uint offset) {
+    public static ref MonsterViewer NewMonsterViewer(Karmem.Reader reader, uint offset) {
         if (!reader.IsValidOffset(offset, 8)) {
-            return new MonsterViewer((ulong)_Globals.Null().ToInt64());
+            return ref *(MonsterViewer*)_Globals.Null();
         }
-        var v = new MonsterViewer((ulong)(reader.Memory.ToInt64() + offset));
-        return v;
+        ref MonsterViewer v = ref *(MonsterViewer*)(reader.MemoryPointer + offset);
+        return ref v;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private uint KarmemSizeOf() {
         return 8;
     }
-    public MonsterDataViewer Data(Karmem.Reader reader) {
-        var offset = *(uint*)(this._ptr + 0);
-        return MonsterDataViewer.NewMonsterDataViewer(reader, offset);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ref MonsterDataViewer Data(Karmem.Reader reader) {
+        var offset = *(uint*)((uint)Unsafe.AsPointer(ref this) + 0);
+        return ref MonsterDataViewer.NewMonsterDataViewer(reader, offset);
     }
 }
     
-[StructLayout(LayoutKind.Explicit, Size=4)]
+[StructLayout(LayoutKind.Sequential, Pack=0, Size=24)]
 public unsafe struct MonstersViewer : IViewer {
-    [FieldOffset(0)]private ulong _ptr = 0;
+    private readonly long _0;
+    private readonly long _1;
+    private readonly long _2;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public MonstersViewer(ulong ptr) { _ptr = ptr; }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MonstersViewer NewMonstersViewer(Karmem.Reader reader, uint offset) {
+    public static ref MonstersViewer NewMonstersViewer(Karmem.Reader reader, uint offset) {
         if (!reader.IsValidOffset(offset, 8)) {
-            return new MonstersViewer((ulong)_Globals.Null().ToInt64());
+            return ref *(MonstersViewer*)_Globals.Null();
         }
-        var v = new MonstersViewer((ulong)(reader.Memory.ToInt64() + offset));
+        ref MonstersViewer v = ref *(MonstersViewer*)(reader.MemoryPointer + offset);
         if (!reader.IsValidOffset(offset, v.KarmemSizeOf())) {
-            return new MonstersViewer((ulong)_Globals.Null().ToInt64());
+            return ref *(MonstersViewer*)_Globals.Null();
         }
-        return v;
+        return ref v;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private uint KarmemSizeOf() {
-        return *(uint*)(this._ptr);
+        return *(uint*)Unsafe.AsPointer(ref this);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Karmem.Slice<MonsterViewer> Monsters(Karmem.Reader reader) {
         if (4 + 12 > this.KarmemSizeOf()) {
             return new Karmem.Slice<MonsterViewer>(0, 0, 0);
         }
-        var offset = *(uint*)(this._ptr + 4);
-        var size = *(uint*)(this._ptr + 4 + 4);
+        var offset = *(uint*)((uint)Unsafe.AsPointer(ref this) + 4);
+        var size = *(uint*)((uint)Unsafe.AsPointer(ref this) + 4 + 4);
         if (!reader.IsValidOffset(offset, size)) {
             return new Karmem.Slice<MonsterViewer>();
         }
@@ -890,7 +915,7 @@ public unsafe struct MonstersViewer : IViewer {
         if (length > 2000) {
             length = 2000;
         }
-        return new Karmem.Slice<MonsterViewer>((ulong)(reader.Memory.ToInt64()) + offset, length, 8);
+        return new Karmem.Slice<MonsterViewer>(reader.MemoryPointer + offset, length, 8);
     }
 }
     

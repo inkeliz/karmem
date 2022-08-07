@@ -1,64 +1,9 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Karmem;
-/// <summary>
-///     The Slice is similar to Span<T>, but supports more than 2GB, assuming that the Reader is unmanaged.
-///     The Slice doesn't copy the values, instead it's just an encapsulation over the existent Reader data,
-///     beware that is unsafe to use if Reader.Dispose or Reader.Reset is called.
-/// </summary>
-public unsafe ref struct Slice<T>
-{
-    private readonly nuint _ptr;
-    private readonly uint _length;
-    private readonly uint _stride;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Slice(nuint ptr, uint length, uint stride)
-    {
-        _ptr = ptr;
-        _length = length;
-        _stride = stride;
-    }
-
-    public uint Length => this._length;
-
-    public uint Count => Length;
-
-    /// <summary>
-    ///     Return the element at the given index.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref T Get(uint index)
-    {
-        return ref Unsafe.As<ulong, T>(ref *(ulong*)(_ptr + index * _stride));
-    }
-    
-    public T this[ulong index]
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => Get((uint)index);
-    }
-    
-    public T this[int index]
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => Get((uint)index);
-    }
-    
-    public T this[uint index]
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => Get((uint)index);
-    }
-    
-    public T this[long index]
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => Get((uint)index);
-    }
-}
 
 /// <summary>
 ///     A struct to write KARMEM, that is consumed by generated code. Most
@@ -376,7 +321,7 @@ public unsafe struct Reader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsValidOffset(uint offset, uint size)
     {
-        return Size >= offset + (long)size;
+        return Size >= (long)offset + (long)size;
     }
 
     /// <summary>

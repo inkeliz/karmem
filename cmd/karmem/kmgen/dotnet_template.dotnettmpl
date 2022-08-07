@@ -8,18 +8,18 @@ namespace {{FromTags "package"}};
 public static unsafe class _Globals
 {
     private static long _largest = {{.Size.Largest}};
-    private static nuint? _null = null;
+    private static void* _null = null;
     private static Karmem.Reader? _nullReader = null;
 
-    public static nuint Null()
+    public static void* Null()
     {
         if (_null == null)
         {
             var n = Marshal.AllocHGlobal(0);
             Unsafe.InitBlockUnaligned(n.ToPointer(), 0, (uint)_largest);
-            _null = (nuint)n.ToPointer();
+            _null = n.ToPointer();
         }
-        return _null.Value;
+        return _null;
     }
     public static Karmem.Reader NullReader()
     {
@@ -209,8 +209,8 @@ public unsafe struct {{$root.Data.Name}} {
         var __{{$field.Data.Name}}Len = __{{$field.Data.Name}}Slice.Length;
         {{- end }}
         {{- if $field.Data.Type.IsNative}}
-        for (var i = (ulong)0; i < __{{$field.Data.Name}}Len; i++) {
-            if (i >= (ulong)this._{{$field.Data.Name}}.Count) {
+        for (var i = 0; i < __{{$field.Data.Name}}Len; i++) {
+            if (i >= this._{{$field.Data.Name}}.Count) {
                 this._{{$field.Data.Name}}.Add(__{{$field.Data.Name}}Slice[i]);
             } else {
                 this._{{$field.Data.Name}}[(int)i] = __{{$field.Data.Name}}Slice[i];
@@ -221,11 +221,11 @@ public unsafe struct {{$root.Data.Name}} {
         }
         {{- else}}
         var __{{$field.Data.Name}}Span = CollectionsMarshal.AsSpan(this._{{$field.Data.Name}});
-        for (var i = (ulong)0; i < __{{$field.Data.Name}}Len; i++) {
+        for (var i = 0; i < __{{$field.Data.Name}}Len; i++) {
             if (i >= __{{$field.Data.Name}}Len) {
                 this._{{$field.Data.Name}}[(int)i].Reset();
             } else {
-                if (i >= (ulong)this._{{$field.Data.Name}}.Count) {
+                if (i >= this._{{$field.Data.Name}}.Count) {
                     var __{{$field.Data.Name}}Item = {{ToPlainDefault $field.Data.Type}};
                     __{{$field.Data.Name}}Item.Read(__{{$field.Data.Name}}Slice[i], reader);
                     this._{{$field.Data.Name}}.Add(__{{$field.Data.Name}}Item);
@@ -287,7 +287,7 @@ public unsafe struct {{$root.Data.Name}}Viewer {
             return {{ToDefault $field.Data.Type}};
         {{- else}}
             {{- if or $field.Data.Type.IsSlice $field.Data.Type.IsArray}}
-            return new {{ToTypeView $field.Data.Type}}(0, 0, 0);
+            return new {{ToTypeView $field.Data.Type}}(_Globals.Null(), 0);
             {{- else }}
             return ref *({{ToTypeView $field.Data.Type}}*)(_Globals.Null());
             {{- end }}
@@ -303,7 +303,7 @@ public unsafe struct {{$root.Data.Name}}Viewer {
         return ref *({{ToTypeView $field.Data.Type}}*)((nuint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}});
             {{- end}}
         {{- else}}
-        return new {{ToTypeView $field.Data.Type}}((nuint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}}, {{$field.Data.Type.Length}}, {{ $field.Data.Size.Allocation }});
+        return new {{ToTypeView $field.Data.Type}}((void*)((nuint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}}), {{$field.Data.Type.Length}});
         {{- end}}
     {{- else }}
         var offset = *(uint*)((uint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}});
@@ -326,7 +326,7 @@ public unsafe struct {{$root.Data.Name}}Viewer {
         {{- if $field.Data.Type.IsString}}
         return Marshal.PtrToStringUTF8((IntPtr)(reader.Memory.ToInt64() + offset), (int)length);
         {{- else}}
-        return new {{ToTypeView $field.Data.Type}}(reader.MemoryPointer + offset, length, {{ $field.Data.Size.Allocation }});
+        return new {{ToTypeView $field.Data.Type}}((void*)(reader.MemoryPointer + offset), (int)length);
         {{- end}}
         {{- else}}
         return ref {{ToType $field.Data.Type}}Viewer.New{{ToType $field.Data.Type}}Viewer(reader, offset);

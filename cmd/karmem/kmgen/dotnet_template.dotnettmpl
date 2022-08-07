@@ -102,7 +102,7 @@ public unsafe struct {{$root.Data.Name}} {
         var __{{$field.Data.Name}}Size = (uint){{$field.Data.Size.Allocation}};
             {{- else}}
             {{- if $field.Data.Type.IsString}}
-        var __{{$field.Data.Name}}Size = (uint)({{$field.Data.Size.Allocation}} * 4);
+        var __{{$field.Data.Name}}Size = (uint)(4 * this._{{$field.Data.Name}}.Length);
             {{- else}}
         var __{{$field.Data.Name}}Size = (uint)({{$field.Data.Size.Allocation}} * this._{{$field.Data.Name}}.Count);
             {{- end}}
@@ -117,7 +117,9 @@ public unsafe struct {{$root.Data.Name}} {
         }
         writer.WriteAt(offset+{{$field.Data.Offset}}, (uint)__{{$field.Data.Name}}Offset);
             {{- if $field.Data.Type.IsSlice}}
+                {{- if (not $field.Data.Type.IsString)}}
         writer.WriteAt(offset+{{$field.Data.Offset}} + 4, (uint)__{{$field.Data.Name}}Size);
+                {{- end}}
         writer.WriteAt(offset+{{$field.Data.Offset}} + 4 + 4, (uint){{$field.Data.Size.Allocation}});
             {{- end }}
         {{- end }}
@@ -142,7 +144,7 @@ public unsafe struct {{$root.Data.Name}} {
             {{- else}}
                     {{- if $field.Data.Type.IsString}}
         var __{{$field.Data.Name}}StringSize = writer.WriteAt(__{{$field.Data.Name}}Offset, this._{{$field.Data.Name}});
-        writer.WriteAt(offset+{{$field.Data.Offset}} + 4 + 4, (uint)__{{$field.Data.Name}}StringSize);
+        writer.WriteAt(offset+{{$field.Data.Offset}} + 4, (uint)__{{$field.Data.Name}}StringSize);
                     {{- else}}
         for (var i = 0; i < this._{{$field.Data.Name}}.Count; i++) {
             writer.WriteAt(__{{$field.Data.Name}}Offset, this._{{$field.Data.Name}}[i]);

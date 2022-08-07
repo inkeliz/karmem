@@ -117,8 +117,11 @@ public unsafe class Writer
 
         fixed (char* p = src) // Equivalent of GCHandle.Alloc(src, GCHandleType.Pinned)
         {
-            var size = Encoding.UTF8.GetBytes(p, src.Length, (byte*)(Memory.ToInt64() + offset), src.Length * 4);
-            return size;
+            var input = new ReadOnlySpan<char>(p, src.Length);
+            var output = new Span<byte>((void*)(Memory.ToInt64() + offset), src.Length * 4);
+            var r = Encoding.UTF8.GetBytes(input, output);
+            this.Size -= (src.Length * 4 - r);
+            return r;
         }
     }
 

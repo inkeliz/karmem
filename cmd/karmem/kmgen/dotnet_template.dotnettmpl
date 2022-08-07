@@ -250,7 +250,7 @@ public unsafe struct {{$root.Data.Name}} {
     {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
     {{- range $root := .Structs}}
 [StructLayout(LayoutKind.Sequential, Pack=0, Size={{$root.Data.Size.Total}})]
-public unsafe struct {{$root.Data.Name}}Viewer : IViewer {
+public unsafe struct {{$root.Data.Name}}Viewer {
     {{- range $key, $padding := $root.Data.Size.TotalGroup }}
     private readonly long _{{$key}};
     {{- end}}

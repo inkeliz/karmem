@@ -3,30 +3,16 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Karmem;
-
-/// <summary>
-///     IViewer is one marker interface implemented by all
-///     viewers living in the generated code.
-///
-///     The implementer MUST be on STRUCT and have one nuint field
-///     at index 0.
-/// </summary>
-public interface IViewer { }
-
 /// <summary>
 ///     The Slice is similar to Span<T>, but supports more than 2GB, assuming that the Reader is unmanaged.
 ///     The Slice doesn't copy the values, instead it's just an encapsulation over the existent Reader data,
 ///     beware that is unsafe to use if Reader.Dispose or Reader.Reset is called.
-///
-///     If T is one IViewer, the given T is expected to be one struct and MUST have one nuint at the
-///     beginning of the struct (0 index).
 /// </summary>
 public unsafe ref struct Slice<T>
 {
     private readonly nuint _ptr;
     private readonly uint _length;
     private readonly uint _stride;
-    private readonly bool _isViewer;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Slice(nuint ptr, uint length, uint stride)
@@ -34,7 +20,6 @@ public unsafe ref struct Slice<T>
         _ptr = ptr;
         _length = length;
         _stride = stride;
-        _isViewer = typeof(IViewer).IsAssignableFrom(typeof(T));
     }
 
     public uint Length => this._length;

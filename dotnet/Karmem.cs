@@ -31,10 +31,6 @@ public unsafe ref struct Slice<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Slice(ulong ptr, uint length, uint stride)
     {
-        var x = new int[] { 0 };
-        var y = x.LongLength;
- 
-
         _ptr = ptr;
         _length = (ulong)length;
         _stride = (ulong)stride;
@@ -105,8 +101,8 @@ public unsafe struct Writer
     public IntPtr Memory;
     public long Size = 0;
     public long Capacity;
-    private readonly bool IsFixed = false;
-    private readonly GCHandle? Handle = null;
+    private readonly bool _isFixed = false;
+    private readonly GCHandle? _handle = null;
 
     public Writer(int capacity)
     {
@@ -118,8 +114,8 @@ public unsafe struct Writer
     {
         Memory = memory;
         Capacity = capacity;
-        IsFixed = true;
-        Handle = gcHandle;
+        _isFixed = true;
+        _handle = gcHandle;
     }
 
     /// <summary>
@@ -161,7 +157,7 @@ public unsafe struct Writer
         var total = ptr + n;
         if (total > Capacity)
         {
-            if (IsFixed) return uint.MaxValue;
+            if (_isFixed) return uint.MaxValue;
 
             var target = Capacity * 2;
             if (target < total) target = total * 2;
@@ -322,10 +318,10 @@ public unsafe struct Writer
     /// </summary>
     public void Dispose()
     {
-        if (IsFixed)
+        if (_isFixed)
         {
-            if (Handle is null) return;
-            Handle?.Free();
+            if (_handle is null) return;
+            _handle?.Free();
         }
         else
         {
@@ -354,7 +350,7 @@ public struct Reader
 {
     public IntPtr Memory;
     public long Size;
-    public long Capacity;
+    public readonly long Capacity;
     public GCHandle? Handle;
 
     public Reader(IntPtr memory, long size, long capacity, GCHandle? gcHandle)

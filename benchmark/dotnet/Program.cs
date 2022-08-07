@@ -17,6 +17,7 @@ namespace dotnet
 
     public unsafe class Benchmark
     {
+        // The InputMemory/OutputMemory will leak, but it's ok, since that class is alive as long as the program is running.
         public IntPtr InputMemory = Marshal.AllocHGlobal(8_000_000);
         public IntPtr OutputMemory = Marshal.AllocHGlobal(8_000_000);
 
@@ -77,10 +78,10 @@ namespace dotnet
             var monstersList = monsters.Monsters(this.Reader);
 
             var sum = new Vec3();
-            for (var i = (ulong)0; i < monstersList.Count; i++)
+            for (var i = 0; i < monstersList.Length; i++)
             {
                 var paths = monstersList[i].Data(this.Reader).Path(this.Reader);
-                for (var p = (ulong)0; p < paths.Count; p++)
+                for (var p = 0; p < paths.Length; p++)
                 {
                     var path = paths[p];
                     sum._X += path.X();

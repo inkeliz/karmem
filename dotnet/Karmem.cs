@@ -11,7 +11,7 @@ namespace Karmem;
 ///     That is not concurrently safe, and should not write multiple data
 ///     at the same time.
 /// </summary>
-public unsafe struct Writer
+public unsafe class Writer
 {
     public IntPtr Memory;
     public nuint MemoryPointer;

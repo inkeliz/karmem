@@ -125,7 +125,7 @@ public unsafe struct {{$root.Data.Name}} {
             {{- if $field.Data.Type.IsInline}}
                 {{- if $field.Data.Type.IsArray }}
         for (var i = 0; i < {{$field.Data.Type.Length}}; i++) {
-            if (i > this._{{$field.Data.Name}}.Count) {
+            if (i < this._{{$field.Data.Name}}.Count) {
                 writer.WriteAt(__{{$field.Data.Name}}Offset, this._{{$field.Data.Name}}[i]);
             } else {
                 writer.WriteAt(__{{$field.Data.Name}}Offset, {{ToPlainDefault $field.Data.Type}});

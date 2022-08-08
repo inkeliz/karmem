@@ -48,7 +48,7 @@ swiftwasm: karmem
 
 dotnet: karmem
 	dotnet build -c Release -o "testdata/wasi" "dotnet"
-	go test -tags wasi,wazero,km,dotnet -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-dotnet-km.out
+	go test -tags wasi,wazero,km,dotnet,nofuzz -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 30m . > result/wasi-dotnet-km.out
 odin: karmem
 	odin build . -target:wasi_wasm32 -extra-linker-flags:"--lto-O3 --gc-sections"
 	wasm-ld "benchmark.wasm.o" -o "testdata/wasi/odin.wasi" --lto-O3 --gc-sections
@@ -58,6 +58,6 @@ odin: karmem
 results:
 	benchstat result/fbs.out result/km.out
 	benchstat result/wasi-go-fbs.out result/wasi-go-km.out
-	benchstat result/wasi-go-km.out result/wasi-as-km.out result/wasi-zig-km.out result/wasi-swift-km.out result/wasi-c-km.out result/wasi-odin-km.out
+	benchstat result/wasi-go-km.out result/wasi-as-km.out result/wasi-zig-km.out result/wasi-swift-km.out result/wasi-c-km.out result/wasi-odin-km.out result/wasi-dotnet-km.out
 
 bench: karmem native tinygo assemblyscript zig c swiftwasm result

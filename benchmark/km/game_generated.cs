@@ -8,18 +8,18 @@ namespace km;
 public static unsafe class _Globals
 {
     private static long _largest = 152;
-    private static nuint? _null = null;
+    private static void* _null = null;
     private static Karmem.Reader? _nullReader = null;
 
-    public static nuint Null()
+    public static void* Null()
     {
         if (_null == null)
         {
             var n = Marshal.AllocHGlobal(0);
             Unsafe.InitBlockUnaligned(n.ToPointer(), 0, (uint)_largest);
-            _null = (nuint)n.ToPointer();
+            _null = n.ToPointer();
         }
-        return _null.Value;
+        return _null;
     }
     public static Karmem.Reader NullReader()
     {
@@ -279,16 +279,15 @@ public unsafe struct MonsterData {
         writer.WriteAt(__ManaOffset, this._Mana);
         var __HealthOffset = offset+22;
         writer.WriteAt(__HealthOffset, this._Health);
-        var __NameSize = (uint)(1 * 4);
+        var __NameSize = (uint)(4 * this._Name.Length);
         var __NameOffset = writer.Alloc(__NameSize);
         if (offset == uint.MaxValue) {
             return false;
         }
         writer.WriteAt(offset+24, (uint)__NameOffset);
-        writer.WriteAt(offset+24 + 4, (uint)__NameSize);
         writer.WriteAt(offset+24 + 4 + 4, (uint)1);
         var __NameStringSize = writer.WriteAt(__NameOffset, this._Name);
-        writer.WriteAt(offset+24 + 4 + 4, (uint)__NameStringSize);
+        writer.WriteAt(offset+24 + 4, (uint)__NameStringSize);
         var __TeamOffset = offset+36;
         writer.WriteAt(__TeamOffset, (long)this._Team);
         var __InventorySize = (uint)(1 * this._Inventory.Count);
@@ -307,7 +306,7 @@ public unsafe struct MonsterData {
         writer.WriteAt(__ColorOffset, (long)this._Color);
         var __HitboxOffset = offset+50;
         for (var i = 0; i < 5; i++) {
-            if (i > this._Hitbox.Count) {
+            if (i < this._Hitbox.Count) {
                 writer.WriteAt(__HitboxOffset, this._Hitbox[i]);
             } else {
                 writer.WriteAt(__HitboxOffset, 0);
@@ -368,13 +367,13 @@ public unsafe struct MonsterData {
         var __InventorySlice = viewer.Inventory(reader);
         var __InventoryLen = __InventorySlice.Length;
         if (this._Inventory.Count > (int)__InventoryLen) {
-            this._Inventory.RemoveRange((int)__InventoryLen - (int)this._Inventory.Count, (int)(this._Inventory.Count));
+            this._Inventory.Clear();
         }
-        if (this._Inventory.Capacity > (int)__InventoryLen) {
+        if ((int)__InventoryLen > this._Inventory.Capacity) {
             this._Inventory.EnsureCapacity((int)__InventoryLen);
         }
-        for (var i = (ulong)0; i < __InventoryLen; i++) {
-            if (i >= (ulong)this._Inventory.Count) {
+        for (var i = 0; i < __InventoryLen; i++) {
+            if (i >= this._Inventory.Count) {
                 this._Inventory.Add(__InventorySlice[i]);
             } else {
                 this._Inventory[(int)i] = __InventorySlice[i];
@@ -386,8 +385,8 @@ public unsafe struct MonsterData {
         this._Color = (Color)(viewer.Color());
         var __HitboxSlice = viewer.Hitbox();
         var __HitboxLen = __HitboxSlice.Length;
-        for (var i = (ulong)0; i < __HitboxLen; i++) {
-            if (i >= (ulong)this._Hitbox.Count) {
+        for (var i = 0; i < __HitboxLen; i++) {
+            if (i >= this._Hitbox.Count) {
                 this._Hitbox.Add(__HitboxSlice[i]);
             } else {
                 this._Hitbox[(int)i] = __HitboxSlice[i];
@@ -399,13 +398,13 @@ public unsafe struct MonsterData {
         var __StatusSlice = viewer.Status(reader);
         var __StatusLen = __StatusSlice.Length;
         if (this._Status.Count > (int)__StatusLen) {
-            this._Status.RemoveRange((int)__StatusLen - (int)this._Status.Count, (int)(this._Status.Count));
+            this._Status.Clear();
         }
-        if (this._Status.Capacity > (int)__StatusLen) {
+        if ((int)__StatusLen > this._Status.Capacity) {
             this._Status.EnsureCapacity((int)__StatusLen);
         }
-        for (var i = (ulong)0; i < __StatusLen; i++) {
-            if (i >= (ulong)this._Status.Count) {
+        for (var i = 0; i < __StatusLen; i++) {
+            if (i >= this._Status.Count) {
                 this._Status.Add(__StatusSlice[i]);
             } else {
                 this._Status[(int)i] = __StatusSlice[i];
@@ -417,42 +416,42 @@ public unsafe struct MonsterData {
         var __WeaponsSlice = viewer.Weapons();
         var __WeaponsLen = __WeaponsSlice.Length;
         var __WeaponsSpan = CollectionsMarshal.AsSpan(this._Weapons);
-        for (var i = (ulong)0; i < __WeaponsLen; i++) {
-            if (i >= __WeaponsLen) {
-                this._Weapons[(int)i].Reset();
+        for (var i = 0; i < __WeaponsLen; i++) {
+            if (i >= this._Weapons.Count) {
+                var __WeaponsItem = new Weapon();
+                __WeaponsItem.Read(__WeaponsSlice[i], reader);
+                this._Weapons.Add(__WeaponsItem);
             } else {
-                if (i >= (ulong)this._Weapons.Count) {
-                    var __WeaponsItem = new Weapon();
-                    __WeaponsItem.Read(__WeaponsSlice[i], reader);
-                    this._Weapons.Add(__WeaponsItem);
-                } else {
-                    ref var __WeaponsItem = ref __WeaponsSpan[(int)i];
-                    __WeaponsItem.Read(__WeaponsSlice[i], reader);
-                }
+                ref var __WeaponsItem = ref __WeaponsSpan[(int)i];
+                __WeaponsItem.Read(__WeaponsSlice[i], reader);
             }
+        }
+        for (var i = (int)__WeaponsLen; i < this._Weapons.Count; i++) {
+            ref var __WeaponsItem = ref __WeaponsSpan[(int)i];
+            __WeaponsItem.Reset();
         }
         var __PathSlice = viewer.Path(reader);
         var __PathLen = __PathSlice.Length;
         if (this._Path.Count > (int)__PathLen) {
-            this._Path.RemoveRange((int)__PathLen - (int)this._Path.Count, (int)(this._Path.Count));
+            this._Path.Clear();
         }
-        if (this._Path.Capacity > (int)__PathLen) {
+        if ((int)__PathLen > this._Path.Capacity) {
             this._Path.EnsureCapacity((int)__PathLen);
         }
         var __PathSpan = CollectionsMarshal.AsSpan(this._Path);
-        for (var i = (ulong)0; i < __PathLen; i++) {
-            if (i >= __PathLen) {
-                this._Path[(int)i].Reset();
+        for (var i = 0; i < __PathLen; i++) {
+            if (i >= this._Path.Count) {
+                var __PathItem = new Vec3();
+                __PathItem.Read(__PathSlice[i], reader);
+                this._Path.Add(__PathItem);
             } else {
-                if (i >= (ulong)this._Path.Count) {
-                    var __PathItem = new Vec3();
-                    __PathItem.Read(__PathSlice[i], reader);
-                    this._Path.Add(__PathItem);
-                } else {
-                    ref var __PathItem = ref __PathSpan[(int)i];
-                    __PathItem.Read(__PathSlice[i], reader);
-                }
+                ref var __PathItem = ref __PathSpan[(int)i];
+                __PathItem.Read(__PathSlice[i], reader);
             }
+        }
+        for (var i = (int)__PathLen; i < this._Path.Count; i++) {
+            ref var __PathItem = ref __PathSpan[(int)i];
+            __PathItem.Reset();
         }
         this._IsAlive = viewer.IsAlive();
     }
@@ -579,31 +578,31 @@ public unsafe struct Monsters {
         var __MonstersSlice = viewer.Monsters(reader);
         var __MonstersLen = __MonstersSlice.Length;
         if (this._Monsters.Count > (int)__MonstersLen) {
-            this._Monsters.RemoveRange((int)__MonstersLen - (int)this._Monsters.Count, (int)(this._Monsters.Count));
+            this._Monsters.Clear();
         }
-        if (this._Monsters.Capacity > (int)__MonstersLen) {
+        if ((int)__MonstersLen > this._Monsters.Capacity) {
             this._Monsters.EnsureCapacity((int)__MonstersLen);
         }
         var __MonstersSpan = CollectionsMarshal.AsSpan(this._Monsters);
-        for (var i = (ulong)0; i < __MonstersLen; i++) {
-            if (i >= __MonstersLen) {
-                this._Monsters[(int)i].Reset();
+        for (var i = 0; i < __MonstersLen; i++) {
+            if (i >= this._Monsters.Count) {
+                var __MonstersItem = new Monster();
+                __MonstersItem.Read(__MonstersSlice[i], reader);
+                this._Monsters.Add(__MonstersItem);
             } else {
-                if (i >= (ulong)this._Monsters.Count) {
-                    var __MonstersItem = new Monster();
-                    __MonstersItem.Read(__MonstersSlice[i], reader);
-                    this._Monsters.Add(__MonstersItem);
-                } else {
-                    ref var __MonstersItem = ref __MonstersSpan[(int)i];
-                    __MonstersItem.Read(__MonstersSlice[i], reader);
-                }
+                ref var __MonstersItem = ref __MonstersSpan[(int)i];
+                __MonstersItem.Read(__MonstersSlice[i], reader);
             }
+        }
+        for (var i = (int)__MonstersLen; i < this._Monsters.Count; i++) {
+            ref var __MonstersItem = ref __MonstersSpan[(int)i];
+            __MonstersItem.Reset();
         }
     }
 }
 
 [StructLayout(LayoutKind.Sequential, Pack=0, Size=16)]
-public unsafe struct Vec3Viewer : IViewer {
+public unsafe struct Vec3Viewer {
     private readonly long _0;
     private readonly long _1;
 
@@ -635,7 +634,7 @@ public unsafe struct Vec3Viewer : IViewer {
 }
     
 [StructLayout(LayoutKind.Sequential, Pack=0, Size=16)]
-public unsafe struct WeaponDataViewer : IViewer {
+public unsafe struct WeaponDataViewer {
     private readonly long _0;
     private readonly long _1;
 
@@ -672,7 +671,7 @@ public unsafe struct WeaponDataViewer : IViewer {
 }
     
 [StructLayout(LayoutKind.Sequential, Pack=0, Size=8)]
-public unsafe struct WeaponViewer : IViewer {
+public unsafe struct WeaponViewer {
     private readonly long _0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -696,7 +695,7 @@ public unsafe struct WeaponViewer : IViewer {
 }
     
 [StructLayout(LayoutKind.Sequential, Pack=0, Size=152)]
-public unsafe struct MonsterDataViewer : IViewer {
+public unsafe struct MonsterDataViewer {
     private readonly long _0;
     private readonly long _1;
     private readonly long _2;
@@ -778,20 +777,20 @@ public unsafe struct MonsterDataViewer : IViewer {
         return *(Team*)((nuint)Unsafe.AsPointer(ref this) + 36);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Karmem.Slice<byte> Inventory(Karmem.Reader reader) {
+    public ReadOnlySpan<byte> Inventory(Karmem.Reader reader) {
         if (37 + 12 > this.KarmemSizeOf()) {
-            return new Karmem.Slice<byte>(0, 0, 0);
+            return new ReadOnlySpan<byte>(_Globals.Null(), 0);
         }
         var offset = *(uint*)((uint)Unsafe.AsPointer(ref this) + 37);
         var size = *(uint*)((uint)Unsafe.AsPointer(ref this) + 37 + 4);
         if (!reader.IsValidOffset(offset, size)) {
-            return new Karmem.Slice<byte>();
+            return new ReadOnlySpan<byte>();
         }
         var length = size / 1;
         if (length > 128) {
             length = 128;
         }
-        return new Karmem.Slice<byte>(reader.MemoryPointer + offset, length, 1);
+        return new ReadOnlySpan<byte>((void*)(reader.MemoryPointer + offset), (int)length);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Color Color() {
@@ -801,50 +800,50 @@ public unsafe struct MonsterDataViewer : IViewer {
         return *(Color*)((nuint)Unsafe.AsPointer(ref this) + 49);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Karmem.Slice<double> Hitbox() {
+    public ReadOnlySpan<double> Hitbox() {
         if (50 + 40 > this.KarmemSizeOf()) {
-            return new Karmem.Slice<double>(0, 0, 0);
+            return new ReadOnlySpan<double>(_Globals.Null(), 0);
         }
-        return new Karmem.Slice<double>((nuint)Unsafe.AsPointer(ref this) + 50, 5, 8);
+        return new ReadOnlySpan<double>((void*)((nuint)Unsafe.AsPointer(ref this) + 50), 5);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Karmem.Slice<int> Status(Karmem.Reader reader) {
+    public ReadOnlySpan<int> Status(Karmem.Reader reader) {
         if (90 + 12 > this.KarmemSizeOf()) {
-            return new Karmem.Slice<int>(0, 0, 0);
+            return new ReadOnlySpan<int>(_Globals.Null(), 0);
         }
         var offset = *(uint*)((uint)Unsafe.AsPointer(ref this) + 90);
         var size = *(uint*)((uint)Unsafe.AsPointer(ref this) + 90 + 4);
         if (!reader.IsValidOffset(offset, size)) {
-            return new Karmem.Slice<int>();
+            return new ReadOnlySpan<int>();
         }
         var length = size / 4;
         if (length > 10) {
             length = 10;
         }
-        return new Karmem.Slice<int>(reader.MemoryPointer + offset, length, 4);
+        return new ReadOnlySpan<int>((void*)(reader.MemoryPointer + offset), (int)length);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Karmem.Slice<WeaponViewer> Weapons() {
+    public ReadOnlySpan<WeaponViewer> Weapons() {
         if (102 + 32 > this.KarmemSizeOf()) {
-            return new Karmem.Slice<WeaponViewer>(0, 0, 0);
+            return new ReadOnlySpan<WeaponViewer>(_Globals.Null(), 0);
         }
-        return new Karmem.Slice<WeaponViewer>((nuint)Unsafe.AsPointer(ref this) + 102, 4, 8);
+        return new ReadOnlySpan<WeaponViewer>((void*)((nuint)Unsafe.AsPointer(ref this) + 102), 4);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Karmem.Slice<Vec3Viewer> Path(Karmem.Reader reader) {
+    public ReadOnlySpan<Vec3Viewer> Path(Karmem.Reader reader) {
         if (134 + 12 > this.KarmemSizeOf()) {
-            return new Karmem.Slice<Vec3Viewer>(0, 0, 0);
+            return new ReadOnlySpan<Vec3Viewer>(_Globals.Null(), 0);
         }
         var offset = *(uint*)((uint)Unsafe.AsPointer(ref this) + 134);
         var size = *(uint*)((uint)Unsafe.AsPointer(ref this) + 134 + 4);
         if (!reader.IsValidOffset(offset, size)) {
-            return new Karmem.Slice<Vec3Viewer>();
+            return new ReadOnlySpan<Vec3Viewer>();
         }
         var length = size / 16;
         if (length > 2000) {
             length = 2000;
         }
-        return new Karmem.Slice<Vec3Viewer>(reader.MemoryPointer + offset, length, 16);
+        return new ReadOnlySpan<Vec3Viewer>((void*)(reader.MemoryPointer + offset), (int)length);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsAlive() {
@@ -856,7 +855,7 @@ public unsafe struct MonsterDataViewer : IViewer {
 }
     
 [StructLayout(LayoutKind.Sequential, Pack=0, Size=8)]
-public unsafe struct MonsterViewer : IViewer {
+public unsafe struct MonsterViewer {
     private readonly long _0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -880,7 +879,7 @@ public unsafe struct MonsterViewer : IViewer {
 }
     
 [StructLayout(LayoutKind.Sequential, Pack=0, Size=24)]
-public unsafe struct MonstersViewer : IViewer {
+public unsafe struct MonstersViewer {
     private readonly long _0;
     private readonly long _1;
     private readonly long _2;
@@ -902,20 +901,20 @@ public unsafe struct MonstersViewer : IViewer {
         return *(uint*)Unsafe.AsPointer(ref this);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Karmem.Slice<MonsterViewer> Monsters(Karmem.Reader reader) {
+    public ReadOnlySpan<MonsterViewer> Monsters(Karmem.Reader reader) {
         if (4 + 12 > this.KarmemSizeOf()) {
-            return new Karmem.Slice<MonsterViewer>(0, 0, 0);
+            return new ReadOnlySpan<MonsterViewer>(_Globals.Null(), 0);
         }
         var offset = *(uint*)((uint)Unsafe.AsPointer(ref this) + 4);
         var size = *(uint*)((uint)Unsafe.AsPointer(ref this) + 4 + 4);
         if (!reader.IsValidOffset(offset, size)) {
-            return new Karmem.Slice<MonsterViewer>();
+            return new ReadOnlySpan<MonsterViewer>();
         }
         var length = size / 8;
         if (length > 2000) {
             length = 2000;
         }
-        return new Karmem.Slice<MonsterViewer>(reader.MemoryPointer + offset, length, 8);
+        return new ReadOnlySpan<MonsterViewer>((void*)(reader.MemoryPointer + offset), (int)length);
     }
 }
     

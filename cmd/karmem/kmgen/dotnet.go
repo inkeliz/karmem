@@ -127,9 +127,9 @@ func (gen *DotNet) functions() (f TemplateFunctions) {
 		case kmparser.TypeModelArray, kmparser.TypeModelSlice, kmparser.TypeModelSliceLimited:
 			switch typ.Format {
 			case kmparser.TypeFormatStruct, kmparser.TypeFormatTable:
-				return fmt.Sprintf(`Span<%sViewer>`, f.ToPlainType(typ))
+				return fmt.Sprintf(`ReadOnlySpan<%sViewer>`, f.ToPlainType(typ))
 			default:
-				return fmt.Sprintf(`Span<%s>`, f.ToPlainType(typ))
+				return fmt.Sprintf(`ReadOnlySpan<%s>`, f.ToPlainType(typ))
 			}
 		default:
 			return p

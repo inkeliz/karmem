@@ -201,9 +201,9 @@ public unsafe struct {{$root.Data.Name}} {
         var __{{$field.Data.Name}}Slice = viewer.{{$field.Data.Name}}(reader);
         var __{{$field.Data.Name}}Len = __{{$field.Data.Name}}Slice.Length;
         if (this._{{$field.Data.Name}}.Count > (int)__{{$field.Data.Name}}Len) {
-            this._{{$field.Data.Name}}.RemoveRange((int)__{{$field.Data.Name}}Len - (int)this._{{$field.Data.Name}}.Count, (int)(this._{{$field.Data.Name}}.Count));
+            this._{{$field.Data.Name}}.Clear();
         }
-        if (this._{{$field.Data.Name}}.Capacity > (int)__{{$field.Data.Name}}Len) {
+        if ((int)__{{$field.Data.Name}}Len > this._{{$field.Data.Name}}.Capacity) {
             this._{{$field.Data.Name}}.EnsureCapacity((int)__{{$field.Data.Name}}Len);
         }
         {{- else}}
@@ -224,18 +224,18 @@ public unsafe struct {{$root.Data.Name}} {
         {{- else}}
         var __{{$field.Data.Name}}Span = CollectionsMarshal.AsSpan(this._{{$field.Data.Name}});
         for (var i = 0; i < __{{$field.Data.Name}}Len; i++) {
-            if (i >= __{{$field.Data.Name}}Len) {
-                this._{{$field.Data.Name}}[(int)i].Reset();
+            if (i >= this._{{$field.Data.Name}}.Count) {
+                var __{{$field.Data.Name}}Item = {{ToPlainDefault $field.Data.Type}};
+                __{{$field.Data.Name}}Item.Read(__{{$field.Data.Name}}Slice[i], reader);
+                this._{{$field.Data.Name}}.Add(__{{$field.Data.Name}}Item);
             } else {
-                if (i >= this._{{$field.Data.Name}}.Count) {
-                    var __{{$field.Data.Name}}Item = {{ToPlainDefault $field.Data.Type}};
-                    __{{$field.Data.Name}}Item.Read(__{{$field.Data.Name}}Slice[i], reader);
-                    this._{{$field.Data.Name}}.Add(__{{$field.Data.Name}}Item);
-                } else {
-                    ref var __{{$field.Data.Name}}Item = ref __{{$field.Data.Name}}Span[(int)i];
-                    __{{$field.Data.Name}}Item.Read(__{{$field.Data.Name}}Slice[i], reader);
-                }
+                ref var __{{$field.Data.Name}}Item = ref __{{$field.Data.Name}}Span[(int)i];
+                __{{$field.Data.Name}}Item.Read(__{{$field.Data.Name}}Slice[i], reader);
             }
+        }
+        for (var i = (int)__{{$field.Data.Name}}Len; i < this._{{$field.Data.Name}}.Count; i++) {
+            ref var __{{$field.Data.Name}}Item = ref __{{$field.Data.Name}}Span[(int)i];
+            __{{$field.Data.Name}}Item.Reset();
         }
         {{- end }}
     {{- end }}

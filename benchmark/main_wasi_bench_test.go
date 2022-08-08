@@ -1,5 +1,6 @@
-//go:build wazero || wasmer
+//go:build (wazero || wasmer) && !nobench
 // +build wazero wasmer
+// +build !nobench
 
 package main
 

@@ -1,19 +1,21 @@
-//go:build !fbs && (wazero || wasmer)
+//go:build !fbs && (wazero || wasmer) && !nofuzz
 // +build !fbs
 // +build wazero wasmer
+// +build !nofuzz
 
 package main
 
 import (
-	"benchmark.karmem.org/km"
 	"crypto/rand"
+	"math"
+	"math/big"
+	"testing"
+
+	"benchmark.karmem.org/km"
 	fuzz "github.com/google/gofuzz"
 	"github.com/r3labs/diff/v3"
 	"golang.org/x/crypto/blake2b"
 	karmem "karmem.org/golang"
-	"math"
-	"math/big"
-	"testing"
 )
 
 func init() {

@@ -1,5 +1,6 @@
 flatbuffers:
 	flatc -g --gen-object-api --gen-onefile --no-includes --go-namespace "fbs" -o "fbs" testdata/game.fbs
+	flatc -g --gen-object-api --gen-onefile --no-includes --go-namespace "fbs" -o "fbs" testdata/game.fbs
 
 karmem:
 	go run karmem.org/cmd/karmem build --golang -o "km" testdata/game.km
@@ -47,7 +48,7 @@ swiftwasm: karmem
 	go test -tags wasi,wazero,km,swift -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-swift-km.out
 
 dotnet: karmem
-	dotnet build -c Release -o "testdata/wasi" "dotnet"
+	dotnet build -p:IS_WASM=true -o "testdata/wasi" "dotnet"
 	go test -tags wasi,wazero,km,dotnet,nofuzz -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 30m . > result/wasi-dotnet-km.out
 odin: karmem
 	odin build . -target:wasi_wasm32 -extra-linker-flags:"--lto-O3 --gc-sections"

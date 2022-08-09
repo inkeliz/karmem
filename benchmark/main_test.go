@@ -1,5 +1,5 @@
-//go:build !wasi && !struct
-// +build !wasi,!struct
+//go:build !wasi && !struct && !tcp
+// +build !wasi,!struct,!tcp
 
 package main
 

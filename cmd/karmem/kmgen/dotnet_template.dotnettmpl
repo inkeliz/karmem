@@ -1,11 +1,12 @@
 {{- define "header"}}
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using Karmem;
+using global::System.Reflection;
+using global::System.Runtime.CompilerServices;
+using global::System.Runtime.InteropServices;
+using global::Karmem;
 
 namespace {{FromTags "package"}};
 
-public static unsafe class _Globals
+internal static unsafe class _Globals
 {
     private static long _largest = {{.Size.Largest}};
     private static void* _null = null;
@@ -15,7 +16,7 @@ public static unsafe class _Globals
     {
         if (_null == null)
         {
-            var n = Marshal.AllocHGlobal(0);
+            var n = Marshal.AllocHGlobal((int)_largest);
             Unsafe.InitBlockUnaligned(n.ToPointer(), 0, (uint)_largest);
             _null = n.ToPointer();
         }
@@ -23,7 +24,7 @@ public static unsafe class _Globals
     }
     public static Karmem.Reader NullReader()
     {
-        _nullReader ??= Karmem.Reader.NewReader(new IntPtr((long)Null()), _largest, _largest);
+        _nullReader ??= Karmem.Reader.NewReader(new IntPtr(Null()), _largest, _largest);
         return _nullReader.Value;
     }
 }
@@ -200,42 +201,28 @@ public unsafe struct {{$root.Data.Name}} {
         {{- if $field.Data.Type.IsSlice}}
         var __{{$field.Data.Name}}Slice = viewer.{{$field.Data.Name}}(reader);
         var __{{$field.Data.Name}}Len = __{{$field.Data.Name}}Slice.Length;
-        if (this._{{$field.Data.Name}}.Count > (int)__{{$field.Data.Name}}Len) {
-            this._{{$field.Data.Name}}.Clear();
-        }
-        if ((int)__{{$field.Data.Name}}Len > this._{{$field.Data.Name}}.Capacity) {
-            this._{{$field.Data.Name}}.EnsureCapacity((int)__{{$field.Data.Name}}Len);
-        }
         {{- else}}
         var __{{$field.Data.Name}}Slice = viewer.{{$field.Data.Name}}();
         var __{{$field.Data.Name}}Len = __{{$field.Data.Name}}Slice.Length;
         {{- end }}
+        if (this._{{$field.Data.Name}}.Count != __{{$field.Data.Name}}Len) {
+            if (__{{$field.Data.Name}}Len > this._{{$field.Data.Name}}.Capacity) {
+                this._{{$field.Data.Name}}.EnsureCapacity(__{{$field.Data.Name}}Len);
+                for (var i = this._{{$field.Data.Name}}.Count; i < __{{$field.Data.Name}}Len; i++) {
+                    this._{{$field.Data.Name}}.Add({{ToPlainDefault $field.Data.Type}});
+                }
+            }
+            this._{{$field.Data.Name}}.GetType().GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField).SetValue(this._{{$field.Data.Name}}, __{{$field.Data.Name}}Len);
+        }
         {{- if $field.Data.Type.IsNative}}
         for (var i = 0; i < __{{$field.Data.Name}}Len; i++) {
-            if (i >= this._{{$field.Data.Name}}.Count) {
-                this._{{$field.Data.Name}}.Add(__{{$field.Data.Name}}Slice[i]);
-            } else {
-                this._{{$field.Data.Name}}[(int)i] = __{{$field.Data.Name}}Slice[i];
-            }
-        }
-        for (var i = (int)__{{$field.Data.Name}}Len; i < this._{{$field.Data.Name}}.Count; i++) {
-            this._{{$field.Data.Name}}[i] = {{ToPlainDefault $field.Data.Type}};
+            this._{{$field.Data.Name}}[i] = __{{$field.Data.Name}}Slice[i];
         }
         {{- else}}
         var __{{$field.Data.Name}}Span = CollectionsMarshal.AsSpan(this._{{$field.Data.Name}});
         for (var i = 0; i < __{{$field.Data.Name}}Len; i++) {
-            if (i >= this._{{$field.Data.Name}}.Count) {
-                var __{{$field.Data.Name}}Item = {{ToPlainDefault $field.Data.Type}};
-                __{{$field.Data.Name}}Item.Read(__{{$field.Data.Name}}Slice[i], reader);
-                this._{{$field.Data.Name}}.Add(__{{$field.Data.Name}}Item);
-            } else {
-                ref var __{{$field.Data.Name}}Item = ref __{{$field.Data.Name}}Span[(int)i];
-                __{{$field.Data.Name}}Item.Read(__{{$field.Data.Name}}Slice[i], reader);
-            }
-        }
-        for (var i = (int)__{{$field.Data.Name}}Len; i < this._{{$field.Data.Name}}.Count; i++) {
-            ref var __{{$field.Data.Name}}Item = ref __{{$field.Data.Name}}Span[(int)i];
-            __{{$field.Data.Name}}Item.Reset();
+            ref var __{{$field.Data.Name}}Item = ref __{{$field.Data.Name}}Span[i];
+            __{{$field.Data.Name}}Item.Read(__{{$field.Data.Name}}Slice[i], reader);
         }
         {{- end }}
     {{- end }}
@@ -260,12 +247,12 @@ public unsafe struct {{$root.Data.Name}}Viewer {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ref {{$root.Data.Name}}Viewer New{{$root.Data.Name}}Viewer(Karmem.Reader reader, uint offset) {
         if (!reader.IsValidOffset(offset, {{$root.Data.Size.Minimum}})) {
-            return ref *({{$root.Data.Name}}Viewer*)_Globals.Null();
+            return ref *({{$root.Data.Name}}Viewer*)(nuint)_Globals.Null();
         }
         ref {{$root.Data.Name}}Viewer v = ref *({{$root.Data.Name}}Viewer*)(reader.MemoryPointer + offset);
         {{- if $root.Data.IsTable}}
         if (!reader.IsValidOffset(offset, v.KarmemSizeOf())) {
-            return ref *({{$root.Data.Name}}Viewer*)_Globals.Null();
+            return ref *({{$root.Data.Name}}Viewer*)(nuint)_Globals.Null();
         }
         {{- end}}
         return ref v;
@@ -289,9 +276,9 @@ public unsafe struct {{$root.Data.Name}}Viewer {
             return {{ToDefault $field.Data.Type}};
         {{- else}}
             {{- if or $field.Data.Type.IsSlice $field.Data.Type.IsArray}}
-            return new {{ToTypeView $field.Data.Type}}(_Globals.Null(), 0);
+            return new {{ToTypeView $field.Data.Type}}();
             {{- else }}
-            return ref *({{ToTypeView $field.Data.Type}}*)(_Globals.Null());
+            return ref *({{ToTypeView $field.Data.Type}}*)((nuint)_Globals.Null());
             {{- end }}
         {{- end}}
         }
@@ -308,9 +295,9 @@ public unsafe struct {{$root.Data.Name}}Viewer {
         return new {{ToTypeView $field.Data.Type}}((void*)((nuint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}}), {{$field.Data.Type.Length}});
         {{- end}}
     {{- else }}
-        var offset = *(uint*)((uint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}});
+        var offset = *(uint*)((nuint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}});
         {{- if $field.Data.Type.IsSlice}}
-        var size = *(uint*)((uint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}} + 4);
+        var size = *(uint*)((nuint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}} + 4);
         if (!reader.IsValidOffset(offset, size)) {
         {{- if $field.Data.Type.IsString }}
             return "";

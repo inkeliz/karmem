@@ -12,21 +12,23 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <UpToDateCheckInput Include="native\*.c" />
+        <UpToDateCheckInput Include="*.c" />
     </ItemGroup>
 
+    <PropertyGroup Condition="'$(IS_WASM)' == 'true'">
+        <DefineConstants>$(DefineConstants);IS_WASM</DefineConstants>
+    </PropertyGroup>
+
     <ItemGroup>
-        <Compile Include="../km/game_generated.cs" />
         <Compile Include="../../dotnet/Karmem.cs" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.2-beta1" />
+        <Compile Include="../km/game_generated.cs" />
         <PackageReference Include="Wasi.Sdk" Version="0.1.1" />
-        <PackageFiles Include="build\**" BuildAction="Content" PackagePath="build" />
-        <PackageFiles Include="native\**" BuildAction="Content" PackagePath="native" />
     </ItemGroup>
 
 	<ItemGroup>
 		<WasiNativeFileReference Include="Program.c" />
 		<WasiAfterRuntimeLoaded Include="dotnet_benchmark_init" />
 	</ItemGroup>
+
 
 </Project>

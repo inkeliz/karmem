@@ -22,8 +22,18 @@
     <ItemGroup>
         <Compile Include="../../dotnet/Karmem.cs" />
         <Compile Include="../km/game_generated.cs" />
+        <Compile Include="../fbs/game.cs" />
         <PackageReference Include="Wasi.Sdk" Version="0.1.1" />
     </ItemGroup>
+
+    <PropertyGroup Condition="'$(IS_KARMEM)' == 'true'">
+        <DefineConstants>$(DefineConstants);IS_KARMEM</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(IS_FLATBUFFERS)' == 'true'">
+        <DefineConstants>$(DefineConstants);IS_FLATBUFFERS</DefineConstants>
+        <DefineConstants>$(DefineConstants);UNSAFE_BYTEBUFFER</DefineConstants>
+        <DefineConstants>$(DefineConstants);BYTEBUFFER_NO_BOUNDS_CHECK</DefineConstants>
+    </PropertyGroup>
 
 	<ItemGroup>
 		<WasiNativeFileReference Include="Program.c" />

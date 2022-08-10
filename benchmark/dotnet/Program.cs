@@ -25,7 +25,6 @@ unsafe {
         server.Start();
 
         var buf = new Span<byte>(global.InputMemory.ToPointer(), 8_000_000);
-        var bufout = new ReadOnlySpan<byte>(global.OutputMemory.ToPointer(), 8_000_000);
         var len = new byte[4];
         var fn = new byte[4];
 
@@ -34,6 +33,8 @@ unsafe {
             TcpClient client = server.AcceptTcpClient();
             client.ReceiveTimeout = 3_600_000;
             client.SendTimeout = 3_600_000;
+            client.SendBufferSize = 9_000_000;
+            client.ReceiveBufferSize = 9_000_000;
             
             NetworkStream stream = client.GetStream();
             
@@ -48,13 +49,13 @@ unsafe {
                 switch (BitConverter.ToUInt32(fn, 0))
                 {
                     case 1:
-                        Console.WriteLine(BitConverter.ToUInt32(len, 0));
                         global.KBenchmarkDecodeObjectAPI(BitConverter.ToUInt32(len, 0));
                         stream.Write(BitConverter.GetBytes(0));
                         continue;
                     case 2:
                         global.KBenchmarkEncodeObjectAPI();
-                        stream.Write(BitConverter.GetBytes((uint)bufout.Length));
+                        var bufout = new ReadOnlySpan<byte>(global.OutputMemory.ToPointer(), 8_000_000);
+                        stream.Write(BitConverter.GetBytes((int)8_000_000));
                         stream.Write(bufout);
                         continue;
                     case 3:
@@ -85,6 +86,8 @@ namespace dotnet
 
     public unsafe class Benchmark
     {
+    #if IS_KARMEM
+
         // The InputMemory/OutputMemory will leak, but it's ok, since that class is alive as long as the program is running.
         public IntPtr InputMemory = Marshal.AllocHGlobal(8_000_000);
         public IntPtr OutputMemory = Marshal.AllocHGlobal(8_000_000);
@@ -93,10 +96,43 @@ namespace dotnet
         public Karmem.Reader Reader;
         public Karmem.Writer Writer;
 
+    #endif
+    #if IS_FLATBUFFERS
+
+        public IntPtr InputMemory;
+        public IntPtr OutputMemory;
+
+        public game.MonstersT Structure = new game.MonstersT();
+        public FlatBuffers.ByteBuffer Reader;
+        public FlatBuffers.FlatBufferBuilder Writer;
+
+    #endif
+
         public Benchmark()
         {
+        #if IS_KARMEM
+            Unsafe.InitBlockUnaligned(InputMemory.ToPointer(), 0, 8_000_000);
+            Unsafe.InitBlockUnaligned(OutputMemory.ToPointer(), 0, 8_000_000);
             Reader = Karmem.Reader.NewReader(InputMemory, 8_000_000, 8_000_000);
             Writer = Karmem.Writer.NewFixedWriter(OutputMemory, 8_000_000);
+        #endif
+        #if IS_FLATBUFFERS
+            var i = new byte[8_000_000];
+            var handle = GCHandle.Alloc(i, GCHandleType.Pinned);
+            fixed (void* f= &i[0])
+            {
+                InputMemory = new IntPtr(f);
+            }
+            Reader = new FlatBuffers.ByteBuffer(i);
+
+            var o = new byte[8_000_000];
+            var handle2 = GCHandle.Alloc(o, GCHandleType.Pinned);
+            fixed (void* f= &o[0])
+            {
+                OutputMemory = new IntPtr(f);
+            }
+            Writer = new FlatBuffers.FlatBufferBuilder(new FlatBuffers.ByteBuffer(o));
+        #endif
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -115,37 +151,43 @@ namespace dotnet
         // Must be exported to WASM.
         public void KBenchmarkEncodeObjectAPI()
         {
+        #if IS_KARMEM
             this.Writer.Reset();
             if (!Structure.WriteAsRoot(this.Writer))
             {
                 throw new System.Exception("Failed to write object");
             }
+        #endif
+        #if IS_FLATBUFFERS
+            Writer.Clear();
+            var r = game.Monsters.Pack(Writer, Structure);
+            Writer.Finish(r.Value);
+        #endif
         }
 
         // Must be exported to WASM.
         public void KBenchmarkDecodeObjectAPI(uint size)
         {
+        #if IS_KARMEM
             this.Reader.SetSize(size);
             Structure.ReadAsRoot(this.Reader);
-        }
-
-        // Must be exported to WASM.
-        public void KBenchmarkDecodeObjectAPIFrom(byte[] b)
-        {
-            var reader = Karmem.Reader.NewManagedReader(b);
-            Structure.ReadAsRoot(reader);
-            reader.Dispose();
+        #endif
+        #if IS_FLATBUFFERS
+            var r = game.Monsters.GetRootAsMonsters(Reader);
+            r.UnPackTo(Structure);
+        #endif
         }
 
         // Must be exported to WASM.
         public float KBenchmarkDecodeSumVec3(uint size)
         {
+        #if IS_KARMEM
             this.Reader.SetSize(size);
 
+            var sum = new Vec3();
             var monsters = MonstersViewer.NewMonstersViewer(this.Reader, 0);
             var monstersList = monsters.Monsters(this.Reader);
 
-            var sum = new Vec3();
             for (var i = 0; i < monstersList.Length; i++)
             {
                 var paths = monstersList[i].Data(this.Reader).Path(this.Reader);
@@ -157,8 +199,25 @@ namespace dotnet
                     sum._Z += path.Z();
                 }
             }
-            
             return sum._X + sum._Y + sum._Z;
+        #endif
+        #if IS_FLATBUFFERS
+            var sum = new game.Vec3T();
+            var monsters = game.Monsters.GetRootAsMonsters(Reader);
+
+            for (var i = 0; i < monsters.MonstersLength; i++)
+            {
+                var monster = monsters._Monsters(i).Value;
+                for (var p = 0; p < monster.PathLength; p++)
+                {
+                    var path = monster.Path(p).Value;
+                    sum.X += path.X;
+                    sum.Y += path.Y;
+                    sum.Z += path.Z;
+                }
+            }
+            return sum.X + sum.Y + sum.Z;
+        #endif
         }
 
     }

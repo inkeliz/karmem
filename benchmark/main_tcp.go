@@ -41,10 +41,9 @@ func (t *TCP) Write(b []byte) bool {
 }
 
 func (t *TCP) Reader(l uint32) []byte {
-	if cap(t.buf) < int(l) {
-		t.buf = make([]byte, l)
-	}
-	if _, err := io.ReadAtLeast(t.conn, t.buf, int(l)); err != nil {
+	t.buf = make([]byte, int(l))
+	_, err := io.ReadAtLeast(t.conn, t.buf, int(l))
+	if err != nil {
 		panic(err)
 	}
 	return t.buf
@@ -58,9 +57,15 @@ func (t *TCP) ReaderReset(b []byte) {
 
 func (t *TCP) Run(s Functions, v ...uint64) ([]uint64, error) {
 	lout := len(t.out)
-	t.conn.Write((*[4]byte)(unsafe.Pointer(&lout))[:])
-	t.conn.Write((*[4]byte)(unsafe.Pointer(&s))[:])
-	t.conn.Write(t.out)
+	if _, err := t.conn.Write((*[4]byte)(unsafe.Pointer(&lout))[:]); err != nil {
+		return nil, err
+	}
+	if _, err := t.conn.Write((*[4]byte)(unsafe.Pointer(&s))[:]); err != nil {
+		return nil, err
+	}
+	if _, err := t.conn.Write(t.out); err != nil {
+		return nil, err
+	}
 	t.out = nil
 
 	out := make(chan []uint64)
@@ -71,6 +76,7 @@ func (t *TCP) Run(s Functions, v ...uint64) ([]uint64, error) {
 			if _, err := io.ReadAtLeast(t.conn, o, 4); err != nil {
 				panic(err)
 			}
+			t.out = make([]byte, *(*uint32)(unsafe.Pointer(&o[0])))
 			if _, err := io.ReadAtLeast(t.conn, t.out, int(*(*uint32)(unsafe.Pointer(&o[0])))); err != nil {
 				panic(err)
 			}

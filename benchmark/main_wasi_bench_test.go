@@ -73,5 +73,8 @@ func BenchmarkEncodeObjectAPI(b *testing.B) {
 		if err != nil {
 			b.Fatal("x", err)
 		}
+		b.StopTimer()
+		m.Reader(uint32(len(InputMemory)))
+		b.StartTimer()
 	}
 }

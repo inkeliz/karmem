@@ -7,11 +7,8 @@ package main
 
 import (
 	"crypto/rand"
-	"fmt"
 	"math"
 	"math/big"
-	"os"
-	"sync/atomic"
 	"testing"
 
 	"benchmark.karmem.org/km"
@@ -120,17 +117,6 @@ func FuzzRandom(f *testing.F) {
 
 	clear := make([]byte, len(InputMemory))
 	f.Fuzz(func(t *testing.T, b []byte) {
-		atomic.AddUint64(&x, 1)
-
-		o, err := os.Create(`X:\karmem\benchmark\testdata\fuzz\` + fmt.Sprintf("%d.bin", x))
-		if err != nil {
-			t.Error(err)
-			return
-		}
-
-		o.Write(b)
-		o.Close()
-
 		if len(b) > len(InputMemory) {
 			return
 		}

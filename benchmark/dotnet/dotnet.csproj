@@ -20,9 +20,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="../../dotnet/Karmem.cs" />
-        <Compile Include="../km/game_generated.cs" />
-        <Compile Include="../fbs/game.cs" />
+        <Compile Condition="'$(IS_KARMEM)' == 'true'" Include="../../dotnet/Karmem.cs" />
+        <Compile Condition="'$(IS_KARMEM)' == 'true'" Include="../km/game_generated.cs" />
+        <Compile Condition="'$(IS_FLATBUFFERS)' == 'true'" Include="../fbs/game.cs" />
         <PackageReference Include="Wasi.Sdk" Version="0.1.1" />
     </ItemGroup>
 

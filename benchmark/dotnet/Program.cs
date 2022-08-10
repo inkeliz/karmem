@@ -1,8 +1,9 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using km;
 using BitConverter = System.BitConverter;
-
+#if IS_KARMEM
+    using km;
+#endif
 #if IS_WASM
 #else
 using System.Net;

@@ -1,5 +1,5 @@
 public struct Writer {
-    var memory: UnsafeMutableRawPointer
+    public var memory: UnsafeMutableRawPointer
     var length: UInt32 = 0
     var capacity: UInt32 = 0
     var isFixed: Bool = false
@@ -26,7 +26,11 @@ public struct Writer {
             if (self.isFixed) {
                 return 0xFFFFFFFF
             }
-            self.Grow(total)
+            var target = self.capacity * 2
+            if (total > target) {
+                target = total * 2
+            }
+            self.Grow(target)
         }
         var i = self.length
         while (i < total) {
@@ -63,6 +67,7 @@ public struct Writer {
         self.memory.deallocate()
     }
 
+    @available(*, deprecated, message: "New Karmem generated code doesn't use that function anymore")
     @inline(__always)
     public func WriteAt<T>(_ offset: UInt32, _ data: T) {
         withUnsafePointer(to: data) {
@@ -70,6 +75,7 @@ public struct Writer {
         }
     }
 
+    @available(*, deprecated, message: "New Karmem generated code doesn't use that function anymore")
     @inline(__always)
     public func WriteArrayAt<T: Any>(_ offset: UInt32, _ data: [T], _ size: UInt32) {
         var index = 0
@@ -132,18 +138,21 @@ public struct Reader {
     return Reader.init(array: array)
 }
 
+public protocol StructureViewer {
+    init(ptr: UnsafeRawPointer)
+    var karmemPointer: UnsafeRawPointer { get }
+}
+
 public struct Slice<T: Any> {
     var pointer: UnsafeRawPointer
     public var count: Int
     var size: Int
-    var stub: T
 
     @usableFromInline
-    init(ptr: UnsafeRawPointer, len: UInt32, size: UInt32, stub: T) {
+    init(ptr: UnsafeRawPointer, len: UInt32, size: UInt32, as: T.Type) {
         self.pointer = ptr
         self.count = Int(len)
         self.size = Int(size)
-        self.stub = stub
     }
 
     @inline(__always)
@@ -160,20 +169,58 @@ public struct Slice<T: Any> {
 
     @inline(__always)
     public mutating func Get(_ index: Int) -> T {
-        if (index >= self.count) {
-            return self.stub
+        return (self.pointer + Int(index * self.size)).loadUnaligned(as: T.self)
+    }
+}
+
+public struct SliceStructure<T: StructureViewer> {
+    var pointer: UnsafeRawPointer
+    public var count: Int
+    var size: Int
+
+    @usableFromInline
+    init(ptr: UnsafeRawPointer, len: UInt32, size: UInt32, as: T.Type) {
+        self.pointer = ptr
+        self.count = Int(len)
+        self.size = Int(size)
+    }
+
+    @inline(__always)
+    public subscript(_ index: Int) -> T {
+         mutating get {
+            return self.Get(index)
         }
-        return Load(self.pointer, Int(index * self.size), &self.stub) as! T
+    }
+
+    @inline(__always)
+    public func Length() -> Int {
+        return self.count
+    }
+
+    @inline(__always)
+    public mutating func Get(_ index: Int) -> T {
+        return T.self.init(ptr: self.pointer + Int(index * self.size))
     }
 }
 
-@inline(__always) public func NewSlice<T>(_ ptr: UnsafeRawPointer, _ len: UInt32, _ size: UInt32, _ stub: T) -> Slice<T> {
-    return Slice<T>(ptr: ptr, len: len, size: size, stub: stub)
+@available(*, deprecated, message: "New Karmem generated code doesn't use that function anymore")
+@inline(__always)
+public func NewSlice<T>(_ ptr: UnsafeRawPointer, _ len: UInt32, _ size: UInt32, _ stub: T) -> Slice<T> {
+    return Slice<T>(ptr: ptr, len: len, size: size, as: T.self)
 }
 
-@inline(__always) public func Load<T: Any>(_ memory: UnsafeRawPointer, _ offset: Int, _ type: inout T) -> T {
-    withUnsafePointer(to: &type) {
-        UnsafeMutableRawPointer(mutating: $0).copyMemory(from: memory.advanced(by: offset), byteCount: MemoryLayout<T>.size)
-    }
-    return type
+@inline(__always)
+public func NewSliceUnaligned<T>(_ ptr: UnsafeRawPointer, _ len: UInt32, _ size: UInt32, as: T.Type) -> Slice<T> {
+    return Slice<T>(ptr: ptr, len: len, size: size, as: T.self)
+}
+
+@inline(__always)
+public func NewSliceStructure<T: StructureViewer>(_ ptr: UnsafeRawPointer, _ len: UInt32, _ size: UInt32, as: T.Type) -> SliceStructure<T> {
+    return SliceStructure<T>(ptr: ptr, len: len, size: size, as: T.self)
+}
+
+@available(*, deprecated, message: "New Karmem generated code doesn't use that function anymore")
+@inline(__always)
+public func Load<T: Any>(_ memory: UnsafeRawPointer, _ offset: Int, _ type: inout T) -> T {
+    return memory.loadUnaligned(fromByteOffset: offset, as: T.self)
 }

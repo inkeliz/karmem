@@ -2,6 +2,7 @@ package kmgen
 
 import (
 	"fmt"
+
 	"karmem.org/cmd/karmem/kmparser"
 )
 
@@ -110,7 +111,7 @@ func (gen *Swift) functions() (f TemplateFunctions) {
 		case kmparser.TypeModelArray, kmparser.TypeModelSlice, kmparser.TypeModelSliceLimited:
 			switch typ.Format {
 			case kmparser.TypeFormatStruct, kmparser.TypeFormatTable:
-				return fmt.Sprintf(`karmem.Slice<%sViewer>`, f.ToPlainType(typ))
+				return fmt.Sprintf(`karmem.SliceStructure<%sViewer>`, f.ToPlainType(typ))
 			default:
 				return fmt.Sprintf(`karmem.Slice<%s>`, p)
 			}

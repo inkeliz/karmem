@@ -1,5 +1,8 @@
 {{- define "header"}}
 import {{FromTags "import"}}
+
+var _Null : [UInt8] = Array(repeating: 0, count: {{.Size.Largest}})
+var _NullReader = karmem.NewReader(_Null)
 {{- end}}
 {{define "enums"}}
 {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
@@ -64,27 +67,10 @@ public struct {{$root.Data.Name}} {
         {{- end}}
         {{- end }}
         {{- if $field.Data.Type.IsArray }}
-        let __{{$field.Data.Name}}Len = self.{{$field.Data.Name}}.count
-        var __{{$field.Data.Name}}Index = 0
-        while (__{{$field.Data.Name}}Index < __{{$field.Data.Name}}Len) {
-            {{- if not $field.Data.Type.IsNative}}
-                self.{{$field.Data.Name}}[__{{$field.Data.Name}}Index].Reset()
-            {{- else}}
-                self.{{$field.Data.Name}}[__{{$field.Data.Name}}Index] = {{ToDefault $field.Data.Type}}
-            {{- end}}
-            __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1
-        }
+        self.{{$field.Data.Name}}.removeAll(keepingCapacity: true)
         {{- end }}
         {{- if $field.Data.Type.IsSlice }}
-        {{- if not $field.Data.Type.IsNative}}
-        let __{{$field.Data.Name}}Len = self.{{$field.Data.Name}}.count
-        var __{{$field.Data.Name}}Index = 0
-        while (__{{$field.Data.Name}}Index < __{{$field.Data.Name}}Len) {
-            self.{{$field.Data.Name}}[__{{$field.Data.Name}}Index].Reset()
-            __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1
-        }
-        {{- end}}
-        self.{{$field.Data.Name}}.removeAll()
+        self.{{$field.Data.Name}}.removeAll(keepingCapacity: true)
         {{- end }}
         {{- end }}
     }
@@ -105,7 +91,7 @@ public struct {{$root.Data.Name}} {
         }
 
         {{- if $root.Data.IsTable }}
-        writer.WriteAt(offset, {{$root.Data.Size.Content}})
+        writer.memory.storeBytes(of: UInt32({{$root.Data.Size.Content}}), toByteOffset: Int(offset), as: UInt32.self)
         {{- end }}
 
         {{- range $field := $root.Data.Fields }}
@@ -131,28 +117,40 @@ public struct {{$root.Data.Name}} {
         if (__{{$field.Data.Name}}Offset == 0) {
             return false
         }
-        writer.WriteAt(offset + {{$field.Data.Offset}}, __{{$field.Data.Name}}Offset)
+        writer.memory.storeBytes(of: UInt32(__{{$field.Data.Name}}Offset), toByteOffset: Int(offset + {{$field.Data.Offset}}), as: UInt32.self)
             {{- if $field.Data.Type.IsSlice }}
-        writer.WriteAt(offset + {{$field.Data.Offset}} + 4, __{{$field.Data.Name}}Size)
-        writer.WriteAt(offset + {{$field.Data.Offset}} + 4 + 4, {{$field.Data.Size.Allocation}})
+        writer.memory.storeBytes(of: UInt32(__{{$field.Data.Name}}Size), toByteOffset: Int(offset + {{$field.Data.Offset}} + 4), as: UInt32.self)
+        writer.memory.storeBytes(of: UInt32({{$field.Data.Size.Allocation}}), toByteOffset: Int(offset + {{$field.Data.Offset}} + 4 + 4), as: UInt32.self)
             {{- end}}
         {{- end }}
         {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
         {{- if $field.Data.Type.IsInline}}
         {{- if $field.Data.Type.IsArray}}
-        writer.WriteArrayAt(__{{$field.Data.Name}}Offset, self.{{$field.Data.Name}}, {{$field.Data.Size.Allocation}})
+        var __{{$field.Data.Name}}Index = 0
+        var __{{$field.Data.Name}}CurrentOffset = __{{$field.Data.Name}}Offset
+        while(__{{$field.Data.Name}}Index < self.{{$field.Data.Name}}.count) {
+            writer.memory.storeBytes(of: self.{{$field.Data.Name}}[__{{$field.Data.Name}}Index], toByteOffset: Int(__{{$field.Data.Name}}CurrentOffset), as: {{- if $field.Data.Type.IsString}} UInt8.self {{ else }}{{ToPlainType $field.Data.Type}}.self{{end}})
+            __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1
+            __{{$field.Data.Name}}CurrentOffset = __{{$field.Data.Name}}CurrentOffset + {{$field.Data.Size.Allocation}}
+        }
         {{- else}}
         {{- if $field.Data.Type.IsEnum}}
-        writer.WriteAt(__{{$field.Data.Name}}Offset, self.{{$field.Data.Name}})
+        writer.memory.storeBytes(of: self.{{$field.Data.Name}}, toByteOffset: Int(__{{$field.Data.Name}}Offset), as: {{- ToPlainType $field.Data.Type}}.self)
         {{- else}}
-        writer.WriteAt(__{{$field.Data.Name}}Offset, self.{{$field.Data.Name}})
+        writer.memory.storeBytes(of: self.{{$field.Data.Name}}, toByteOffset: Int(__{{$field.Data.Name}}Offset), as: {{- ToPlainType $field.Data.Type}}.self)
         {{- end}}
         {{- end}}
         {{- else}}
         {{- if $field.Data.Type.IsSlice}}
-        writer.WriteArrayAt(__{{$field.Data.Name}}Offset, self.{{$field.Data.Name}}, {{$field.Data.Size.Allocation}})
+        var __{{$field.Data.Name}}Index = 0
+        var __{{$field.Data.Name}}CurrentOffset = __{{$field.Data.Name}}Offset
+        while(__{{$field.Data.Name}}Index < self.{{$field.Data.Name}}.count) {
+            writer.memory.storeBytes(of: self.{{$field.Data.Name}}[__{{$field.Data.Name}}Index], toByteOffset: Int(__{{$field.Data.Name}}CurrentOffset), as: {{- if $field.Data.Type.IsString}} UInt8.self {{ else }}{{ToPlainType $field.Data.Type}}.self{{end}})
+            __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1
+            __{{$field.Data.Name}}CurrentOffset = __{{$field.Data.Name}}CurrentOffset + {{$field.Data.Size.Allocation}}
+        }
         {{- else}}
-        writer.WriteAt(__{{$field.Data.Name}}Offset, self.{{$field.Data.Name}})
+        writer.memory.storeBytes(of: self.{{$field.Data.Name}}, toByteOffset: Int(__{{$field.Data.Name}}Offset), as: {{- ToPlainType $field.Data.Type}}.self)
         {{- end}}
         {{- end}}
         {{- else }}
@@ -201,7 +199,7 @@ public struct {{$root.Data.Name}} {
     {{- if $field.Data.Type.IsSlice}}
     var __{{$field.Data.Name}}Slice = viewer.{{$field.Data.Name}}(reader)
     let __{{$field.Data.Name}}Len = __{{$field.Data.Name}}Slice.count
-    self.{{$field.Data.Name}}.removeAll()
+    self.{{$field.Data.Name}}.removeAll(keepingCapacity: true)
     if (__{{$field.Data.Name}}Len > self.{{$field.Data.Name}}.count) {
         self.{{$field.Data.Name}}.reserveCapacity(__{{$field.Data.Name}}Len)
         var __{{$field.Data.Name}}IndexClear = self.{{$field.Data.Name}}.count
@@ -257,20 +255,20 @@ public func New{{$root.Data.Name}}() -> {{$root.Data.Name}} {
 {{define "struct_builder"}}
 {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
 {{- range $root := .Structs}}
-public struct {{$root.Data.Name}}Viewer {
-    {{- range $key, $padding := $root.Data.Size.TotalGroup }}
-    var _{{$key}}: UInt64 = 0
-    {{- end}}
 
-    public init() {}
+public struct {{$root.Data.Name}}Viewer : karmem.StructureViewer {
+    var _ptr : UnsafeRawPointer
+    public var karmemPointer: UnsafeRawPointer { get { return self._ptr } set(newValue) { self._ptr = newValue } }
+
+    public init(ptr: UnsafeRawPointer) {
+        self._ptr = ptr
+        self.karmemPointer = ptr
+    }
 
     @inline(__always)
     public func SizeOf() -> UInt32 {
         {{- if $root.Data.IsTable}}
-        var size = UInt32(0)
-        return withUnsafePointer(to: self) {
-            return karmem.Load(UnsafeRawPointer($0), 0, &size)
-        }
+        return self.karmemPointer.loadUnaligned(as: UInt32.self)
         {{- else }}
         return {{$root.Data.Size.Total}}
         {{- end }}
@@ -285,11 +283,13 @@ public struct {{$root.Data.Name}}Viewer {
             return {{ToDefault $field.Data.Type}}
             {{- else}}
             {{- if or $field.Data.Type.IsSlice $field.Data.Type.IsArray }}
-            return withUnsafePointer(to: self) {
-                return karmem.NewSlice(UnsafeRawPointer($0), 0, 0, {{- if $field.Data.Type.IsNative}} {{- if $field.Data.Type.IsString}} UInt8(0) {{- else}} {{ToDefault $field.Data.Type}} {{- end}} {{- else}} {{ToPlainType $field.Data.Type}}Viewer() {{- end}})
-            }
+            {{- if $field.Data.Type.IsNative}}
+                return karmem.NewSliceUnaligned(_Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }), 0, 0, as: {{- if $field.Data.Type.IsString}} UInt8.self {{- else}} {{ToPlainType $field.Data.Type}}.self {{- end}})
+            {{- else }}
+                return karmem.NewSliceStructure(_Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }), 0, 0, as: {{- ToPlainType $field.Data.Type}}Viewer.self)
+            {{- end }}
             {{- else}}
-            return {{ToPlainTypeView $field.Data.Type}}()
+            return {{ToPlainTypeView $field.Data.Type}}(ptr: _Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }))
             {{- end}}
             {{- end}}
         }
@@ -298,36 +298,27 @@ public struct {{$root.Data.Name}}Viewer {
         {{- if $field.Data.Type.IsInline}}
         {{- if not $field.Data.Type.IsArray}}
         {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum}}
-        var v : {{ ToTypeView $field.Data.Type }} = {{ ToTypeView $field.Data.Type }}({{ToDefault $field.Data.Type}})
-        v = withUnsafePointer(to: self) {
-            return karmem.Load(UnsafeRawPointer($0), {{$field.Data.Offset}}, &v)
-        }
-        return {{- if $field.Data.Type.IsEnum}} {{ToPlainType $field.Data.Type}}(v) {{- else}} v {{- end}}
-        {{- else}}
-        var v : {{ ToTypeView $field.Data.Type }} = {{ ToTypeView $field.Data.Type }}()
-        return withUnsafePointer(to: self) {
-            return karmem.Load(UnsafeRawPointer($0), {{$field.Data.Offset}}, &v)
-        }
-        {{- end}}
-        {{- else}}
-        return withUnsafePointer(to: self) {
-            return karmem.NewSlice(UnsafeRawPointer(UnsafeRawPointer($0) + Int({{$field.Data.Offset}})), {{$field.Data.Type.Length}}, {{$field.Data.Size.Allocation}}, {{- if $field.Data.Type.IsNative}} {{- if $field.Data.Type.IsString}} UInt8(0) {{- else}} {{ToDefault $field.Data.Type}} {{- end}} {{- else}} {{ToPlainType $field.Data.Type}}Viewer() {{- end}})
-        }
-        {{- end}}
-        {{- else}}
-        var offset = UInt32(0)
-        offset = withUnsafePointer(to: self) {
-            return karmem.Load(UnsafeRawPointer($0), {{$field.Data.Offset}}, &offset)
-        }
+        return (self.karmemPointer + {{$field.Data.Offset}}).loadUnaligned(as: {{ ToTypeView $field.Data.Type }}.self)
+        {{- else }}
+        return  {{ ToTypeView $field.Data.Type }}(ptr: self.karmemPointer + {{$field.Data.Offset}})
+        {{- end }}
+        {{- else }}
+        {{- if $field.Data.Type.IsNative}}
+        return karmem.NewSliceUnaligned(UnsafeRawPointer(self.karmemPointer + Int({{$field.Data.Offset}})), {{$field.Data.Type.Length}}, {{$field.Data.Size.Allocation}}, as: {{- if $field.Data.Type.IsString}} UInt8.self {{- else}} {{ToPlainType $field.Data.Type}}.self {{- end}})
+        {{- else }}
+        return karmem.NewSliceStructure(UnsafeRawPointer(self.karmemPointer + Int({{$field.Data.Offset}})), {{$field.Data.Type.Length}}, {{$field.Data.Size.Allocation}}, as: {{- ToPlainType $field.Data.Type}}Viewer.self)
+        {{- end }}
+        {{- end }}
+        {{- else }}
+        let offset = (self.karmemPointer + {{$field.Data.Offset}}).loadUnaligned(as: UInt32.self)
         {{- if $field.Data.Type.IsSlice}}
-        var size = UInt32(0)
-        size = withUnsafePointer(to: self) {
-            return karmem.Load(UnsafeRawPointer($0), {{$field.Data.Offset}} + 4, &size)
-        }
+        let size = (self.karmemPointer + {{$field.Data.Offset}} + 4).loadUnaligned(as: UInt32.self)
         if (!reader.IsValidOffset(offset, size)) {
-            return withUnsafePointer(to: self) {
-               return karmem.NewSlice(UnsafeRawPointer($0), 0, 0, {{- if $field.Data.Type.IsNative}} {{- if $field.Data.Type.IsString}} UInt8(0) {{- else}} {{ToDefault $field.Data.Type}} {{- end}} {{- else}} {{ToPlainType $field.Data.Type}}Viewer() {{- end}})
-            }
+            {{- if $field.Data.Type.IsNative}}
+                return karmem.NewSliceUnaligned(_Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }), 0, 0, as: {{- if $field.Data.Type.IsString}} UInt8.self {{- else}} {{ToPlainType $field.Data.Type}}.self {{- end}})
+            {{- else }}
+                return karmem.NewSliceStructure(_Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }), 0, 0, as: {{- ToPlainType $field.Data.Type}}Viewer.self)
+            {{- end }}
         }
 
         var length = size / {{ $field.Data.Size.Allocation }}
@@ -336,7 +327,11 @@ public struct {{$root.Data.Name}}Viewer {
             length = {{$field.Data.Type.Length}}
         }
         {{- end}}
-        return karmem.NewSlice(UnsafeRawPointer(reader.pointer + Int(offset)), length, {{ $field.Data.Size.Allocation }}, {{- if $field.Data.Type.IsNative}} {{- if $field.Data.Type.IsString}} UInt8(0) {{- else}} {{ToDefault $field.Data.Type}} {{- end}} {{- else}} {{ToPlainType $field.Data.Type}}Viewer() {{- end}})
+        {{- if $field.Data.Type.IsNative}}
+        return karmem.NewSliceUnaligned(UnsafeRawPointer(reader.pointer + Int(offset)), length, {{ $field.Data.Size.Allocation }}, as: {{- if $field.Data.Type.IsString}} UInt8.self {{- else}} {{ToPlainType $field.Data.Type}}.self {{- end}})
+        {{- else }}
+        return karmem.NewSliceStructure(UnsafeRawPointer(reader.pointer + Int(offset)), length, {{ $field.Data.Size.Allocation }}, as: {{- ToPlainType $field.Data.Type}}Viewer.self)
+        {{- end }}
         {{- else}}
         return New{{ToPlainType $field.Data.Type}}Viewer(reader, offset)
         {{- end}}
@@ -347,14 +342,13 @@ public struct {{$root.Data.Name}}Viewer {
 
 @inline(__always) public func New{{$root.Data.Name}}Viewer(_ reader: karmem.Reader, _ offset: UInt32) -> {{$root.Data.Name}}Viewer {
     if (!reader.IsValidOffset(offset, {{$root.Data.Size.Minimum}})) {
-        return {{$root.Data.Name}}Viewer()
+        return {{$root.Data.Name}}Viewer(ptr: _Null.withUnsafeBufferPointer({ return UnsafePointer($0.baseAddress!) }))
     }
 
-    var v = {{$root.Data.Name}}Viewer()
-    v = karmem.Load(reader.pointer, Int(offset), &v)
+    let v = {{$root.Data.Name}}Viewer(ptr: UnsafeRawPointer(reader.pointer + Int(offset)))
     {{- if $root.Data.IsTable}}
     if (!reader.IsValidOffset(offset, v.SizeOf())) {
-        return {{$root.Data.Name}}Viewer()
+        return {{$root.Data.Name}}Viewer(ptr: _Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }))
     }
     {{- end}}
     return v

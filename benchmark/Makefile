@@ -56,11 +56,11 @@ odin: karmem
 
 	go test -tags wasi,wazero,odin,km -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-odin-km.out
 
-	dotnet build -p:IS_WASM=false -p:IS_KARMEM=true -o "testdata/wasi" "dotnet"
-	go test -tags tcp,km,dotnet -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 30m . > result/tcp-dotnet-km.out
+	# dotnet build -p:IS_WASM=false -p:IS_KARMEM=true -o "testdata/wasi" "dotnet"
+	# go test -tags tcp,km,dotnet -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 30m . > result/tcp-dotnet-km.out
 
-	dotnet build -p:IS_WASM=false -p:IS_FLATBUFFERS=true -p:BYTEBUFFER_NO_BOUNDS_CHECK=true -p:UNSAFE_BYTEBUFFER=true -o "testdata/wasi" "dotnet"
-	go test -tags tcp,fbs,dotnet -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 30m . > result/tcp-dotnet-fbs.out
+	# dotnet build -p:IS_WASM=false -p:IS_FLATBUFFERS=true -p:BYTEBUFFER_NO_BOUNDS_CHECK=true -p:UNSAFE_BYTEBUFFER=true -o "testdata/wasi" "dotnet"
+	# go test -tags tcp,fbs,dotnet -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 30m . > result/tcp-dotnet-fbs.out
 
 
 results:
@@ -68,4 +68,4 @@ results:
 	benchstat result/wasi-go-fbs.out result/wasi-go-km.out
 	benchstat result/wasi-go-km.out result/wasi-as-km.out result/wasi-zig-km.out result/wasi-swift-km.out result/wasi-c-km.out result/wasi-odin-km.out result/wasi-dotnet-km.out
 
-bench: karmem native tinygo assemblyscript zig c swiftwasm result
+bench: karmem native tinygo assemblyscript zig c swiftwasm dotnet result

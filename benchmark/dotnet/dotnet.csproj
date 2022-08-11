@@ -9,6 +9,7 @@
         <RunAOTCompilation>true</RunAOTCompilation>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+        <_EnableMacOSCodeSign>false</_EnableMacOSCodeSign>
     </PropertyGroup>
 
     <ItemGroup>

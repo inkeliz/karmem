@@ -244,6 +244,8 @@ EncodeObjectAPI-8              4.00 ± 0%              3.00 ± 0%               
 Currently, we have focus on WebAssembly, and because of that those are the languages supported:
 
 - AssemblyScript
+- C/Emscripten
+- C#/.NET
 - Golang/TinyGo
 - Swift/SwiftWasm
 - Zig
@@ -251,20 +253,20 @@ Currently, we have focus on WebAssembly, and because of that those are the langu
 
 ### Features
 
-| Features | Golang | Zig | AssemblyScript | Swift | C |
-|--|-- | -- | --| -- | -- |
-| Performance | Good | Excellent | Good | Poor | Excellent |
-| Priority | High | High | High | Low | High |
-| **Encoding** | | | | | |
-| Object Encoding | ✔️ |✔️ |✔️ | ✔️ | ✔️|
-| Raw Encoding | ❌ |❌ | ❌| ❌ | ❌ |
-| Zero-Copy |❌ | ❌ |❌ | ❌ | ❌ |
+| Features | Go/TinyGo | Zig | AssemblyScript | Swift | C | C#/.NET |
+| -- | -- | -- | -- | -- | -- | -- |
+| Performance | Good | Excellent | Good | Poor | Excellent | Horrible |
+| Priority | High | High | High | Low | High | Medium |
+| **Encoding** | | | | | | |
+| Object Encoding | ✔️ |✔️ |✔️ | ✔️ | ✔️| ✔️ |
+| Raw Encoding | ❌ |❌ | ❌| ❌ | ❌ | ❌ |
+| Zero-Copy |❌ | ❌ |❌ | ❌ | ❌ | ❌ |
 | **Decoding** | | | | | |
-| Object Decoding |✔️ |✔️ |✔️ | ✔️ |✔️ |
-| Object Re-Use |✔️ |✔️ |✔️ | ❌ |✔️ |
-| Random-Access |✔️ |✔️ |✔️ | ✔️ |✔️ |
-| Zero-Copy |✔️ | ✔️ |✔️ | ❌ |✔️ |
-| Native Array | ✔️ |✔️ |❌ | ❌ |✔️ |
+| Object Decoding |✔️ |✔️ |✔️ | ✔️ |✔️ | ✔️ |
+| Object Re-Use |✔️ |✔️ |✔️ | ❌ |✔️ | ❌ |
+| Random-Access |✔️ |✔️ |✔️ | ✔️ |✔️ | ✔️ |
+| Zero-Copy |✔️ | ✔️ |✔️ | ❌ |✔️ |  ✔️|
+| Native Array | ✔️ |✔️ |❌ | ❌ |✔️ |  ✔️|
 
 # Schema
 
@@ -417,9 +419,12 @@ instead.*
 **`build`**
 
 - `--zig`: Enable generation for Zig
-- `--golang`: Enable generation for Golang
+- `--swift`: Enable generation for Swif
+- `--golang`: Enable generation for Golang/TinyGo
+- `--csharp`: Enable generation for C#
+- `--c`: Enable generation for C
+- `--dotnet`: Enable generation for .NET
 - `--assemblyscript`: Enable generation for AssemblyScript
-- `--swift`: Enable generation for Swift
 - `-o <dir>`: Defines the output folder
 - `<input-file>`: Defines the input schema
 

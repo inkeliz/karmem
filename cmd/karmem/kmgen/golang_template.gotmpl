@@ -192,9 +192,8 @@
                         __{{$field.Data.Name}}Len := len(__{{$field.Data.Name}}Slice)
                         if __{{$field.Data.Name}}Len > cap(x.{{$field.Data.Name}}) {
                         x.{{$field.Data.Name}} = append(x.{{$field.Data.Name}}, make([]{{ToPlainType $field.Data.Type}}, __{{$field.Data.Name}}Len - len(x.{{$field.Data.Name}}))...)
-                        } else if __{{$field.Data.Name}}Len > len(x.{{$field.Data.Name}}) {
-                        x.{{$field.Data.Name}} =  x.{{$field.Data.Name}}[:__{{$field.Data.Name}}Len]
                         }
+                        x.{{$field.Data.Name}} = x.{{$field.Data.Name}}[:__{{$field.Data.Name}}Len]
                     {{- else}}
                         __{{$field.Data.Name}}Slice := viewer.{{$field.Data.Name}}()
                         __{{$field.Data.Name}}Len := len(__{{$field.Data.Name}}Slice)
@@ -210,16 +209,17 @@
                         }
                     {{- else}}
                         for i := range x.{{$field.Data.Name}} {
-                        if i >= __{{$field.Data.Name}}Len {
-                        x.{{$field.Data.Name}}[i].Reset()
-                        } else {
-                        x.{{$field.Data.Name}}[i].Read(&__{{$field.Data.Name}}Slice[i], reader)
-                        }
+                        {{- if $field.Data.Type.IsSlice}}
+                            x.{{$field.Data.Name}}[i].Read(&__{{$field.Data.Name}}Slice[i], reader)
+                        {{- else}}
+                            if i >= __{{$field.Data.Name}}Len {
+                            x.{{$field.Data.Name}}[i].Reset()
+                            } else {
+                            x.{{$field.Data.Name}}[i].Read(&__{{$field.Data.Name}}Slice[i], reader)
+                            }
+                        {{- end}}
                         }
                     {{- end }}
-                    {{- if $field.Data.Type.IsSlice}}
-                        x.{{$field.Data.Name}} = x.{{$field.Data.Name}}[:__{{$field.Data.Name}}Len]
-                    {{- end}}
                 {{- end }}
             {{- end}}
         {{- end }}

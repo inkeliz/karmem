@@ -1,4 +1,4 @@
-karmem game @golang.package(`km`) @assemblyscript.import(`../../assemblyscript/karmem`) @c.import(`../../c/karmem.h`);
+karmem game @golang.package(`km`) @odin.import(`../../odin/karmem`) @assemblyscript.import(`../../assemblyscript/karmem`) @c.import(`../../c/karmem.h`);
 
 enum Color uint8 {Red;Green;Blue;}
 

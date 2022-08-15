@@ -7,6 +7,7 @@ karmem:
 	go run karmem.org/cmd/karmem build --zig -o "km" testdata/game.km
 	go run karmem.org/cmd/karmem build --swift -o "km" testdata/game.km
 	go run karmem.org/cmd/karmem build --c -o "km" testdata/game.km
+	go run karmem.org/cmd/karmem build --odin -o "km" testdata/game.km
 
 native: karmem
 	go test -tags fbs -v -bench=. -benchmem -benchtime=5s -count 5 . > result/fbs.out
@@ -44,9 +45,14 @@ swiftwasm: karmem
 	xcrun --toolchain swiftwasm swiftc -L ".build/wasm32-unknown-wasi/release" -o "testdata/wasi/swift.wasi" -module-name benchmark -emit-executable @.build/wasm32-unknown-wasi/release/benchmark.product/Objects.LinkFileList -target wasm32-unknown-wasi -sdk /Library/Developer/Toolchains/swift-wasm-5.6.0-RELEASE.xctoolchain/usr/share/wasi-sysroot -L /Library/Developer/Toolchains/swift-wasm-5.6.0-RELEASE.xctoolchain/usr/lib -O -Xlinker "--export=_start" -Xlinker "--export=InputMemoryPointer" -Xlinker "--export=OutputMemoryPointer" -Xlinker "--export=KBenchmarkEncodeObjectAPI"  -Xlinker "--export=KBenchmarkDecodeObjectAPI" -Xlinker "--export=KBenchmarkDecodeSumVec3"
 	go test -tags wasi,wazero,km,swift -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-swift-km.out
 
+odin: karmem
+	odin build . -target:wasi_wasm32 -extra-linker-flags:"--lto-O3 --gc-sections"
+	wasm-ld "benchmark.wasm.o" -o "testdata/wasi/odin.wasi" --lto-O3 --gc-sections
+	go test -tags wasi,wazero,odin,km -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-odin-km.out
+
 results:
 	benchstat result/fbs.out result/km.out
 	benchstat result/wasi-go-fbs.out result/wasi-go-km.out
-	benchstat result/wasi-go-km.out result/wasi-as-km.out result/wasi-zig-km.out result/wasi-swift-km.out result/wasi-c-km.out
+	benchstat result/wasi-go-km.out result/wasi-as-km.out result/wasi-zig-km.out result/wasi-swift-km.out result/wasi-c-km.out result/wasi-odin-km.out
 
 bench: karmem native tinygo assemblyscript zig c swiftwasm result

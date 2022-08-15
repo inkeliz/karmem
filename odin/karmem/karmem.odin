@@ -20,9 +20,9 @@ NewFixedWriter :: proc (mem: [dynamic]u8) -> Writer {
     return Writer{mem, true}
 }
 
-NewFixedWriterArray :: proc (mem: [^]u8, size: int) -> Writer {
+NewFixedWriterArray :: proc (mem: []u8, size: int) -> Writer {
     slice := [4]int{0, size, size, 0}
-    (cast(^[4]rawptr)(&slice))[0] = rawptr(mem)
+    (cast(^[4]rawptr)(&slice))[0] = rawptr(&mem[0])
     return Writer{(cast(^[dynamic]u8)(&slice))^, true}
 }
 
@@ -102,18 +102,25 @@ NewReader :: proc(mem: [dynamic]u8) -> Reader {
     return Reader{mem, (rawptr(&mem[0])), u64(len(mem))}
 }
 
-NewReaderArray :: proc(mem: [^]u8, size: int) -> Reader {
-    slice := [4]int{0, size, size, 0}
-    (cast(^[4]rawptr)(&slice))[0] = rawptr(mem)
-    return Reader{(cast(^[dynamic]u8)(&slice))^, (rawptr(&mem[0])), u64(size)}
+NewReaderArray :: proc(mem: []u8) -> Reader {
+    // Converting []u8 to [dynamic]u8 (which is equivalent of [4]int). 
+    // The [0] is the pointer to the data.
+    slice := [4]int{0, len(mem), len(mem), 0}
+    (cast(^[4]rawptr)(&slice))[0] = rawptr(&mem[0])
+    return Reader{(cast(^[dynamic]u8)(&slice))^, (rawptr(&mem[0])), u64(len(mem))}
 }
 
 ReaderIsValidOffset :: #force_inline proc(r: ^Reader, ptr: u32, size: u32) -> bool {
     return r.size >= (u64(ptr) + u64(size))
 }
 
-ReaderSetSize :: proc(r: ^Reader, size: u32) {
+ReaderSetSize :: proc(r: ^Reader, size: u32) -> bool {
+	if size == 0 || size > u32(cap(r.memory)) {
+        r.size = 0
+		return false
+	}
     (cast(^[3]int)(&r.memory))[1] = int(size)
     r.size = u64(len(r.memory))
     r.pointer = rawptr(&r.memory[0])
+    return true
 }

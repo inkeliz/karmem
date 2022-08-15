@@ -50,11 +50,6 @@ swiftwasm: karmem
 dotnet: karmem
 	dotnet build -p:IS_WASM=true -p:IS_KARMEM=true -o "testdata/wasi" "dotnet"
 	go test -tags wasi,wazero,km,dotnet,nofuzz -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 30m . > result/wasi-dotnet-km.out
-odin: karmem
-	odin build . -target:wasi_wasm32 -extra-linker-flags:"--lto-O3 --gc-sections"
-	wasm-ld "benchmark.wasm.o" -o "testdata/wasi/odin.wasi" --lto-O3 --gc-sections
-
-	go test -tags wasi,wazero,odin,km -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-odin-km.out
 
 	# dotnet build -p:IS_WASM=false -p:IS_KARMEM=true -o "testdata/wasi" "dotnet"
 	# go test -tags tcp,km,dotnet -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 30m . > result/tcp-dotnet-km.out
@@ -62,6 +57,10 @@ odin: karmem
 	# dotnet build -p:IS_WASM=false -p:IS_FLATBUFFERS=true -p:BYTEBUFFER_NO_BOUNDS_CHECK=true -p:UNSAFE_BYTEBUFFER=true -o "testdata/wasi" "dotnet"
 	# go test -tags tcp,fbs,dotnet -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 30m . > result/tcp-dotnet-fbs.out
 
+odin: karmem
+	odin build . -target:wasi_wasm32 -extra-linker-flags:"--lto-O3 --gc-sections"
+	wasm-ld "benchmark.wasm.o" -o "testdata/wasi/odin.wasi" --lto-O3 --gc-sections
+	go test -tags wasi,wazero,odin,km -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-odin-km.out
 
 results:
 	benchstat result/fbs.out result/km.out

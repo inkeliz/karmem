@@ -4,6 +4,16 @@ enum UserRegion uint32 {
     Undefined; Asia; Africa; NorthAmerica; SouthAmerica; Europe; Oceania;
 }
 
+enum RepeatedUserRegion uint32 {
+    Undefined = 255;
+    Asia;
+    Africa;
+    NorthAmerica;
+    SouthAmerica;
+    Europe;
+    Oceania;
+}
+
 struct Point inline {
     X float32;
     Y float32;

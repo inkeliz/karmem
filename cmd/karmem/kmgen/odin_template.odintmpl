@@ -1,0 +1,327 @@
+{{- define "header"}}
+package {{FromTags "package"}}
+
+import "{{FromTags "import"}}"
+import "core:runtime"
+import "core:mem"
+import "core:reflect"
+
+_Null := [{{.Size.Largest}}]byte{}
+_NullReader := karmem.NewReaderArray(_Null[:])
+{{end}}
+
+{{define "enums"}}
+    {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+{{- range $root := .Enums}}
+Enum{{$root.Data.Name}} :: enum {{ToType $root.Data.Type}} {
+    {{- range $field := $root.Data.Fields}}
+    {{$field.Data.Name}} = {{$field.Data.Value}},
+    {{- end}}
+}
+{{end}}
+{{end}}
+
+{{define "enums_builder"}}
+    {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+
+{{end}}
+
+{{define "struct"}}
+
+EnumPacketIdentifier :: enum u64 {
+{{- range $root := .Structs}}
+    PacketIdentifier{{$root.Data.Name}} = {{$root.Data.ID}},
+{{- end }}
+}
+
+    {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+{{range $root := .Structs}}
+{{$root.Data.Name}} :: struct #packed {
+{{- range $field := $root.Data.Fields }}
+    {{ $field.Data.Name }}: {{ToType $field.Data.Type}},
+{{- end }}
+}
+
+New{{$root.Data.Name}} :: #force_inline proc() -> {{$root.Data.Name}} #no_bounds_check {
+    return {{$root.Data.Name}}{}
+}
+
+{{$root.Data.Name}}Reset :: #force_inline proc(x: ^{{$root.Data.Name}}) #no_bounds_check {
+    {{$root.Data.Name}}Read(x, (^{{$root.Data.Name}}Viewer)(&_Null), &_NullReader)
+}
+
+{{$root.Data.Name}}WriteAsRoot :: #force_inline proc(x: ^{{$root.Data.Name}}, writer: ^karmem.Writer) -> (uint, karmem.Error) #no_bounds_check {
+    return {{$root.Data.Name}}Write(x, writer, 0)
+}
+
+{{$root.Data.Name}}Write :: proc(x: ^{{$root.Data.Name}}, writer: ^karmem.Writer, start: uint) -> (uint, karmem.Error) #no_bounds_check {
+    offset := start
+    size := u32({{$root.Data.Size.Total}})
+    if offset == 0 {
+        off, err := karmem.WriterAlloc(writer, size)
+        if err != karmem.Error.ERR_NONE {
+            return 0, err
+        }
+        offset = off
+    }
+
+    {{- if $root.Data.IsTable}}
+    karmem.WriterWrite4At(writer, offset, u32({{$root.Data.Size.Content}}))
+    {{- end}}
+
+    {{- range $field := $root.Data.Fields }}
+        {{- if not $field.Data.Type.IsInline}}
+            {{- if $field.Data.Type.IsBasic}}
+    __{{$field.Data.Name}}Size := u32({{$field.Data.Size.Allocation}})
+            {{- else}}
+    __{{$field.Data.Name}}Size := u32({{$field.Data.Size.Allocation}} * len(x.{{$field.Data.Name}}))
+            {{- end}}
+        {{- end }}
+        {{- if $field.Data.Type.IsInline }}
+    __{{$field.Data.Name}}Offset := offset+{{$field.Data.Offset}}
+        {{- if $field.Data.Type.IsArray }}
+    __{{$field.Data.Name}}Size := u32({{$field.Data.Size.Allocation}} * len(x.{{$field.Data.Name}}))
+        {{- end }}
+        {{- else }}
+    __{{$field.Data.Name}}Offset, __{{$field.Data.Name}}Err := karmem.WriterAlloc(writer, __{{$field.Data.Name}}Size)
+    if __{{$field.Data.Name}}Err != karmem.Error.ERR_NONE {
+        return 0, __{{$field.Data.Name}}Err
+    }
+    karmem.WriterWrite4At(writer, offset+{{$field.Data.Offset}}, u32(__{{$field.Data.Name}}Offset))
+        {{- if $field.Data.Type.IsSlice}}
+    karmem.WriterWrite4At(writer, offset+{{$field.Data.Offset}} + 4, u32(__{{$field.Data.Name}}Size))
+    karmem.WriterWrite4At(writer, offset+{{$field.Data.Offset}} + 4 + 4, {{$field.Data.Size.Allocation}})
+        {{- end }}
+        {{- end }}
+        {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
+            {{- if $field.Data.Type.IsInline}}
+                {{- if $field.Data.Type.IsArray }}
+    karmem.WriterWriteAt(writer, __{{$field.Data.Name}}Offset, rawptr(&x.{{$field.Data.Name}}), __{{$field.Data.Name}}Size)
+                {{- else }}
+                    {{- if eq $field.Data.Size.Allocation 1}}
+    karmem.WriterWrite1At(writer, __{{$field.Data.Name}}Offset, (cast(^u8)&x.{{$field.Data.Name}})^)
+                    {{- end}}
+                    {{- if eq $field.Data.Size.Allocation 2}}
+    karmem.WriterWrite2At(writer, __{{$field.Data.Name}}Offset, (cast(^u16)&x.{{$field.Data.Name}})^)
+                    {{- end}}
+                    {{- if eq $field.Data.Size.Allocation 4}}
+    karmem.WriterWrite4At(writer, __{{$field.Data.Name}}Offset, (cast(^u32)&x.{{$field.Data.Name}})^)
+                    {{- end}}
+                    {{- if eq $field.Data.Size.Allocation 8}}
+    karmem.WriterWrite8At(writer, __{{$field.Data.Name}}Offset, (cast(^u64)&x.{{$field.Data.Name}})^)
+                    {{- end}}
+                {{- end}}
+            {{- else}}
+                {{- if $field.Data.Type.IsSlice}}
+                    {{- if $field.Data.Type.IsString }}
+    if __{{$field.Data.Name}}Size > 0 {
+        karmem.WriterWriteAt(writer, __{{$field.Data.Name}}Offset, rawptr((cast(^[^]u8)(&x.{{$field.Data.Name}}))^), __{{$field.Data.Name}}Size)
+    }
+                    {{- else}}
+    if __{{$field.Data.Name}}Size > 0 {
+        karmem.WriterWriteAt(writer, __{{$field.Data.Name}}Offset, rawptr(&x.{{$field.Data.Name}}[0]), __{{$field.Data.Name}}Size)
+    }
+                    {{- end}}
+                {{- else}}
+    karmem.WriterWriteAt(writer, __{{$field.Data.Name}}Offset, rawptr(&x.{{$field.Data.Name}}[0]), __{{$field.Data.Name}}Size)
+                {{- end}}
+            {{- end}}
+        {{- else }}
+            {{- if $field.Data.Type.IsBasic}}
+    if _, err := {{ToPlainType $field.Data.Type}}Write(&x.{{$field.Data.Name}}, writer, __{{$field.Data.Name}}Offset); err != nil {
+        return offset, err
+    }
+            {{- else}}
+    for _, i in x.{{$field.Data.Name}} {
+        if _, err := {{ToPlainType $field.Data.Type}}Write(&x.{{$field.Data.Name}}[i], writer, __{{$field.Data.Name}}Offset); err != nil {
+            return offset, err
+        }
+        __{{$field.Data.Name}}Offset += {{$field.Data.Size.Allocation}}
+    }
+            {{- end}}
+        {{- end}}
+
+    {{- end}}
+
+    return offset, nil
+}
+
+{{$root.Data.Name}}ReadAsRoot :: #force_inline proc(x: ^{{$root.Data.Name}}, reader: ^karmem.Reader) #no_bounds_check {
+    {{$root.Data.Name}}Read(x, New{{$root.Data.Name}}Viewer(reader, 0), reader)
+}
+
+{{$root.Data.Name}}Read :: proc(x: ^{{$root.Data.Name}}, viewer: ^{{$root.Data.Name}}Viewer, reader: ^karmem.Reader) #no_bounds_check {
+    {{- range $field := $root.Data.Fields }}
+        {{- if $field.Data.Type.IsBasic}}
+            {{- if $field.Data.Type.IsEnum}}
+    x.{{$field.Data.Name}} = {{ToType $field.Data.Type}}({{$root.Data.Name}}Viewer{{$field.Data.Name}}(viewer))
+            {{- else}}
+                {{- if $field.Data.Type.IsNative}}
+    x.{{$field.Data.Name}} = {{$root.Data.Name}}Viewer{{$field.Data.Name}}(viewer)
+                {{- else}}
+    {{ToPlainType $field.Data.Type}}Read(&x.{{$field.Data.Name}}, {{$root.Data.Name}}Viewer{{$field.Data.Name}}(viewer, {{- if not $field.Data.Type.IsInline}}reader{{- end}}), reader)
+                {{- end}}
+            {{- end}}
+        {{- else}}
+            {{- if $field.Data.Type.IsBasic}}
+    {{ToPlainType $field.Data.Type}}Read(&x.{{$field.Data.Name}}, {{$root.Data.Name}}Viewer{{$field.Data.Name}}(viewer, reader), reader)
+            {{- end}}
+            {{- if $field.Data.Type.IsString}}
+    __{{$field.Data.Name}}String := {{$root.Data.Name}}Viewer{{$field.Data.Name}}(viewer, reader)
+    if x.{{$field.Data.Name}} != __{{$field.Data.Name}}String {
+        if len(__{{$field.Data.Name}}String) > 0 {
+            if __{{$field.Data.Name}}String != x.{{$field.Data.Name}} {
+                __{{$field.Data.Name}}StringCopy := make([]u8, len(__{{$field.Data.Name}}String))
+                runtime.copy_from_string(__{{$field.Data.Name}}StringCopy[:], __{{$field.Data.Name}}String)
+                delete(x.{{$field.Data.Name}})
+                x.{{$field.Data.Name}} = (cast(^string)(&__{{$field.Data.Name}}StringCopy))^
+            }
+        } else {
+            x.{{$field.Data.Name}} = ""
+        }
+    }
+    {{- else}}
+        {{- if $field.Data.Type.IsSlice}}
+    __{{$field.Data.Name}}Slice := {{$root.Data.Name}}Viewer{{$field.Data.Name}}(viewer, reader)
+    __{{$field.Data.Name}}Len := len(__{{$field.Data.Name}}Slice)
+    __{{$field.Data.Name}}Size := {{$field.Data.Size.Allocation}} * __{{$field.Data.Name}}Len
+    if __{{$field.Data.Name}}Len > cap(x.{{$field.Data.Name}}) {
+        __{{$field.Data.Name}}Realloc := make([dynamic]{{ToPlainType $field.Data.Type}}, __{{$field.Data.Name}}Len)
+        if x.{{$field.Data.Name}} != nil {
+            for _, i in  x.{{$field.Data.Name}} {
+                __{{$field.Data.Name}}Realloc[i] = x.{{$field.Data.Name}}[i]
+            }
+            delete(x.{{$field.Data.Name}})
+        }
+        x.{{$field.Data.Name}} = __{{$field.Data.Name}}Realloc
+    }
+    if x.{{$field.Data.Name}} != nil {
+        (cast(^[3]int)(&x.{{$field.Data.Name}}))[1] = __{{$field.Data.Name}}Len
+    }
+        {{- else}}
+    __{{$field.Data.Name}}Slice := {{$root.Data.Name}}Viewer{{$field.Data.Name}}(viewer)
+    __{{$field.Data.Name}}Len := len(__{{$field.Data.Name}}Slice)
+        {{- end }}
+        {{- if $field.Data.Type.IsNative}}
+    for _, i in x.{{$field.Data.Name}} {
+        if i >= __{{$field.Data.Name}}Len {
+            x.{{$field.Data.Name}}[i] = {{ToDefault $field.Data.Type}}
+        } else {
+            x.{{$field.Data.Name}}[i] = __{{$field.Data.Name}}Slice[i]
+        }
+    }
+        {{- else}}
+    for _, i in x.{{$field.Data.Name}} {
+        if i >= __{{$field.Data.Name}}Len {
+            {{ToPlainType $field.Data.Type}}Reset(&x.{{$field.Data.Name}}[i])
+        } else {
+            {{ToPlainType $field.Data.Type}}Read(&x.{{$field.Data.Name}}[i], &__{{$field.Data.Name}}Slice[i], reader)
+        }
+    }
+        {{- end }}
+    {{- end }}
+        {{- end}}
+    {{- end }}
+}
+{{- end }}
+{{end}}
+
+
+
+{{define "struct_builder"}}
+    {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+    {{- range $root := .Structs}}
+{{$root.Data.Name}}Viewer :: struct #packed {
+    _data: [{{$root.Data.Size.Total}}]byte
+}
+
+New{{$root.Data.Name}}Viewer :: #force_inline proc(reader: ^karmem.Reader, offset: u32) -> ^{{$root.Data.Name}}Viewer  #no_bounds_check {
+    if karmem.ReaderIsValidOffset(reader, offset, {{$root.Data.Size.Minimum}}) == false {
+        return (^{{$root.Data.Name}}Viewer)(&_Null)
+    }
+    v := cast(^{{$root.Data.Name}}Viewer)(mem.ptr_offset(cast([^]u8)(reader.pointer), offset))
+{{- if $root.Data.IsTable}}
+    if karmem.ReaderIsValidOffset(reader, offset, {{$root.Data.Name}}ViewerSize(v)) == false {
+        return (^{{$root.Data.Name}}Viewer)(&_Null)
+    }
+{{- end}}
+    return v
+}
+
+{{$root.Data.Name}}ViewerSize :: #force_inline proc(x: ^{{$root.Data.Name}}Viewer) -> u32 #no_bounds_check {
+{{- if $root.Data.IsTable}}
+    return ((^u32)(x))^
+{{- else}}
+    return {{$root.Data.Size.Total}}
+{{- end }}
+}
+
+{{- range $field := $root.Data.Fields }}
+{{$root.Data.Name}}Viewer{{$field.Data.Name}} :: #force_inline proc(x: ^{{$root.Data.Name}}Viewer, {{- if not $field.Data.Type.IsInline}}reader: ^karmem.Reader{{- end}}) -> {{ToTypeView $field.Data.Type}} #no_bounds_check {
+    {{- if $root.Data.IsTable}}
+    if {{$field.Data.Offset}} + {{$field.Data.Size.Field}} > {{$root.Data.Name}}ViewerSize(x) {
+    {{- if or (and $field.Data.Type.IsBasic $field.Data.Type.IsNative) (or $field.Data.Type.IsString $field.Data.Type.IsEnum) }}
+        {{- if $field.Data.Type.IsEnum}}
+        return {{ToTypeView $field.Data.Type}}({{ToDefault $field.Data.Type}})
+        {{- else }}
+        return {{ToDefault $field.Data.Type}}
+        {{- end }}
+    {{- else}}
+        {{- if or $field.Data.Type.IsSlice $field.Data.Type.IsArray}}
+        return {{ToTypeView $field.Data.Type}}{}
+        {{- else }}
+        return (^{{ToPlainType $field.Data.Type}}Viewer)(&_Null)
+        {{- end }}
+    {{- end}}
+    }
+    {{- end}}
+
+    {{- if $field.Data.Type.IsInline}}
+        {{- if not $field.Data.Type.IsArray}}
+            {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
+    return ((^{{ToTypeView $field.Data.Type}})(mem.ptr_offset(cast([^]u8)(x), {{$field.Data.Offset}})))^
+            {{- else}}
+    return (({{ToTypeView $field.Data.Type}})(mem.ptr_offset(cast([^]u8)(x), {{$field.Data.Offset}})))
+            {{- end}}
+        {{- else}}
+    slice := [2]int{ 0, {{$field.Data.Type.Length}}}
+    (cast(^rawptr)(&slice[0]))^ = rawptr(mem.ptr_offset(cast([^]u8)(x), {{$field.Data.Offset}}))
+
+    return ((^{{ToTypeView $field.Data.Type}})(&slice))^
+        {{- end}}
+    {{- else }}
+    offset := ((^u32)(mem.ptr_offset(cast([^]u8)(x), {{$field.Data.Offset}})))^
+        {{- if $field.Data.Type.IsSlice}}
+    size := ((^u32)(mem.ptr_offset(cast([^]u8)(x), {{$field.Data.Offset}} + 4)))^
+    if karmem.ReaderIsValidOffset(reader, offset, size) == false {
+    {{- if $field.Data.Type.IsString }}
+        return ""
+    {{- else}}
+        return {{ToTypeView $field.Data.Type}}{}
+    {{- end}}
+    }
+    length := uint(size / {{$field.Data.Size.Allocation}})
+    {{- if $field.Data.Type.IsLimited }}
+    if length > {{$field.Data.Type.Length}} {
+        length = {{$field.Data.Type.Length}}
+    }
+    if length == 0 {
+    {{- if $field.Data.Type.IsString }}
+        return ""
+    {{- else}}
+        return {{ToTypeView $field.Data.Type}}{}
+    {{- end}}
+    }
+    {{- end }}
+    slice := [2]uint{0, length}
+    (cast(^rawptr)(&slice[0]))^ = rawptr(mem.ptr_offset(cast([^]u8)(reader.pointer), offset))
+    return (cast(^{{ToTypeView $field.Data.Type}})(&slice))^
+        {{- else}}
+    return New{{ToType $field.Data.Type}}Viewer(reader, offset)
+        {{- end}}
+    {{- end}}
+}
+{{- end}}
+
+    {{- end }}
+{{end}}

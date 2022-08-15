@@ -1,0 +1,44 @@
+image: ubuntu/lts
+shell: true
+packages:
+  - curl
+  - clang
+  - tar
+  - wget
+  - dpkg
+  - git
+  - diffutils
+  - bzip2
+  - lld
+  - llvm
+  - unzip
+  - llvm-11
+sources:
+  - https://github.com/inkeliz/karmem
+  - https://github.com/emscripten-core/emsdk
+environment:
+  PATH: /home/build/sdk/go/bin:/home/build/go/bin:/usr/bin:/usr/local/bin/:/usr/local/bin/tinygo:/usr/local/lib/tinygo:/home/build/emsdk:/home/build/emsdk/upstream/emscripten:$PATH
+  GOROOT: /home/build/sdk/go
+secret:
+  - 66c957f4-6e1b-4e45-864e-d96582c443b2
+tasks:
+  - allow_ssh: |
+      mkdir -p ~/.ssh
+      touch ~/.ssh/authorized_keys
+      echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGeyBRVA3mwtptbxaOMokWvNNB8pv2k9Dmonb1zGxucz ed25519-key-20200515" > ~/.ssh/authorized_keys
+  - install_go: |
+      mkdir -p ~/sdk
+      wget -q https://dl.google.com/go/go1.18.4.linux-amd64.tar.gz
+      tar -xzf go1.18.4.linux-amd64.tar.gz -C ~/sdk
+  - install_odin: |
+      wget https://github.com/odin-lang/Odin/releases/download/dev-2022-08/odin-ubuntu-amd64-dev-2022-08.zip
+      unzip odin-ubuntu-amd64-dev-2022-08.zip
+      chmod -R 0777 .
+  - clear: |
+      rm -r ~/karmem/benchmark/testdata/wasi/*
+  - test_odin: |
+      cd karmem/benchmark
+      ~/odin build . -target:wasi_wasm32 -extra-linker-flags:"--lto-O3 --gc-sections -o "testdata/wasi/odin.wasi""
+      go test -tags wasi,wazero,odin,km -v -bench=.
+  - exit: |
+      exit

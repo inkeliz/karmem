@@ -3,39 +3,52 @@ package main
 import "../odin/karmem"
 import "./km"
 import "core:runtime"
+import "core:mem"
 
 InputMemory := [8_000_000]u8{}
 OutputMemory := [8_000_000]u8{}
+
+HeapMemory := [64_000_000]u8{}
+HeapArena : mem.Arena
+HeapAllocator : mem.Allocator
 
 KarmemReader : karmem.Reader
 KarmemWriter : karmem.Writer
 KarmemStruct : km.Monsters
  
 main :: proc () {
-    KarmemStruct = km.NewMonsters()
-    KarmemReader = karmem.NewReaderArray(cast([^]u8)(&InputMemory[0]), 8_000_000)
-    KarmemWriter = karmem.NewFixedWriterArray(cast([^]u8)(&OutputMemory[0]), 8_000_000)
+    mem.init_arena(&HeapArena, HeapMemory[:])
+    HeapAllocator = mem.arena_allocator(&HeapArena)
+
+    context.allocator = HeapAllocator
+
+    KarmemStruct = km.NewMonsters()    
+    KarmemReader = karmem.NewReaderArray(InputMemory[:])
+    KarmemWriter = karmem.NewFixedWriterArray(OutputMemory[:], 8_000_000)
 }
 
 @export
 InputMemoryPointer :: proc "c" () -> u32 {
     context = runtime.default_context()
+    context.allocator = HeapAllocator
 
-    ptr := rawptr(&InputMemory)
+    ptr := rawptr(&InputMemory[0])
     return (cast(^u32)(&ptr))^
 }
 
 @export
 OutputMemoryPointer :: proc "c" () -> u32 {
     context = runtime.default_context()
+    context.allocator = HeapAllocator
 
-    ptr := rawptr(&OutputMemory)
+    ptr := rawptr(&OutputMemory[0])
     return (cast(^u32)(&ptr))^
 }
 
 @export
 KBenchmarkEncodeObjectAPI :: proc "c" () {
     context = runtime.default_context()
+    context.allocator = HeapAllocator
 
     karmem.WriterReset(&KarmemWriter)
     km.MonstersWriteAsRoot(&KarmemStruct, &KarmemWriter)
@@ -44,6 +57,7 @@ KBenchmarkEncodeObjectAPI :: proc "c" () {
 @export
 KBenchmarkDecodeObjectAPI :: proc "c" (size: u32) {
     context = runtime.default_context()
+    context.allocator = HeapAllocator
 
     karmem.ReaderSetSize(&KarmemReader, size)
     km.MonstersReadAsRoot(&KarmemStruct, &KarmemReader)
@@ -52,6 +66,7 @@ KBenchmarkDecodeObjectAPI :: proc "c" (size: u32) {
 @export
 KBenchmarkDecodeSumVec3 :: proc "c" (size: u32) -> f32 #no_bounds_check {
     context = runtime.default_context()
+    context.allocator = HeapAllocator
 
     karmem.ReaderSetSize(&KarmemReader, size)
 

@@ -1,5 +1,6 @@
-//go:build wazero || wasmer
-// +build wazero wasmer
+//go:build (wazero || wasmer || tcp) && !nobench
+// +build wazero wasmer tcp
+// +build !nobench
 
 package main
 
@@ -14,14 +15,14 @@ func init() {
 
 func BenchmarkDecodeSumVec3(b *testing.B) {
 	encoded := encode()
-	m := initWasm(b, "KBenchmarkDecodeSumVec3", "KBenchmarkDecodeObjectAPI")
+	m := initBridge(b, "KBenchmarkDecodeSumVec3", "KBenchmarkDecodeObjectAPI")
 	defer m.Close()
 
 	if !m.Write(encoded) {
 		b.Fatal("invalid memory ptr")
 	}
 
-	if _, err := m.Run("KBenchmarkDecodeObjectAPI", uint64(len(encoded))); err != nil {
+	if _, err := m.Run(FunctionKBenchmarkDecodeObjectAPI, uint64(len(encoded))); err != nil {
 		b.Fatal(err)
 	}
 
@@ -29,7 +30,7 @@ func BenchmarkDecodeSumVec3(b *testing.B) {
 	b.ReportAllocs()
 	l := uint64(len(encoded))
 	for i := 0; i < b.N; i++ {
-		sum, err := m.Run("KBenchmarkDecodeSumVec3", l)
+		sum, err := m.Run(FunctionKBenchmarkDecodeSumVec3, l)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -41,7 +42,7 @@ func BenchmarkDecodeSumVec3(b *testing.B) {
 
 func BenchmarkDecodeObjectAPI(b *testing.B) {
 	encoded := encode()
-	m := initWasm(b, "KBenchmarkDecodeObjectAPI")
+	m := initBridge(b, "KBenchmarkDecodeObjectAPI")
 	defer m.Close()
 
 	b.ResetTimer()
@@ -51,7 +52,7 @@ func BenchmarkDecodeObjectAPI(b *testing.B) {
 		if !m.Write(encoded) {
 			b.Fatal("invalid memory ptr")
 		}
-		_, err := m.Run("KBenchmarkDecodeObjectAPI", l)
+		_, err := m.Run(FunctionKBenchmarkDecodeObjectAPI, l)
 		if err != nil {
 			b.Fatal("x", err)
 		}
@@ -59,18 +60,21 @@ func BenchmarkDecodeObjectAPI(b *testing.B) {
 }
 
 func BenchmarkEncodeObjectAPI(b *testing.B) {
-	m := initWasm(b, "KBenchmarkEncodeObjectAPI", "KBenchmarkDecodeObjectAPI")
+	m := initBridge(b, "KBenchmarkEncodeObjectAPI", "KBenchmarkDecodeObjectAPI")
 	defer m.Close()
 	encoded := encode()
 	m.Write(encoded)
-	m.Run("KBenchmarkDecodeObjectAPI", uint64(len(encoded)))
+	m.Run(FunctionKBenchmarkDecodeObjectAPI, uint64(len(encoded)))
 
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		_, err := m.Run("KBenchmarkEncodeObjectAPI")
+		_, err := m.Run(FunctionKBenchmarkEncodeObjectAPI)
 		if err != nil {
 			b.Fatal("x", err)
 		}
+		b.StopTimer()
+		m.Reader(uint32(len(InputMemory)))
+		b.StartTimer()
 	}
 }

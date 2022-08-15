@@ -1,19 +1,21 @@
-//go:build !fbs && (wazero || wasmer)
+//go:build !fbs && (wazero || wasmer || tcp) && !nofuzz
 // +build !fbs
-// +build wazero wasmer
+// +build wazero wasmer tcp
+// +build !nofuzz
 
 package main
 
 import (
-	"benchmark.karmem.org/km"
 	"crypto/rand"
+	"math"
+	"math/big"
+	"testing"
+
+	"benchmark.karmem.org/km"
 	fuzz "github.com/google/gofuzz"
 	"github.com/r3labs/diff/v3"
 	"golang.org/x/crypto/blake2b"
 	karmem "karmem.org/golang"
-	"math"
-	"math/big"
-	"testing"
 )
 
 func init() {
@@ -38,7 +40,7 @@ func (e *Entropy) Int63() int64 {
 func (e *Entropy) Seed(seed int64) { return }
 
 func FuzzContent(f *testing.F) {
-	m := initWasm(f, "KBenchmarkEncodeObjectAPI", "KBenchmarkDecodeObjectAPI")
+	m := initBridge(f, "KBenchmarkEncodeObjectAPI", "KBenchmarkDecodeObjectAPI")
 	defer func() {
 		if err := m.Close(); err != nil {
 			f.Fatal(err)
@@ -67,12 +69,12 @@ func FuzzContent(f *testing.F) {
 		}
 		m.Write(encoded)
 
-		_, err := m.Run("KBenchmarkDecodeObjectAPI", uint64(len(encoded)))
+		_, err := m.Run(FunctionKBenchmarkDecodeObjectAPI, uint64(len(encoded)))
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		_, err = m.Run("KBenchmarkEncodeObjectAPI")
+		_, err = m.Run(FunctionKBenchmarkEncodeObjectAPI)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -102,8 +104,10 @@ func FuzzContent(f *testing.F) {
 	})
 }
 
+var x uint64 = 0
+
 func FuzzRandom(f *testing.F) {
-	m := initWasm(f, "KBenchmarkEncodeObjectAPI", "KBenchmarkDecodeObjectAPI")
+	m := initBridge(f, "KBenchmarkEncodeObjectAPI", "KBenchmarkDecodeObjectAPI")
 	defer func() {
 		if err := m.Close(); err != nil {
 			f.Fatal(err)
@@ -120,7 +124,7 @@ func FuzzRandom(f *testing.F) {
 			t.Fatal("impossible to write")
 		}
 		m.ReaderReset(clear)
-		if _, err := m.Run("KBenchmarkDecodeObjectAPI", uint64(len(b))); err != nil {
+		if _, err := m.Run(FunctionKBenchmarkDecodeObjectAPI, uint64(len(b))); err != nil {
 			t.Fatal(err)
 		}
 	})

@@ -3,8 +3,9 @@ package kmgen
 import (
 	"embed"
 	"io"
-	"karmem.org/cmd/karmem/kmparser"
 	"text/template"
+
+	"karmem.org/cmd/karmem/kmparser"
 )
 
 //go:embed *_template.*
@@ -36,6 +37,7 @@ type TemplateFunctions struct {
 	FromTags func(s string) string
 
 	ToDefault       func(typ kmparser.Type) string
+	ToPlainDefault  func(typ kmparser.Type) string
 	ToType          func(typ kmparser.Type) string
 	ToPlainType     func(typ kmparser.Type) string
 	ToTypeView      func(typ kmparser.Type) string
@@ -79,7 +81,8 @@ func NewTemplate(modules []string, funcs TemplateFunctions, pattern ...string) (
 		t = t.Funcs(template.FuncMap{
 			"FromTags": funcs.FromTags,
 
-			"ToDefault": funcs.ToDefault,
+			"ToDefault":      funcs.ToDefault,
+			"ToPlainDefault": funcs.ToPlainDefault,
 
 			"ToPlainType":     funcs.ToPlainType,
 			"ToType":          funcs.ToType,

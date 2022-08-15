@@ -1,0 +1,328 @@
+{{- define "header"}}
+using global::System.Reflection;
+using global::System.Runtime.CompilerServices;
+using global::System.Runtime.InteropServices;
+using global::Karmem;
+
+namespace {{FromTags "package"}};
+
+internal static unsafe class _Globals
+{
+    private static long _largest = {{.Size.Largest}};
+    private static void* _null = null;
+    private static Karmem.Reader? _nullReader = null;
+
+    public static void* Null()
+    {
+        if (_null == null)
+        {
+            var n = Marshal.AllocHGlobal((int)_largest);
+            Unsafe.InitBlockUnaligned(n.ToPointer(), 0, (uint)_largest);
+            _null = n.ToPointer();
+        }
+        return _null;
+    }
+    public static Karmem.Reader NullReader()
+    {
+        _nullReader ??= Karmem.Reader.NewReader(new IntPtr(Null()), _largest, _largest);
+        return _nullReader.Value;
+    }
+}
+{{end}}
+
+{{define "enums"}}
+    {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+    {{- range $root := .Enums}}
+public enum {{$root.Data.Name}} : {{ToType $root.Data.Type}} {
+    {{- range $enum := $root.Data.Fields}}
+    {{$enum.Data.Name}} = {{$enum.Data.Value}},
+    {{- end}}
+}
+    {{end}}
+{{end}}
+
+{{define "enums_builder"}}
+    {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+
+{{end}}
+
+{{define "struct"}}
+{{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+
+public enum PacketIdentifier : ulong {
+{{- range $root := .Structs}}
+    {{$root.Data.Name}} = {{$root.Data.ID}},
+{{- end }}
+}
+    {{range $root := .Structs}}
+public unsafe struct {{$root.Data.Name}} {
+    {{- range $field := $root.Data.Fields }}
+    public {{ToType $field.Data.Type}} _{{ $field.Data.Name }} = {{ToDefault $field.Data.Type}};
+    {{- end }}
+
+    public {{$root.Data.Name}}() {}
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static {{$root.Data.Name}} New{{$root.Data.Name}}() {
+        return new {{$root.Data.Name}}();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static PacketIdentifier GetPacketIdentifier() {
+        return PacketIdentifier.{{$root.Data.Name}};
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Reset() {
+        this.ReadAsRoot(_Globals.NullReader());
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool WriteAsRoot(Karmem.Writer writer) {
+        return this.Write(writer, 0);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Write(Karmem.Writer writer, uint start) {
+        var offset = start;
+        var size = (uint){{$root.Data.Size.Total}};
+        if (offset == 0) {
+            offset = writer.Alloc(size);
+            if (offset == uint.MaxValue) {
+                return false;
+            }
+        }
+
+    {{- if $root.Data.IsTable}}
+        writer.WriteAt(offset, (uint){{$root.Data.Size.Content}});
+    {{- end}}
+
+    {{- range $field := $root.Data.Fields }}
+        {{- if not $field.Data.Type.IsInline}}
+            {{- if $field.Data.Type.IsBasic}}
+        var __{{$field.Data.Name}}Size = (uint){{$field.Data.Size.Allocation}};
+            {{- else}}
+            {{- if $field.Data.Type.IsString}}
+        var __{{$field.Data.Name}}Size = (uint)(4 * this._{{$field.Data.Name}}.Length);
+            {{- else}}
+        var __{{$field.Data.Name}}Size = (uint)({{$field.Data.Size.Allocation}} * this._{{$field.Data.Name}}.Count);
+            {{- end}}
+            {{- end}}
+        {{- end }}
+        {{- if $field.Data.Type.IsInline }}
+        var __{{$field.Data.Name}}Offset = offset+{{$field.Data.Offset}};
+        {{- else }}
+        var __{{$field.Data.Name}}Offset = writer.Alloc(__{{$field.Data.Name}}Size);
+        if (offset == uint.MaxValue) {
+            return false;
+        }
+        writer.WriteAt(offset+{{$field.Data.Offset}}, (uint)__{{$field.Data.Name}}Offset);
+            {{- if $field.Data.Type.IsSlice}}
+                {{- if (not $field.Data.Type.IsString)}}
+        writer.WriteAt(offset+{{$field.Data.Offset}} + 4, (uint)__{{$field.Data.Name}}Size);
+                {{- end}}
+        writer.WriteAt(offset+{{$field.Data.Offset}} + 4 + 4, (uint){{$field.Data.Size.Allocation}});
+            {{- end }}
+        {{- end }}
+        {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
+            {{- if $field.Data.Type.IsInline}}
+                {{- if $field.Data.Type.IsArray }}
+        for (var i = 0; i < {{$field.Data.Type.Length}}; i++) {
+            if (i < this._{{$field.Data.Name}}.Count) {
+                writer.WriteAt(__{{$field.Data.Name}}Offset, this._{{$field.Data.Name}}[i]);
+            } else {
+                writer.WriteAt(__{{$field.Data.Name}}Offset, {{ToPlainDefault $field.Data.Type}});
+            }
+            __{{$field.Data.Name}}Offset += {{$field.Data.Size.Allocation}};
+        }
+                {{- else }}
+            {{- if $field.Data.Type.IsEnum }}
+        writer.WriteAt(__{{$field.Data.Name}}Offset, (long)this._{{$field.Data.Name}});
+            {{- else }}
+        writer.WriteAt(__{{$field.Data.Name}}Offset, this._{{$field.Data.Name}});
+            {{- end }}
+                {{- end}}
+            {{- else}}
+                    {{- if $field.Data.Type.IsString}}
+        var __{{$field.Data.Name}}StringSize = writer.WriteAt(__{{$field.Data.Name}}Offset, this._{{$field.Data.Name}});
+        writer.WriteAt(offset+{{$field.Data.Offset}} + 4, (uint)__{{$field.Data.Name}}StringSize);
+                    {{- else}}
+        for (var i = 0; i < this._{{$field.Data.Name}}.Count; i++) {
+            writer.WriteAt(__{{$field.Data.Name}}Offset, this._{{$field.Data.Name}}[i]);
+            __{{$field.Data.Name}}Offset += {{$field.Data.Size.Allocation}};
+        }
+                    {{- end}}
+            {{- end}}
+        {{- else }}
+            {{- if $field.Data.Type.IsBasic}}
+            if (!this._{{$field.Data.Name}}.Write(writer, __{{$field.Data.Name}}Offset)) {
+                return false;
+            }
+            {{- else}}
+            for (var i = 0; i < this._{{$field.Data.Name}}.Count; i++) {
+                if (!this._{{$field.Data.Name}}[i].Write(writer, __{{$field.Data.Name}}Offset)) {
+                    return false;
+                }
+                __{{$field.Data.Name}}Offset += {{$field.Data.Size.Allocation}};
+            }
+            {{- end}}
+        {{- end}}
+
+    {{- end}}
+
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReadAsRoot(Karmem.Reader reader) {
+        this.Read({{$root.Data.Name}}Viewer.New{{$root.Data.Name}}Viewer(reader, 0), reader);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Read({{$root.Data.Name}}Viewer viewer, Karmem.Reader reader) {
+{{- range $field := $root.Data.Fields }}
+{{- if $field.Data.Type.IsBasic}}
+    {{- if $field.Data.Type.IsEnum}}
+        this._{{$field.Data.Name}} = ({{ToType $field.Data.Type}})(viewer.{{$field.Data.Name}}());
+    {{- else}}
+        {{- if $field.Data.Type.IsNative}}
+        this._{{$field.Data.Name}} = viewer.{{$field.Data.Name}}();
+        {{- else}}
+        this._{{$field.Data.Name}}.Read(viewer.{{$field.Data.Name}}({{- if not $field.Data.Type.IsInline}}reader{{- end}}), reader);
+        {{- end}}
+    {{- end}}
+{{- else}}
+    {{- if $field.Data.Type.IsBasic}}
+        this._{{$field.Data.Name}}.Read(viewer.{{$field.Data.Name}}(reader), reader);
+    {{- end}}
+    {{- if $field.Data.Type.IsString}}
+        this._{{$field.Data.Name}} = viewer.{{$field.Data.Name}}(reader);
+    {{- else}}
+        {{- if $field.Data.Type.IsSlice}}
+        var __{{$field.Data.Name}}Slice = viewer.{{$field.Data.Name}}(reader);
+        var __{{$field.Data.Name}}Len = __{{$field.Data.Name}}Slice.Length;
+        {{- else}}
+        var __{{$field.Data.Name}}Slice = viewer.{{$field.Data.Name}}();
+        var __{{$field.Data.Name}}Len = __{{$field.Data.Name}}Slice.Length;
+        {{- end }}
+        if (this._{{$field.Data.Name}}.Count != __{{$field.Data.Name}}Len) {
+            if (__{{$field.Data.Name}}Len > this._{{$field.Data.Name}}.Capacity) {
+                this._{{$field.Data.Name}}.EnsureCapacity(__{{$field.Data.Name}}Len);
+                for (var i = this._{{$field.Data.Name}}.Count; i < __{{$field.Data.Name}}Len; i++) {
+                    this._{{$field.Data.Name}}.Add({{ToPlainDefault $field.Data.Type}});
+                }
+            }
+            this._{{$field.Data.Name}}.GetType().GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField).SetValue(this._{{$field.Data.Name}}, __{{$field.Data.Name}}Len);
+        }
+        {{- if $field.Data.Type.IsNative}}
+        for (var i = 0; i < __{{$field.Data.Name}}Len; i++) {
+            this._{{$field.Data.Name}}[i] = __{{$field.Data.Name}}Slice[i];
+        }
+        {{- else}}
+        var __{{$field.Data.Name}}Span = CollectionsMarshal.AsSpan(this._{{$field.Data.Name}});
+        for (var i = 0; i < __{{$field.Data.Name}}Len; i++) {
+            ref var __{{$field.Data.Name}}Item = ref __{{$field.Data.Name}}Span[i];
+            __{{$field.Data.Name}}Item.Read(__{{$field.Data.Name}}Slice[i], reader);
+        }
+        {{- end }}
+    {{- end }}
+{{- end}}
+{{- end }}
+    }
+}
+    {{- end }}
+{{end}}
+
+
+
+{{define "struct_builder"}}
+    {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
+    {{- range $root := .Structs}}
+[StructLayout(LayoutKind.Sequential, Pack=0, Size={{$root.Data.Size.Total}})]
+public unsafe struct {{$root.Data.Name}}Viewer {
+    {{- range $key, $padding := $root.Data.Size.TotalGroup }}
+    private readonly long _{{$key}};
+    {{- end}}
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ref {{$root.Data.Name}}Viewer New{{$root.Data.Name}}Viewer(Karmem.Reader reader, uint offset) {
+        if (!reader.IsValidOffset(offset, {{$root.Data.Size.Minimum}})) {
+            return ref *({{$root.Data.Name}}Viewer*)(nuint)_Globals.Null();
+        }
+        ref {{$root.Data.Name}}Viewer v = ref *({{$root.Data.Name}}Viewer*)(reader.MemoryPointer + offset);
+        {{- if $root.Data.IsTable}}
+        if (!reader.IsValidOffset(offset, v.KarmemSizeOf())) {
+            return ref *({{$root.Data.Name}}Viewer*)(nuint)_Globals.Null();
+        }
+        {{- end}}
+        return ref v;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private uint KarmemSizeOf() {
+        {{- if $root.Data.IsTable}}
+        return *(uint*)Unsafe.AsPointer(ref this);
+        {{- else}}
+        return {{$root.Data.Size.Total}};
+        {{- end }}
+    }
+
+    {{- range $field := $root.Data.Fields }}
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public {{- if not (or (or $field.Data.Type.IsSlice $field.Data.Type.IsArray) (or $field.Data.Type.IsNative $field.Data.Type.IsEnum)) }} ref{{- end}} {{ToTypeView $field.Data.Type}} {{$field.Data.Name}}({{- if not $field.Data.Type.IsInline}}Karmem.Reader reader{{- end}}) {
+    {{- if $root.Data.IsTable}}
+        if ({{$field.Data.Offset}} + {{$field.Data.Size.Field}} > this.KarmemSizeOf()) {
+        {{- if or (and $field.Data.Type.IsBasic $field.Data.Type.IsNative) (or $field.Data.Type.IsString $field.Data.Type.IsEnum) }}
+            return {{ToDefault $field.Data.Type}};
+        {{- else}}
+            {{- if or $field.Data.Type.IsSlice $field.Data.Type.IsArray}}
+            return new {{ToTypeView $field.Data.Type}}();
+            {{- else }}
+            return ref *({{ToTypeView $field.Data.Type}}*)((nuint)_Globals.Null());
+            {{- end }}
+        {{- end}}
+        }
+    {{- end}}
+
+    {{- if $field.Data.Type.IsInline}}
+        {{- if not $field.Data.Type.IsArray}}
+            {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
+        return *({{ToTypeView $field.Data.Type}}*)((nuint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}});
+            {{- else}}
+        return ref *({{ToTypeView $field.Data.Type}}*)((nuint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}});
+            {{- end}}
+        {{- else}}
+        return new {{ToTypeView $field.Data.Type}}((void*)((nuint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}}), {{$field.Data.Type.Length}});
+        {{- end}}
+    {{- else }}
+        var offset = *(uint*)((nuint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}});
+        {{- if $field.Data.Type.IsSlice}}
+        var size = *(uint*)((nuint)Unsafe.AsPointer(ref this) + {{$field.Data.Offset}} + 4);
+        if (!reader.IsValidOffset(offset, size)) {
+        {{- if $field.Data.Type.IsString }}
+            return "";
+        {{- else}}
+            return new {{ToTypeView $field.Data.Type}}();
+        {{- end}}
+        }
+        var length = size / {{$field.Data.Size.Allocation}};
+
+        {{- if $field.Data.Type.IsLimited }}
+        if (length > {{$field.Data.Type.Length}}) {
+            length = {{$field.Data.Type.Length}};
+        }
+        {{- end }}
+        {{- if $field.Data.Type.IsString}}
+        return Marshal.PtrToStringUTF8((IntPtr)(reader.Memory.ToInt64() + offset), (int)length);
+        {{- else}}
+        return new {{ToTypeView $field.Data.Type}}((void*)(reader.MemoryPointer + offset), (int)length);
+        {{- end}}
+        {{- else}}
+        return ref {{ToType $field.Data.Type}}Viewer.New{{ToType $field.Data.Type}}Viewer(reader, offset);
+        {{- end}}
+    {{- end}}
+    }
+{{- end}}
+}
+    {{ end }}
+{{end}}

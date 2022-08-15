@@ -25,7 +25,7 @@ typedef struct {
     uint8_t _data[16];
 } Vec3Viewer;
 
-uint8_t Vec3ViewerSize(Vec3Viewer * x) {
+uint32_t Vec3ViewerSize(Vec3Viewer * x) {
     return 16;
 }
 
@@ -59,7 +59,7 @@ typedef struct {
     uint8_t _data[16];
 } WeaponDataViewer;
 
-uint8_t WeaponDataViewerSize(WeaponDataViewer * x) {
+uint32_t WeaponDataViewerSize(WeaponDataViewer * x) {
     uint32_t r;
     memcpy(&r, x, 4);
     return r;
@@ -98,7 +98,7 @@ typedef struct {
     uint8_t _data[8];
 } WeaponViewer;
 
-uint8_t WeaponViewerSize(WeaponViewer * x) {
+uint32_t WeaponViewerSize(WeaponViewer * x) {
     return 8;
 }
 
@@ -120,7 +120,7 @@ typedef struct {
     uint8_t _data[152];
 } MonsterDataViewer;
 
-uint8_t MonsterDataViewerSize(MonsterDataViewer * x) {
+uint32_t MonsterDataViewerSize(MonsterDataViewer * x) {
     uint32_t r;
     memcpy(&r, x, 4);
     return r;
@@ -343,7 +343,7 @@ typedef struct {
     uint8_t _data[8];
 } MonsterViewer;
 
-uint8_t MonsterViewerSize(MonsterViewer * x) {
+uint32_t MonsterViewerSize(MonsterViewer * x) {
     return 8;
 }
 
@@ -365,7 +365,7 @@ typedef struct {
     uint8_t _data[24];
 } MonstersViewer;
 
-uint8_t MonstersViewerSize(MonstersViewer * x) {
+uint32_t MonstersViewerSize(MonstersViewer * x) {
     uint32_t r;
     memcpy(&r, x, 4);
     return r;

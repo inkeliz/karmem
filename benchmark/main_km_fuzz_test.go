@@ -1,5 +1,5 @@
-//go:build km
-// +build km
+//go:build km && !nofuzz
+// +build km,!nofuzz
 
 package main
 

@@ -7,18 +7,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
 	"github.com/tetratelabs/wazero/wasi_snapshot_preview1"
 	"golang.org/x/text/encoding/unicode"
-	"os"
-	"path/filepath"
 )
 
-func initWasm(b interface {
+func initBridge(b interface {
 	Error(...any)
 	Fatal(...any)
-}, fn ...string) Wasm {
+}, fn ...string) Bridge {
 	w := &WasmWazero{}
 	var err error
 	w.runtime = wazero.NewRuntimeWithConfig(wazero.NewRuntimeConfigCompiler().WithWasmCore2())
@@ -135,10 +136,10 @@ func (w *WasmWazero) ReaderReset(b []byte) {
 	w.mainModule.Memory().Write(context.Background(), uint32(w.output), b)
 }
 
-func (w *WasmWazero) Run(s string, v ...uint64) ([]uint64, error) {
-	f, ok := w.functions[s]
+func (w *WasmWazero) Run(s Functions, v ...uint64) ([]uint64, error) {
+	f, ok := w.functions[s.String()]
 	if !ok || f == nil {
-		return nil, errors.New("invalid function of " + s)
+		return nil, errors.New("invalid function of " + s.String())
 	}
 	return f.Call(context.Background(), v...)
 }

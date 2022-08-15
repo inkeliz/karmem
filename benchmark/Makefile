@@ -1,5 +1,6 @@
 flatbuffers:
 	flatc -g --gen-object-api --gen-onefile --no-includes --go-namespace "fbs" -o "fbs" testdata/game.fbs
+	flatc -g --gen-object-api --gen-onefile --no-includes --go-namespace "fbs" -o "fbs" testdata/game.fbs
 
 karmem:
 	go run karmem.org/cmd/karmem build --golang -o "km" testdata/game.km
@@ -7,6 +8,7 @@ karmem:
 	go run karmem.org/cmd/karmem build --zig -o "km" testdata/game.km
 	go run karmem.org/cmd/karmem build --swift -o "km" testdata/game.km
 	go run karmem.org/cmd/karmem build --c -o "km" testdata/game.km
+	go run karmem.org/cmd/karmem build --dotnet -o "km" testdata/game.km
 	go run karmem.org/cmd/karmem build --odin -o "km" testdata/game.km
 
 native: karmem
@@ -45,6 +47,16 @@ swiftwasm: karmem
 	xcrun --toolchain swiftwasm swiftc -L ".build/wasm32-unknown-wasi/release" -o "testdata/wasi/swift.wasi" -module-name benchmark -emit-executable @.build/wasm32-unknown-wasi/release/benchmark.product/Objects.LinkFileList -target wasm32-unknown-wasi -sdk /Library/Developer/Toolchains/swift-wasm-5.6.0-RELEASE.xctoolchain/usr/share/wasi-sysroot -L /Library/Developer/Toolchains/swift-wasm-5.6.0-RELEASE.xctoolchain/usr/lib -O -Xlinker "--export=_start" -Xlinker "--export=InputMemoryPointer" -Xlinker "--export=OutputMemoryPointer" -Xlinker "--export=KBenchmarkEncodeObjectAPI"  -Xlinker "--export=KBenchmarkDecodeObjectAPI" -Xlinker "--export=KBenchmarkDecodeSumVec3"
 	go test -tags wasi,wazero,km,swift -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-swift-km.out
 
+dotnet: karmem
+	dotnet build -p:IS_WASM=true -p:IS_KARMEM=true -o "testdata/wasi" "dotnet"
+	go test -tags wasi,wazero,km,dotnet,nofuzz -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 30m . > result/wasi-dotnet-km.out
+
+	# dotnet build -p:IS_WASM=false -p:IS_KARMEM=true -o "testdata/wasi" "dotnet"
+	# go test -tags tcp,km,dotnet -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 30m . > result/tcp-dotnet-km.out
+
+	# dotnet build -p:IS_WASM=false -p:IS_FLATBUFFERS=true -p:BYTEBUFFER_NO_BOUNDS_CHECK=true -p:UNSAFE_BYTEBUFFER=true -o "testdata/wasi" "dotnet"
+	# go test -tags tcp,fbs,dotnet -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 30m . > result/tcp-dotnet-fbs.out
+
 odin: karmem
 	odin build . -target:wasi_wasm32 -extra-linker-flags:"--lto-O3 --gc-sections"
 	wasm-ld "benchmark.wasm.o" -o "testdata/wasi/odin.wasi" --lto-O3 --gc-sections
@@ -53,6 +65,6 @@ odin: karmem
 results:
 	benchstat result/fbs.out result/km.out
 	benchstat result/wasi-go-fbs.out result/wasi-go-km.out
-	benchstat result/wasi-go-km.out result/wasi-as-km.out result/wasi-zig-km.out result/wasi-swift-km.out result/wasi-c-km.out result/wasi-odin-km.out
+	benchstat result/wasi-go-km.out result/wasi-as-km.out result/wasi-zig-km.out result/wasi-swift-km.out result/wasi-c-km.out result/wasi-odin-km.out result/wasi-dotnet-km.out
 
-bench: karmem native tinygo assemblyscript zig c swiftwasm result
+bench: karmem native tinygo assemblyscript zig c swiftwasm dotnet result

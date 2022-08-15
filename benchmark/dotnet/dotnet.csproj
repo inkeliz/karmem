@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RunAOTCompilation>true</RunAOTCompilation>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+        <_EnableMacOSCodeSign>false</_EnableMacOSCodeSign>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <UpToDateCheckInput Include="*.c" />
+    </ItemGroup>
+
+    <PropertyGroup Condition="'$(IS_WASM)' == 'true'">
+        <DefineConstants>$(DefineConstants);IS_WASM</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Condition="'$(IS_KARMEM)' == 'true'" Include="../../dotnet/Karmem.cs" />
+        <Compile Condition="'$(IS_KARMEM)' == 'true'" Include="../km/game_generated.cs" />
+        <Compile Condition="'$(IS_FLATBUFFERS)' == 'true'" Include="../fbs/game.cs" />
+        <PackageReference Include="Wasi.Sdk" Version="0.1.1" />
+    </ItemGroup>
+
+    <PropertyGroup Condition="'$(IS_KARMEM)' == 'true'">
+        <DefineConstants>$(DefineConstants);IS_KARMEM</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(IS_FLATBUFFERS)' == 'true'">
+        <DefineConstants>$(DefineConstants);IS_FLATBUFFERS</DefineConstants>
+        <DefineConstants>$(DefineConstants);UNSAFE_BYTEBUFFER</DefineConstants>
+        <DefineConstants>$(DefineConstants);BYTEBUFFER_NO_BOUNDS_CHECK</DefineConstants>
+    </PropertyGroup>
+
+	<ItemGroup>
+		<WasiNativeFileReference Include="Program.c" />
+		<WasiAfterRuntimeLoaded Include="dotnet_benchmark_init" />
+	</ItemGroup>
+
+
+</Project>

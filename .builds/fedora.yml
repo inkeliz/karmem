@@ -14,11 +14,12 @@ packages:
   - lld-libs
   - lld
   - llvm
+  - libicu
 sources:
   - https://github.com/inkeliz/karmem
   - https://github.com/emscripten-core/emsdk
 environment:
-  PATH: /home/build/sdk/go/bin:/home/build/go/bin:/usr/bin:/usr/local/bin/:/usr/local/bin/tinygo:/usr/local/lib/tinygo:/home/build/emsdk:/home/build/emsdk/upstream/emscripten:$PATH
+  PATH: /home/build/sdk:/home/build/sdk/go/bin:/home/build/go/bin:/usr/bin:/usr/local/bin/:/usr/local/bin/tinygo:/usr/local/lib/tinygo:/home/build/emsdk:/home/build/emsdk/upstream/emscripten:$PATH
   GOROOT: /home/build/sdk/go
 secret:
   - 66c957f4-6e1b-4e45-864e-d96582c443b2
@@ -31,6 +32,9 @@ tasks:
       mkdir -p ~/sdk
       wget -q https://dl.google.com/go/go1.18.4.linux-amd64.tar.gz
       tar -xzf go1.18.4.linux-amd64.tar.gz -C ~/sdk
+  - install_dotnet: |
+      wget -q "https://download.visualstudio.microsoft.com/download/pr/9762c43b-6de2-44aa-928d-61bec028a330/ba4d124e5384ae5c5a4599afbc41b1bf/dotnet-sdk-7.0.100-preview.6.22352.1-linux-x64.tar.gz"
+      tar -xzf dotnet-sdk-7.0.100-preview.6.22352.1-linux-x64.tar.gz -C ~/sdk
   - install_emascripten: |
       mkdir -p ~/sdk
       cd emsdk
@@ -61,6 +65,13 @@ tasks:
       go run karmem.org/cmd/karmem build --zig -o "km" testdata/game.km
       go run karmem.org/cmd/karmem build --swift -o "km" testdata/game.km
       go run karmem.org/cmd/karmem build --c -o "km" testdata/game.km
+      go run karmem.org/cmd/karmem build --dotnet -o "km" testdata/game.km
+  - test_dotnet: |
+      cd ~/karmem/benchmark/dotnet
+      ~/sdk/dotnet workload restore
+      cd ~/karmem/benchmark
+      ~/sdk/dotnet build -c "Release" -p:IS_WASM=true -p:IS_KARMEM=true -o "testdata/wasi" "dotnet"
+      go test -tags wasi,wazero,km,dotnet,nofuzz,nobench -timeout 30m .
   - test_golang: |
       cd karmem/benchmark
       go test -tags km -v -bench=. .

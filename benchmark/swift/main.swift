@@ -43,9 +43,10 @@ func KBenchmarkDecodeSumVec3(_ size: UInt32) -> Float {
         var path = monstersList[i].Data(_KarmemReader).Path(_KarmemReader)
         var p: Int = 0
         while (p < path.count) {
-            sum.X += path[p].X()
-            sum.Y += path[p].Y()
-            sum.Z += path[p].Z()
+            let pp = path[p]
+            sum.X += pp.X()
+            sum.Y += pp.Y()
+            sum.Z += pp.Z()
             p += 1
         }
         i += 1

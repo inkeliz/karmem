@@ -1,6 +1,5 @@
 import * as karmem from "../assemblyscript/karmem"
 import * as km from "./km/game_generated"
-import { Console } from "as-wasi/assembly"
 
 let InputMemory = new StaticArray<u8>(8_000_000);
 let OutputMemory = new Array<u8>(8_000_000);
@@ -39,9 +38,10 @@ export function KBenchmarkDecodeSumVec3(size: u32) : f32 {
     let path = data.Path(KarmemReader);
 
     for (let p = 0; p < path.length; p++) {
-      sum.X += path[p].X();
-      sum.Y += path[p].Y();
-      sum.Z += path[p].Z();
+      let pp = path[p]
+      sum.X += pp.X();
+      sum.Y += pp.Y();
+      sum.Z += pp.Z();
     }
   }
 

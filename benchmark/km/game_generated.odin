@@ -322,22 +322,20 @@ MonsterDataRead :: proc(x: ^MonsterData, viewer: ^MonsterDataViewer, reader: ^ka
     if x.Inventory != nil {
         (cast(^[3]int)(&x.Inventory))[1] = __InventoryLen
     }
-    for _, i in x.Inventory {
-        if i >= __InventoryLen {
-            x.Inventory[i] = 0
-        } else {
-            x.Inventory[i] = __InventorySlice[i]
-        }
+    for i := 0; i < __InventoryLen; i += 1{
+        x.Inventory[i] = __InventorySlice[i]
     }
     x.Color = EnumColor(MonsterDataViewerColor(viewer))
     __HitboxSlice := MonsterDataViewerHitbox(viewer)
     __HitboxLen := len(__HitboxSlice)
-    for _, i in x.Hitbox {
-        if i >= __HitboxLen {
-            x.Hitbox[i] = 0
-        } else {
-            x.Hitbox[i] = __HitboxSlice[i]
-        }
+    if (__HitboxLen > 5) {
+        __HitboxLen = 5
+    }
+    for i := 0; i < __HitboxLen; i += 1{
+        x.Hitbox[i] = __HitboxSlice[i]
+    }
+    for i := __HitboxLen; i < len(x.Hitbox); i += 1 {
+        x.Hitbox[i] = 0
     }
     __StatusSlice := MonsterDataViewerStatus(viewer, reader)
     __StatusLen := len(__StatusSlice)
@@ -355,21 +353,19 @@ MonsterDataRead :: proc(x: ^MonsterData, viewer: ^MonsterDataViewer, reader: ^ka
     if x.Status != nil {
         (cast(^[3]int)(&x.Status))[1] = __StatusLen
     }
-    for _, i in x.Status {
-        if i >= __StatusLen {
-            x.Status[i] = 0
-        } else {
-            x.Status[i] = __StatusSlice[i]
-        }
+    for i := 0; i < __StatusLen; i += 1{
+        x.Status[i] = __StatusSlice[i]
     }
     __WeaponsSlice := MonsterDataViewerWeapons(viewer)
     __WeaponsLen := len(__WeaponsSlice)
-    for _, i in x.Weapons {
-        if i >= __WeaponsLen {
-            WeaponReset(&x.Weapons[i])
-        } else {
-            WeaponRead(&x.Weapons[i], &__WeaponsSlice[i], reader)
-        }
+    if (__WeaponsLen > 4) {
+        __WeaponsLen = 4
+    }
+    for i := 0; i < __WeaponsLen; i += 1 {
+        WeaponRead(&x.Weapons[i], &__WeaponsSlice[i], reader)
+    }
+    for i := __WeaponsLen; i < len(x.Weapons); i += 1 {
+        WeaponReset(&x.Weapons[i])
     }
     __PathSlice := MonsterDataViewerPath(viewer, reader)
     __PathLen := len(__PathSlice)
@@ -387,12 +383,8 @@ MonsterDataRead :: proc(x: ^MonsterData, viewer: ^MonsterDataViewer, reader: ^ka
     if x.Path != nil {
         (cast(^[3]int)(&x.Path))[1] = __PathLen
     }
-    for _, i in x.Path {
-        if i >= __PathLen {
-            Vec3Reset(&x.Path[i])
-        } else {
-            Vec3Read(&x.Path[i], &__PathSlice[i], reader)
-        }
+    for i := 0; i < __PathLen; i += 1 {
+        Vec3Read(&x.Path[i], &__PathSlice[i], reader)
     }
     x.IsAlive = MonsterDataViewerIsAlive(viewer)
 }
@@ -508,12 +500,8 @@ MonstersRead :: proc(x: ^Monsters, viewer: ^MonstersViewer, reader: ^karmem.Read
     if x.Monsters != nil {
         (cast(^[3]int)(&x.Monsters))[1] = __MonstersLen
     }
-    for _, i in x.Monsters {
-        if i >= __MonstersLen {
-            MonsterReset(&x.Monsters[i])
-        } else {
-            MonsterRead(&x.Monsters[i], &__MonstersSlice[i], reader)
-        }
+    for i := 0; i < __MonstersLen; i += 1 {
+        MonsterRead(&x.Monsters[i], &__MonstersSlice[i], reader)
     }
 }
 

@@ -382,6 +382,9 @@ public unsafe struct MonsterData {
         this._Color = (Color)(viewer.Color());
         var __HitboxSlice = viewer.Hitbox();
         var __HitboxLen = __HitboxSlice.Length;
+        if (__HitboxLen > 5) {
+            __HitboxLen = 5;
+        }
         if (this._Hitbox.Count != __HitboxLen) {
             if (__HitboxLen > this._Hitbox.Capacity) {
                 this._Hitbox.EnsureCapacity(__HitboxLen);
@@ -393,6 +396,9 @@ public unsafe struct MonsterData {
         }
         for (var i = 0; i < __HitboxLen; i++) {
             this._Hitbox[i] = __HitboxSlice[i];
+        }
+        for (var i = __HitboxLen; i < this._Hitbox.Count; i++) {
+            this._Hitbox[i] = 0;
         }
         var __StatusSlice = viewer.Status(reader);
         var __StatusLen = __StatusSlice.Length;
@@ -410,6 +416,9 @@ public unsafe struct MonsterData {
         }
         var __WeaponsSlice = viewer.Weapons();
         var __WeaponsLen = __WeaponsSlice.Length;
+        if (__WeaponsLen > 4) {
+            __WeaponsLen = 4;
+        }
         if (this._Weapons.Count != __WeaponsLen) {
             if (__WeaponsLen > this._Weapons.Capacity) {
                 this._Weapons.EnsureCapacity(__WeaponsLen);
@@ -423,6 +432,10 @@ public unsafe struct MonsterData {
         for (var i = 0; i < __WeaponsLen; i++) {
             ref var __WeaponsItem = ref __WeaponsSpan[i];
             __WeaponsItem.Read(__WeaponsSlice[i], reader);
+        }
+        for (var i = __WeaponsLen; i < this._Weapons.Count; i++) {
+            ref var __WeaponsItem = ref __WeaponsSpan[i];
+            __WeaponsItem.Reset();
         }
         var __PathSlice = viewer.Path(reader);
         var __PathLen = __PathSlice.Length;

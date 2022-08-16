@@ -204,6 +204,9 @@ public unsafe struct {{$root.Data.Name}} {
         {{- else}}
         var __{{$field.Data.Name}}Slice = viewer.{{$field.Data.Name}}();
         var __{{$field.Data.Name}}Len = __{{$field.Data.Name}}Slice.Length;
+        if (__{{$field.Data.Name}}Len > {{$field.Data.Type.Length}}) {
+            __{{$field.Data.Name}}Len = {{$field.Data.Type.Length}};
+        }
         {{- end }}
         if (this._{{$field.Data.Name}}.Count != __{{$field.Data.Name}}Len) {
             if (__{{$field.Data.Name}}Len > this._{{$field.Data.Name}}.Capacity) {
@@ -218,12 +221,23 @@ public unsafe struct {{$root.Data.Name}} {
         for (var i = 0; i < __{{$field.Data.Name}}Len; i++) {
             this._{{$field.Data.Name}}[i] = __{{$field.Data.Name}}Slice[i];
         }
+        {{- if $field.Data.Type.IsArray }}
+        for (var i = __{{$field.Data.Name}}Len; i < this._{{$field.Data.Name}}.Count; i++) {
+            this._{{$field.Data.Name}}[i] = {{ToPlainDefault $field.Data.Type}};
+        }
+        {{- end }}
         {{- else}}
         var __{{$field.Data.Name}}Span = CollectionsMarshal.AsSpan(this._{{$field.Data.Name}});
         for (var i = 0; i < __{{$field.Data.Name}}Len; i++) {
             ref var __{{$field.Data.Name}}Item = ref __{{$field.Data.Name}}Span[i];
             __{{$field.Data.Name}}Item.Read(__{{$field.Data.Name}}Slice[i], reader);
         }
+        {{- if $field.Data.Type.IsArray }}
+        for (var i = __{{$field.Data.Name}}Len; i < this._{{$field.Data.Name}}.Count; i++) {
+            ref var __{{$field.Data.Name}}Item = ref __{{$field.Data.Name}}Span[i];
+            __{{$field.Data.Name}}Item.Reset();
+        }
+        {{- end }}
         {{- end }}
     {{- end }}
 {{- end}}

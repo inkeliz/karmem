@@ -218,28 +218,35 @@ public struct {{$root.Data.Name}} {
     }
     {{- else}}
     var __{{$field.Data.Name}}Slice = viewer.{{$field.Data.Name}}()
-    let __{{$field.Data.Name}}Len = __{{$field.Data.Name}}Slice.count
+    var __{{$field.Data.Name}}Len = __{{$field.Data.Name}}Slice.count
+    if (__{{$field.Data.Name}}Len > {{$field.Data.Type.Length}}) {
+        __{{$field.Data.Name}}Len = {{$field.Data.Type.Length}}
+    }
     {{- end }}
     {{- if $field.Data.Type.IsNative}}
     var __{{$field.Data.Name}}Index = 0
-    while (__{{$field.Data.Name}}Index < self.{{$field.Data.Name}}.count) {
-        if (__{{$field.Data.Name}}Index >= __{{$field.Data.Name}}Len) {
-            self.{{$field.Data.Name}}[__{{$field.Data.Name}}Index] = {{- if $field.Data.Type.IsString}} UInt8(0){{- else}} {{ToDefault $field.Data.Type}}{{- end}}
-        } else {
-            self.{{$field.Data.Name}}[__{{$field.Data.Name}}Index] = __{{$field.Data.Name}}Slice[__{{$field.Data.Name}}Index]
-        }
+    while (__{{$field.Data.Name}}Index < __{{$field.Data.Name}}Len) {
+        self.{{$field.Data.Name}}[__{{$field.Data.Name}}Index] = __{{$field.Data.Name}}Slice[__{{$field.Data.Name}}Index]
         __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1
     }
+    {{- if $field.Data.Type.IsArray}}
+    while (__{{$field.Data.Name}}Index < self.{{$field.Data.Name}}.count) {
+        self.{{$field.Data.Name}}[__{{$field.Data.Name}}Index] = {{- if $field.Data.Type.IsString}} UInt8(0){{- else}} {{ToDefault $field.Data.Type}}{{- end}}
+        __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1
+    }
+    {{- end}}
     {{- else}}
     var __{{$field.Data.Name}}Index = 0
-    while (__{{$field.Data.Name}}Index < self.{{$field.Data.Name}}.count) {
-        if (__{{$field.Data.Name}}Index >= __{{$field.Data.Name}}Len) {
-            self.{{$field.Data.Name}}[__{{$field.Data.Name}}Index].Reset()
-        } else {
-            self.{{$field.Data.Name}}[__{{$field.Data.Name}}Index].Read(__{{$field.Data.Name}}Slice[__{{$field.Data.Name}}Index], reader)
-        }
+    while (__{{$field.Data.Name}}Index < __{{$field.Data.Name}}Len) {
+        self.{{$field.Data.Name}}[__{{$field.Data.Name}}Index].Read(__{{$field.Data.Name}}Slice[__{{$field.Data.Name}}Index], reader)
         __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1
     }
+    {{- if $field.Data.Type.IsArray}}
+    while (__{{$field.Data.Name}}Index < self.{{$field.Data.Name}}.count) {
+        self.{{$field.Data.Name}}[__{{$field.Data.Name}}Index].Reset()
+        __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1
+    }
+    {{- end}}
     {{- end }}
     {{- end}}
     {{- end }}

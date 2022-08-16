@@ -257,18 +257,19 @@ to keep up with the latest version. As such, the API generated and the libraries
 ### Features
 
 | Features | Go/TinyGo | Zig | AssemblyScript | Swift | C | C#/.NET | Odin |
-| -- | -- | -- | -- | -- | -- | -- |
+| -- | -- | -- | -- | -- | -- | -- | -- |
 | Performance | Good | Excellent | Good | Poor | Excellent | Horrible | Good |
 | Priority | High | High | High | Low | High | Medium | Low |
 | **Encoding** | | | | | | | |
-| Object Encoding | ✔️ |✔️ |✔️ | ✔️ | ✔️| ✔️ | ✔️
+| Object Encoding | ✔️ |✔️ |✔️ | ✔️ | ✔️| ✔️ | ✔️ |
 | Raw Encoding | ❌ |❌ | ❌| ❌ | ❌ | ❌ | ❌ |
 | Zero-Copy |❌ | ❌ |❌ | ❌ | ❌ | ❌ | ❌ |
-| **Decoding** | | | | | | |
+| **Decoding** | | | | | | | |
 | Object Decoding |✔️ |✔️ |✔️ | ✔️ |✔️ | ✔️ | ✔️|
 | Object Re-Use |✔️ |✔️ |✔️ | ❌ |✔️ |  ✔️|  ✔️ |
 | Random-Access |✔️ |✔️ |✔️ | ✔️ |✔️ | ✔️ |  ✔️|
 | Zero-Copy |✔️ | ✔️ |✔️ | ❌ |✔️ |  ✔️| ✔️|
+| Zero-Copy-String |✔️ | ✔️ |❌ | ✔️ |✔️ |  ❌| ✔️|
 | Native Array | ✔️ |✔️ |❌ | ❌ |✔️ |  ❌️| ✔️|
 
 # Schema

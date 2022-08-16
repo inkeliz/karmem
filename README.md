@@ -131,7 +131,7 @@ func decodes(encoded []byte) {
 }
 ```
 
-Notice, we use `NewAccountDataViewer`, any `Viewer` is just a Viewer, and doesn't copy the backend data.
+Notice: we use `NewAccountDataViewer`, any `Viewer` is just a Viewer, and doesn't copy the backend data.
 
 ### Decoding
 
@@ -223,50 +223,53 @@ That is an comparison with all supported languages.
 **WebAssembly on Wazero (MacOS/ARM64 - M1):**
 
 ```
-name \ time/op     result/wasi-go-km.out  result/wasi-as-km.out  result/wasi-zig-km.out  result/wasi-swift-km.out  result/wasi-c-km.out
-DecodeSumVec3-8               754µs ± 0%            1642µs ± 0%              370µs ± 0%               9040µs ± 3%            369µs ± 0%
-DecodeObjectAPI-8            1.94ms ± 0%            6.09ms ± 0%             1.03ms ± 0%              30.77ms ±32%           0.89ms ± 1%
-EncodeObjectAPI-8            4.04ms ± 0%            4.48ms ± 0%             1.15ms ± 0%               8.22ms ± 0%           1.03ms ± 0%
+name \ time/op     result/wasi-go-km.out  result/wasi-as-km.out  result/wasi-zig-km.out  result/wasi-swift-km.out  result/wasi-c-km.out  result/wasi-odin-km.out  result/wasi-dotnet-km.out
+DecodeSumVec3-8               757µs ± 0%            1651µs ± 0%              369µs ± 0%               9145µs ± 6%            368µs ± 0%              1330µs ± 0%               75671µs ± 0% 
+DecodeObjectAPI-8            1.59ms ± 0%            6.13ms ± 0%             1.04ms ± 0%              30.59ms ±34%           0.90ms ± 1%              4.06ms ± 0%              231.72ms ± 0% 
+EncodeObjectAPI-8            3.96ms ± 0%            4.51ms ± 1%             1.20ms ± 0%               8.26ms ± 0%           1.03ms ± 0%              5.19ms ± 0%              237.99ms ± 0% 
 
-name \ alloc/op    result/wasi-go-km.out  result/wasi-as-km.out  result/wasi-zig-km.out  result/wasi-swift-km.out  result/wasi-c-km.out
-DecodeSumVec3-8              1.25kB ± 0%           21.62kB ± 0%             1.25kB ± 0%               1.82kB ± 0%           1.25kB ± 0%
-DecodeObjectAPI-8            15.2kB ± 0%           121.2kB ± 0%            276.1kB ± 1%              108.4kB ± 3%            1.2kB ± 0%
-EncodeObjectAPI-8            3.02kB ± 0%           57.65kB ± 0%             1.23kB ± 0%               1.81kB ± 0%           1.23kB ± 0%
+name \ alloc/op    result/wasi-go-km.out  result/wasi-as-km.out  result/wasi-zig-km.out  result/wasi-swift-km.out  result/wasi-c-km.out  result/wasi-odin-km.out  result/wasi-dotnet-km.out 
+DecodeSumVec3-8              1.25kB ± 0%           21.75kB ± 0%             1.25kB ± 0%               1.82kB ± 0%           1.25kB ± 0%              5.34kB ± 0%              321.65kB ± 0% 
+DecodeObjectAPI-8            15.0kB ± 0%           122.3kB ± 1%            280.8kB ± 1%              108.6kB ± 3%            1.2kB ± 0%              23.8kB ± 0%               386.5kB ± 0% 
+EncodeObjectAPI-8            3.02kB ± 0%           58.00kB ± 1%             1.23kB ± 0%               1.82kB ± 0%           1.23kB ± 0%              8.91kB ± 0%              375.82kB ± 0% 
 
-name \ allocs/op   result/wasi-go-km.out  result/wasi-as-km.out  result/wasi-zig-km.out  result/wasi-swift-km.out  result/wasi-c-km.out
-DecodeSumVec3-8                5.00 ± 0%              5.00 ± 0%               5.00 ± 0%                32.00 ± 0%             5.00 ± 0%
-DecodeObjectAPI-8              4.00 ± 0%              4.00 ± 0%               4.00 ± 0%                32.00 ± 0%             4.00 ± 0%
-EncodeObjectAPI-8              4.00 ± 0%              3.00 ± 0%               3.00 ± 0%                30.00 ± 0%             3.00 ± 0%
+name \ allocs/op   result/wasi-go-km.out  result/wasi-as-km.out  result/wasi-zig-km.out  result/wasi-swift-km.out  result/wasi-c-km.out  result/wasi-odin-km.out  result/wasi-dotnet-km.out 
+DecodeSumVec3-8                5.00 ± 0%              5.00 ± 0%               5.00 ± 0%                32.00 ± 0%             5.00 ± 0%                6.00 ± 0%                 11.00 ± 0% 
+DecodeObjectAPI-8              5.00 ± 0%              4.00 ± 0%               4.00 ± 0%                32.00 ± 0%             4.00 ± 0%                6.00 ± 0%                340.00 ± 0% 
+EncodeObjectAPI-8              4.00 ± 0%              3.00 ± 0%               3.00 ± 0%                30.00 ± 0%             3.00 ± 0%                5.00 ± 0%                 40.00 ± 0% 
 ```
 
 # Languages
 
 Currently, we have focus on WebAssembly, and because of that those are the languages supported:
 
-- AssemblyScript
+- AssemblyScript 0.20.16
 - C/Emscripten
-- C#/.NET
-- Golang/TinyGo
-- Swift/SwiftWasm
-- Zig
-- C/Emscripten
+- C#/.NET 7
+- Golang 1.19/TinyGo 0.25.0
+- Odin
+- Swift 5.7/SwiftWasm 5.7
+- Zig 0.10
+
+Some languages still under development, and doesn't have any backward compatibility promise. We weill try 
+to keep up with the latest version. As such, the API generated and the libraries should not consider stable.
 
 ### Features
 
-| Features | Go/TinyGo | Zig | AssemblyScript | Swift | C | C#/.NET |
+| Features | Go/TinyGo | Zig | AssemblyScript | Swift | C | C#/.NET | Odin |
 | -- | -- | -- | -- | -- | -- | -- |
-| Performance | Good | Excellent | Good | Poor | Excellent | Horrible |
-| Priority | High | High | High | Low | High | Medium |
-| **Encoding** | | | | | | |
-| Object Encoding | ✔️ |✔️ |✔️ | ✔️ | ✔️| ✔️ |
-| Raw Encoding | ❌ |❌ | ❌| ❌ | ❌ | ❌ |
-| Zero-Copy |❌ | ❌ |❌ | ❌ | ❌ | ❌ |
-| **Decoding** | | | | | |
-| Object Decoding |✔️ |✔️ |✔️ | ✔️ |✔️ | ✔️ |
-| Object Re-Use |✔️ |✔️ |✔️ | ❌ |✔️ | ❌ |
-| Random-Access |✔️ |✔️ |✔️ | ✔️ |✔️ | ✔️ |
-| Zero-Copy |✔️ | ✔️ |✔️ | ❌ |✔️ |  ✔️|
-| Native Array | ✔️ |✔️ |❌ | ❌ |✔️ |  ✔️|
+| Performance | Good | Excellent | Good | Poor | Excellent | Horrible | Good |
+| Priority | High | High | High | Low | High | Medium | Low |
+| **Encoding** | | | | | | | |
+| Object Encoding | ✔️ |✔️ |✔️ | ✔️ | ✔️| ✔️ | ✔️
+| Raw Encoding | ❌ |❌ | ❌| ❌ | ❌ | ❌ | ❌ |
+| Zero-Copy |❌ | ❌ |❌ | ❌ | ❌ | ❌ | ❌ |
+| **Decoding** | | | | | | |
+| Object Decoding |✔️ |✔️ |✔️ | ✔️ |✔️ | ✔️ | ✔️|
+| Object Re-Use |✔️ |✔️ |✔️ | ❌ |✔️ |  ✔️|  ✔️ |
+| Random-Access |✔️ |✔️ |✔️ | ✔️ |✔️ | ✔️ |  ✔️|
+| Zero-Copy |✔️ | ✔️ |✔️ | ❌ |✔️ |  ✔️| ✔️|
+| Native Array | ✔️ |✔️ |❌ | ❌ |✔️ |  ❌️| ✔️|
 
 # Schema
 
@@ -327,7 +330,7 @@ Every file must begin with: `karmem {name};`, other optional options can be defi
 - Byte:
   `byte`, `char`
 
-It's not possible to defined optional or nullable types.
+It's not possible to define optional or nullable types.
 
 **Arrays**:
 
@@ -347,7 +350,7 @@ Currently, Karmem has two structs types: inline and table.
 
 **Inline:**
 Inline structs, as the name suggests, are inlined when used. That reduces the size and may improve the performance.
-However, it can't have their definition changed. In order words: you can't edit the description of one inline struct
+However, it can't have their definition changed. In order words: you can't edit the field of one inline struct
 without breaking compatibility.
 
 ```go
@@ -419,11 +422,11 @@ instead.*
 **`build`**
 
 - `--zig`: Enable generation for Zig
-- `--swift`: Enable generation for Swif
+- `--swift`: Enable generation for Swift/SwiftWasm
+- `--odin`: Enable generation for Odin
 - `--golang`: Enable generation for Golang/TinyGo
-- `--csharp`: Enable generation for C#
-- `--c`: Enable generation for C
 - `--dotnet`: Enable generation for .NET
+- `--c`: Enable generation for C
 - `--assemblyscript`: Enable generation for AssemblyScript
 - `-o <dir>`: Defines the output folder
 - `<input-file>`: Defines the input schema

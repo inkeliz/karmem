@@ -173,8 +173,8 @@ pub const {{$root.Data.Name}} = struct {
     {{- else}}
         var __{{$field.Data.Name}}Slice: {{ToTypeView $field.Data.Type}} = {{$root.Data.Name}}Viewer.{{$field.Data.Name}}(viewer);
         var __{{$field.Data.Name}}Len: usize = __{{$field.Data.Name}}Slice.len;
-        if (__{{$field.Data.Name}}Len > x.{{$field.Data.Name}}.len) {
-            __{{$field.Data.Name}}Len = x.{{$field.Data.Name}}.len;
+        if (__{{$field.Data.Name}}Len > {{$field.Data.Type.Length}}) {
+            __{{$field.Data.Name}}Len = {{$field.Data.Type.Length}};
         }
     {{- end }}
     {{- if $field.Data.Type.IsNative}}
@@ -183,6 +183,7 @@ pub const {{$root.Data.Name}} = struct {
             x.{{$field.Data.Name}}[__{{$field.Data.Name}}Index] = __{{$field.Data.Name}}Slice[__{{$field.Data.Name}}Index];
             __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1;
         }
+        {{- if $field.Data.Type.IsArray}}
         while (__{{$field.Data.Name}}Index < x.{{$field.Data.Name}}.len) {
             {{- if $field.Data.Type.IsString}}
             x.{{$field.Data.Name}}[__{{$field.Data.Name}}Index] = 0;
@@ -191,16 +192,19 @@ pub const {{$root.Data.Name}} = struct {
             {{- end }}
             __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1;
         }
+        {{- end}}
     {{- else}}
         var __{{$field.Data.Name}}Index: usize = 0;
         while (__{{$field.Data.Name}}Index < __{{$field.Data.Name}}Len) {
             try {{ToPlainType $field.Data.Type}}.Read(&x.{{$field.Data.Name}}[__{{$field.Data.Name}}Index], &__{{$field.Data.Name}}Slice[__{{$field.Data.Name}}Index], reader);
              __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1;
         }
+        {{- if $field.Data.Type.IsArray}}
         while (__{{$field.Data.Name}}Index < x.{{$field.Data.Name}}.len) {
             {{ToPlainType $field.Data.Type}}.Reset(&x.{{$field.Data.Name}}[__{{$field.Data.Name}}Index]);
             __{{$field.Data.Name}}Index = __{{$field.Data.Name}}Index + 1;
         }
+        {{- end }}
     {{- end }}
     {{- if $field.Data.Type.IsSlice}}
         x.{{$field.Data.Name}}.len = __{{$field.Data.Name}}Len;

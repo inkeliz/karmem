@@ -201,23 +201,28 @@ New{{$root.Data.Name}} :: #force_inline proc() -> {{$root.Data.Name}} #no_bounds
         {{- else}}
     __{{$field.Data.Name}}Slice := {{$root.Data.Name}}Viewer{{$field.Data.Name}}(viewer)
     __{{$field.Data.Name}}Len := len(__{{$field.Data.Name}}Slice)
+    if (__{{$field.Data.Name}}Len > {{$field.Data.Type.Length}}) {
+        __{{$field.Data.Name}}Len = {{$field.Data.Type.Length}}
+    }
         {{- end }}
         {{- if $field.Data.Type.IsNative}}
-    for _, i in x.{{$field.Data.Name}} {
-        if i >= __{{$field.Data.Name}}Len {
-            x.{{$field.Data.Name}}[i] = {{ToDefault $field.Data.Type}}
-        } else {
-            x.{{$field.Data.Name}}[i] = __{{$field.Data.Name}}Slice[i]
-        }
+    for i := 0; i < __{{$field.Data.Name}}Len; i += 1{
+        x.{{$field.Data.Name}}[i] = __{{$field.Data.Name}}Slice[i]
     }
+        {{- if $field.Data.Type.IsArray }}
+    for i := __{{$field.Data.Name}}Len; i < len(x.{{$field.Data.Name}}); i += 1 {
+        x.{{$field.Data.Name}}[i] = {{ToDefault $field.Data.Type}}
+    }
+        {{- end }}
         {{- else}}
-    for _, i in x.{{$field.Data.Name}} {
-        if i >= __{{$field.Data.Name}}Len {
-            {{ToPlainType $field.Data.Type}}Reset(&x.{{$field.Data.Name}}[i])
-        } else {
-            {{ToPlainType $field.Data.Type}}Read(&x.{{$field.Data.Name}}[i], &__{{$field.Data.Name}}Slice[i], reader)
-        }
+    for i := 0; i < __{{$field.Data.Name}}Len; i += 1 {
+        {{ToPlainType $field.Data.Type}}Read(&x.{{$field.Data.Name}}[i], &__{{$field.Data.Name}}Slice[i], reader)
     }
+        {{- if $field.Data.Type.IsArray }}
+    for i := __{{$field.Data.Name}}Len; i < len(x.{{$field.Data.Name}}); i += 1 {
+        {{ToPlainType $field.Data.Type}}Reset(&x.{{$field.Data.Name}}[i])
+    }
+        {{- end }}
         {{- end }}
     {{- end }}
         {{- end}}

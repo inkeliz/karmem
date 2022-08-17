@@ -322,18 +322,13 @@ export class MonsterData {
     let __InventoryLen = __InventorySlice.length;
     let __InventoryDestLen = x.Inventory.length;
     if (__InventoryLen > __InventoryDestLen) {
-        x.Inventory.length = __InventoryLen
         x.Inventory.length = __InventoryDestLen
         for (let i = __InventoryDestLen; i < __InventoryLen; i++) {
             x.Inventory.push(0);
         }
     }
-    for (let i = 0; i < x.Inventory.length; i++) {
-        if (i >= __InventoryLen) {
-            x.Inventory[i] = 0;
-        } else {
-            x.Inventory[i] = __InventorySlice[i];
-        }
+    for (let i = 0; i < __InventoryLen; i++) {
+        x.Inventory[i] = __InventorySlice[i];
     }
     x.Inventory.length = __InventoryLen;
     x.Color = <Color>viewer.Color();
@@ -342,29 +337,23 @@ export class MonsterData {
     for (let i = x.Hitbox.length; i < __HitboxLen; i++) {
         x.Hitbox[i] = 0;
     }
-    for (let i = 0; i < x.Hitbox.length; i++) {
-        if (i >= __HitboxLen) {
-            x.Hitbox[i] = 0;
-        } else {
-            x.Hitbox[i] = __HitboxSlice[i];
-        }
+    for (let i = 0; i < __HitboxLen; i++) {
+        x.Hitbox[i] = __HitboxSlice[i];
+    }
+    for (let i = __HitboxLen; i < x.Hitbox.length; i++) {
+        x.Hitbox[i] = 0;
     }
     let __StatusSlice = viewer.Status(reader);
     let __StatusLen = __StatusSlice.length;
     let __StatusDestLen = x.Status.length;
     if (__StatusLen > __StatusDestLen) {
-        x.Status.length = __StatusLen
         x.Status.length = __StatusDestLen
         for (let i = __StatusDestLen; i < __StatusLen; i++) {
             x.Status.push(0);
         }
     }
-    for (let i = 0; i < x.Status.length; i++) {
-        if (i >= __StatusLen) {
-            x.Status[i] = 0;
-        } else {
-            x.Status[i] = __StatusSlice[i];
-        }
+    for (let i = 0; i < __StatusLen; i++) {
+        x.Status[i] = __StatusSlice[i];
     }
     x.Status.length = __StatusLen;
     let __WeaponsSlice = viewer.Weapons();
@@ -372,29 +361,23 @@ export class MonsterData {
     for (let i = x.Weapons.length; i < __WeaponsLen; i++) {
         x.Weapons[i] = NewWeapon();
     }
-    for (let i = 0; i < x.Weapons.length; i++) {
-        if (i >= __WeaponsLen) {
-            Weapon.Reset(x.Weapons[i]);
-        } else {
-            Weapon.Read(x.Weapons[i], __WeaponsSlice[i], reader);
-        }
+    for (let i = 0; i < __WeaponsLen; i++) {
+        Weapon.Read(x.Weapons[i], __WeaponsSlice[i], reader);
+    }
+    for (let i = __WeaponsLen; i < x.Weapons.length; i++) {
+        Weapon.Reset(x.Weapons[i]);
     }
     let __PathSlice = viewer.Path(reader);
     let __PathLen = __PathSlice.length;
     let __PathDestLen = x.Path.length;
     if (__PathLen > __PathDestLen) {
-        x.Path.length = __PathLen
         x.Path.length = __PathDestLen
         for (let i = __PathDestLen; i < __PathLen; i++) {
             x.Path.push(NewVec3());
         }
     }
-    for (let i = 0; i < x.Path.length; i++) {
-        if (i >= __PathLen) {
-            Vec3.Reset(x.Path[i]);
-        } else {
-            Vec3.Read(x.Path[i], __PathSlice[i], reader);
-        }
+    for (let i = 0; i < __PathLen; i++) {
+        Vec3.Read(x.Path[i], __PathSlice[i], reader);
     }
     x.Path.length = __PathLen;
     x.IsAlive = viewer.IsAlive();
@@ -539,18 +522,13 @@ export class Monsters {
     let __MonstersLen = __MonstersSlice.length;
     let __MonstersDestLen = x.Monsters.length;
     if (__MonstersLen > __MonstersDestLen) {
-        x.Monsters.length = __MonstersLen
         x.Monsters.length = __MonstersDestLen
         for (let i = __MonstersDestLen; i < __MonstersLen; i++) {
             x.Monsters.push(NewMonster());
         }
     }
-    for (let i = 0; i < x.Monsters.length; i++) {
-        if (i >= __MonstersLen) {
-            Monster.Reset(x.Monsters[i]);
-        } else {
-            Monster.Read(x.Monsters[i], __MonstersSlice[i], reader);
-        }
+    for (let i = 0; i < __MonstersLen; i++) {
+        Monster.Read(x.Monsters[i], __MonstersSlice[i], reader);
     }
     x.Monsters.length = __MonstersLen;
     }

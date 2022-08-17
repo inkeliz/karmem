@@ -329,17 +329,18 @@ func (x *MonsterData) Read(viewer *MonsterDataViewer, reader *karmem.Reader) {
 	__InventoryLen := len(__InventorySlice)
 	if __InventoryLen > cap(x.Inventory) {
 		x.Inventory = append(x.Inventory, make([]byte, __InventoryLen-len(x.Inventory))...)
-	} else if __InventoryLen > len(x.Inventory) {
+	}
+	if __InventoryLen > len(x.Inventory) {
 		x.Inventory = x.Inventory[:__InventoryLen]
 	}
 	copy(x.Inventory, __InventorySlice)
-	for i := __InventoryLen; i < len(x.Inventory); i++ {
-		x.Inventory[i] = 0
-	}
 	x.Inventory = x.Inventory[:__InventoryLen]
 	x.Color = Color(viewer.Color())
 	__HitboxSlice := viewer.Hitbox()
 	__HitboxLen := len(__HitboxSlice)
+	if __HitboxLen > 5 {
+		__HitboxLen = 5
+	}
 	copy(x.Hitbox[:], __HitboxSlice)
 	for i := __HitboxLen; i < len(x.Hitbox); i++ {
 		x.Hitbox[i] = 0
@@ -348,36 +349,33 @@ func (x *MonsterData) Read(viewer *MonsterDataViewer, reader *karmem.Reader) {
 	__StatusLen := len(__StatusSlice)
 	if __StatusLen > cap(x.Status) {
 		x.Status = append(x.Status, make([]int32, __StatusLen-len(x.Status))...)
-	} else if __StatusLen > len(x.Status) {
+	}
+	if __StatusLen > len(x.Status) {
 		x.Status = x.Status[:__StatusLen]
 	}
 	copy(x.Status, __StatusSlice)
-	for i := __StatusLen; i < len(x.Status); i++ {
-		x.Status[i] = 0
-	}
 	x.Status = x.Status[:__StatusLen]
 	__WeaponsSlice := viewer.Weapons()
 	__WeaponsLen := len(__WeaponsSlice)
-	for i := range x.Weapons {
-		if i >= __WeaponsLen {
-			x.Weapons[i].Reset()
-		} else {
-			x.Weapons[i].Read(&__WeaponsSlice[i], reader)
-		}
+	if __WeaponsLen > 4 {
+		__WeaponsLen = 4
+	}
+	for i := 0; i < __WeaponsLen; i++ {
+		x.Weapons[i].Read(&__WeaponsSlice[i], reader)
+	}
+	for i := __WeaponsLen; i < len(x.Weapons); i++ {
+		x.Weapons[i].Reset()
 	}
 	__PathSlice := viewer.Path(reader)
 	__PathLen := len(__PathSlice)
 	if __PathLen > cap(x.Path) {
 		x.Path = append(x.Path, make([]Vec3, __PathLen-len(x.Path))...)
-	} else if __PathLen > len(x.Path) {
+	}
+	if __PathLen > len(x.Path) {
 		x.Path = x.Path[:__PathLen]
 	}
-	for i := range x.Path {
-		if i >= __PathLen {
-			x.Path[i].Reset()
-		} else {
-			x.Path[i].Read(&__PathSlice[i], reader)
-		}
+	for i := 0; i < __PathLen; i++ {
+		x.Path[i].Read(&__PathSlice[i], reader)
 	}
 	x.Path = x.Path[:__PathLen]
 	x.IsAlive = viewer.IsAlive()
@@ -490,15 +488,12 @@ func (x *Monsters) Read(viewer *MonstersViewer, reader *karmem.Reader) {
 	__MonstersLen := len(__MonstersSlice)
 	if __MonstersLen > cap(x.Monsters) {
 		x.Monsters = append(x.Monsters, make([]Monster, __MonstersLen-len(x.Monsters))...)
-	} else if __MonstersLen > len(x.Monsters) {
+	}
+	if __MonstersLen > len(x.Monsters) {
 		x.Monsters = x.Monsters[:__MonstersLen]
 	}
-	for i := range x.Monsters {
-		if i >= __MonstersLen {
-			x.Monsters[i].Reset()
-		} else {
-			x.Monsters[i].Read(&__MonstersSlice[i], reader)
-		}
+	for i := 0; i < __MonstersLen; i++ {
+		x.Monsters[i].Read(&__MonstersSlice[i], reader)
 	}
 	x.Monsters = x.Monsters[:__MonstersLen]
 }

@@ -62,9 +62,10 @@ float KBenchmarkDecodeSumVec3(uint32_t size) {
 
             Vec3Viewer * path = MonsterDataViewer_Path(data, &_Reader);
             while (j < jl) {
-                sum.X += Vec3Viewer_X(&path[j]);
-                sum.Y += Vec3Viewer_Y(&path[j]);
-                sum.Z += Vec3Viewer_Z(&path[j]);
+                Vec3Viewer * pp = &path[j];
+                sum.X += Vec3Viewer_X(pp);
+                sum.Y += Vec3Viewer_Y(pp);
+                sum.Z += Vec3Viewer_Z(pp);
                 j++;
             }
         i++;

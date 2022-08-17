@@ -53,9 +53,10 @@ export fn KBenchmarkDecodeSumVec3(size: u32) f32 {
 
         var p : usize = 0;
         while (p < path.len) {
-            sum.X += path[p].X();
-            sum.Y += path[p].Y();
-            sum.Z += path[p].Z();
+            var pp = &path[p];
+            sum.X += pp.X();
+            sum.Y += pp.Y();
+            sum.Z += pp.Z();
             p += 1;
         }
         i += 1;

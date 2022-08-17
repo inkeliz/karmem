@@ -321,10 +321,6 @@ pub const MonsterData = struct {
             x.Name[__NameIndex] = __NameSlice[__NameIndex];
             __NameIndex = __NameIndex + 1;
         }
-        while (__NameIndex < x.Name.len) {
-            x.Name[__NameIndex] = 0;
-            __NameIndex = __NameIndex + 1;
-        }
         x.Name.len = __NameLen;
         x.Team = MonsterDataViewer.Team(viewer);
         var __InventorySlice: []u8 = MonsterDataViewer.Inventory(viewer, reader);
@@ -349,16 +345,12 @@ pub const MonsterData = struct {
             x.Inventory[__InventoryIndex] = __InventorySlice[__InventoryIndex];
             __InventoryIndex = __InventoryIndex + 1;
         }
-        while (__InventoryIndex < x.Inventory.len) {
-            x.Inventory[__InventoryIndex] = 0;
-            __InventoryIndex = __InventoryIndex + 1;
-        }
         x.Inventory.len = __InventoryLen;
         x.Color = MonsterDataViewer.Color(viewer);
         var __HitboxSlice: []f64 = MonsterDataViewer.Hitbox(viewer);
         var __HitboxLen: usize = __HitboxSlice.len;
-        if (__HitboxLen > x.Hitbox.len) {
-            __HitboxLen = x.Hitbox.len;
+        if (__HitboxLen > 5) {
+            __HitboxLen = 5;
         }
         var __HitboxIndex: usize = 0;
         while (__HitboxIndex < __HitboxLen) {
@@ -391,15 +383,11 @@ pub const MonsterData = struct {
             x.Status[__StatusIndex] = __StatusSlice[__StatusIndex];
             __StatusIndex = __StatusIndex + 1;
         }
-        while (__StatusIndex < x.Status.len) {
-            x.Status[__StatusIndex] = 0;
-            __StatusIndex = __StatusIndex + 1;
-        }
         x.Status.len = __StatusLen;
         var __WeaponsSlice: []const WeaponViewer = MonsterDataViewer.Weapons(viewer);
         var __WeaponsLen: usize = __WeaponsSlice.len;
-        if (__WeaponsLen > x.Weapons.len) {
-            __WeaponsLen = x.Weapons.len;
+        if (__WeaponsLen > 4) {
+            __WeaponsLen = 4;
         }
         var __WeaponsIndex: usize = 0;
         while (__WeaponsIndex < __WeaponsLen) {
@@ -431,10 +419,6 @@ pub const MonsterData = struct {
         while (__PathIndex < __PathLen) {
             try Vec3.Read(&x.Path[__PathIndex], &__PathSlice[__PathIndex], reader);
              __PathIndex = __PathIndex + 1;
-        }
-        while (__PathIndex < x.Path.len) {
-            Vec3.Reset(&x.Path[__PathIndex]);
-            __PathIndex = __PathIndex + 1;
         }
         x.Path.len = __PathLen;
         x.IsAlive = MonsterDataViewer.IsAlive(viewer);
@@ -564,10 +548,6 @@ pub const Monsters = struct {
         while (__MonstersIndex < __MonstersLen) {
             try Monster.Read(&x.Monsters[__MonstersIndex], &__MonstersSlice[__MonstersIndex], reader);
              __MonstersIndex = __MonstersIndex + 1;
-        }
-        while (__MonstersIndex < x.Monsters.len) {
-            Monster.Reset(&x.Monsters[__MonstersIndex]);
-            __MonstersIndex = __MonstersIndex + 1;
         }
         x.Monsters.len = __MonstersLen;
     }

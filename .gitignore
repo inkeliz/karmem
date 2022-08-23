@@ -7,4 +7,6 @@ zig/zig-out
 benchmark/zig-cache
 benchmark/zig-out
 benchmark/.builds
+benchmark/testdata/wasi
+benchmark/result
 swift/Sources

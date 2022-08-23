@@ -1,5 +1,5 @@
 image: fedora/latest
-shell: true
+shell: false
 packages:
   - curl
   - nodejs

@@ -1,5 +1,5 @@
 image: ubuntu/lts
-shell: true
+shell: false
 packages:
   - curl
   - clang

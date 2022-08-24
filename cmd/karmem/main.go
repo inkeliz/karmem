@@ -157,7 +157,7 @@ func (b *Build) Execute() error {
 				}
 			}
 
-			outputFile, err := os.Create(filepath.Join(b.output, parsed.Module+"_generated"+gen.Extensions()[i]))
+			outputFile, err := os.Create(filepath.Join(b.output, parsed.Name+"_generated"+gen.Extensions()[i]))
 			if err != nil {
 				return err
 			}

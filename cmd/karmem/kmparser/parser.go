@@ -2,13 +2,14 @@ package kmparser
 
 import (
 	"bufio"
+	"encoding/binary"
 	"errors"
 	"fmt"
+	"hash"
 	"io"
 	"strconv"
 	"strings"
 	"unicode"
-	"unsafe"
 
 	"golang.org/x/crypto/blake2b"
 )
@@ -18,8 +19,10 @@ import (
 
 // Reader reads and decodes Karmem files.
 type Reader struct {
-	Parsed Content
-	hasher func(s string) uint64
+	Parsed        Content
+	hasher        func(s string) uint64
+	hasherHash    hash.Hash
+	hasherKey     []byte
 
 	path  string
 	buf   *bufio.Reader
@@ -81,7 +84,7 @@ func (r *Reader) headerPackage() parserFunc {
 		return nil
 
 	case unicode.IsLetter(b):
-		r.Parsed.Module += string(b)
+		r.Parsed.Name += string(b)
 
 	default:
 		r.error = fmt.Errorf(`invalid header, expecting ";" got "%s"`, string(b))
@@ -99,14 +102,16 @@ func (r *Reader) headerTagsOrEnd() parserFunc {
 		return func() parserFunc { return r.tagsInit(&r.Parsed.Tags[len(r.Parsed.Tags)-1], r.headerTagsOrEnd) }
 
 	case b == ';':
-		entropy, _ := Tags(r.Parsed.Tags).Get("entropy")
+		key, ok := Tags(r.Parsed.Tags).Get("key")
+		if ok {
+			k := blake2b.Sum256([]byte(key))
+			r.hasherKey = k[:]
+		}
+		r.hasherHash, _ = blake2b.New(8, r.hasherKey)
 		r.hasher = func(s string) uint64 {
-			h, _ := blake2b.New(8, nil)
-			if entropy != "" {
-				h.Write([]byte(entropy))
-			}
-			h.Write([]byte(s))
-			return *(*uint64)(unsafe.Pointer(&h.Sum(nil)[0]))
+			r.hasherHash.Reset()
+			r.hasherHash.Write([]byte(s))
+			return binary.LittleEndian.Uint64(r.hasherHash.Sum(nil))
 		}
 
 		return r.bodyInit
@@ -194,7 +199,7 @@ func (r *Reader) enumInit() parserFunc {
 		r.error = errors.New(`invalid enum, expecting "enum Name [byte|uint8|unit16|uint32|uint64|int8|int16|int32|int64] {}"`)
 	}
 	r.skip(len("enum "))
-	r.Parsed.Enums = append(r.Parsed.Enums, Enum{Data: EnumData{IsSequential: true}})
+	r.Parsed.Enums = append(r.Parsed.Enums, Enumeration{Data: EnumData{IsSequential: true}})
 	return r.skipSpace(r.enumName)
 }
 
@@ -433,7 +438,7 @@ func (r *Reader) structInit() parserFunc {
 		r.error = errors.New(`invalid struct, expecting "struct Name [inline | table] {}"`)
 	}
 	r.skip(len("struct "))
-	r.Parsed.Structs = append(r.Parsed.Structs, Struct{})
+	r.Parsed.Structs = append(r.Parsed.Structs, Structure{})
 	return r.skipSpace(r.structName)
 }
 
@@ -780,8 +785,18 @@ func (r *Reader) structEnd() parserFunc {
 			r.Parsed.Size.Largest = t.Size.Total
 		}
 
-		if r.hasher != nil {
-			t.ID = r.hasher(t.Name)
+		if v, ok := Tags(t.Tags).Get("id"); ok {
+			id, err := strconv.ParseUint(v, 10, 64)
+			if err != nil {
+				r.error = fmt.Errorf(`invalid id of "%s"`, v)
+				return nil
+			}
+			t.ID = id
+		} else {
+			if r.hasher != nil {
+				t.ID = r.hasher(t.Name)
+				t.Tags = append(t.Tags, Tag{"id", fmt.Sprintf("%d", t.ID)})
+			}
 		}
 
 		return r.bodyInit

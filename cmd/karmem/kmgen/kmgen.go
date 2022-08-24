@@ -62,7 +62,7 @@ func NewTemplateFunctions(gen Generator, content *kmparser.Content) TemplateFunc
 			}
 
 			if s == "package" {
-				def = content.Module
+				def = content.Name
 			}
 
 			tags := content.Tags
@@ -91,7 +91,7 @@ func NewTemplateFunctions(gen Generator, content *kmparser.Content) TemplateFunc
 			switch val := val.(type) {
 			case kmparser.StructField:
 				name = strings.TrimSpace(val.Data.Name)
-				root := root.(kmparser.Struct)
+				root := root.(kmparser.Structure)
 				for i := range root.Data.Fields {
 					if l := len(root.Data.Fields[i].Data.Name); l > largest {
 						largest = l
@@ -99,7 +99,7 @@ func NewTemplateFunctions(gen Generator, content *kmparser.Content) TemplateFunc
 				}
 			case kmparser.EnumField:
 				name = strings.TrimSpace(val.Data.Name)
-				root := root.(kmparser.Enum)
+				root := root.(kmparser.Enumeration)
 				for i := range root.Data.Fields {
 					if l := len(root.Data.Fields[i].Data.Name); l > largest {
 						largest = l

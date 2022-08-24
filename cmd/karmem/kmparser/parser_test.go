@@ -304,12 +304,12 @@ func TestEntropyIdentifier(t *testing.T) {
 		t.Error("invalid struct name")
 	}
 
-	h, _ := blake2b.New(8, nil)
-	entropy, ok := Tags(parsed.Tags).Get("entropy")
+	key, ok := Tags(parsed.Tags).Get("key")
 	if !ok {
-		t.Error("not found entropy")
+		t.Error("not found key")
 	}
-	h.Write([]byte(entropy))
+	k := blake2b.Sum256([]byte(key))
+	h, _ := blake2b.New(8, k[:])
 	h.Write([]byte(parsed.Structs[0].Data.Name))
 
 	if *(*uint64)(unsafe.Pointer(&h.Sum(nil)[0])) != parsed.Structs[0].Data.ID {
@@ -317,11 +317,6 @@ func TestEntropyIdentifier(t *testing.T) {
 	}
 
 	h.Reset()
-	entropy, ok = Tags(parsed.Tags).Get("entropy")
-	if !ok {
-		t.Error("not found entropy")
-	}
-	h.Write([]byte(entropy))
 	h.Write([]byte(parsed.Structs[1].Data.Name))
 	if *(*uint64)(unsafe.Pointer(&h.Sum(nil)[0])) != parsed.Structs[1].Data.ID {
 		t.Error("invalid id")

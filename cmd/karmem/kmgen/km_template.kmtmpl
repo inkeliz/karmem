@@ -1,4 +1,4 @@
-{{- define "header"}}karmem {{.Module}} {{- range $tag := .Tags }} @{{$tag.Name}}(`{{$tag.Value}}`){{- end }};
+{{- define "header"}}karmem {{.Name}} {{- range $tag := .Tags }} @{{$tag.Name}}(`{{$tag.Value}}`){{- end }};
 {{end}}
 {{- define "enums"}}
 {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}

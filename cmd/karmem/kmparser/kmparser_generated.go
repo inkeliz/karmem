@@ -57,14 +57,14 @@ const (
 	PacketIdentifierEnumFieldData   = 6917629752752470509
 	PacketIdentifierEnumField       = 18350873289003309128
 	PacketIdentifierEnumData        = 18057555498029063613
-	PacketIdentifierEnum            = 1406537040913765302
+	PacketIdentifierEnumeration     = 1253319329451847685
 	PacketIdentifierStructFieldData = 17962757807284521522
 	PacketIdentifierStructField     = 12155838558451759529
 	PacketIdentifierStructData      = 8290009745541165076
-	PacketIdentifierStruct          = 4083625633151357904
+	PacketIdentifierStructure       = 18088017590773436939
 	PacketIdentifierContentSize     = 8764462619562198222
 	PacketIdentifierContentOptions  = 12347233001904861813
-	PacketIdentifierContent         = 6792576797909524956
+	PacketIdentifierContent         = 2
 )
 
 type Tag struct {
@@ -212,11 +212,11 @@ func (x *StructSize) Read(viewer *StructSizeViewer, reader *karmem.Reader) {
 	if __TotalGroupLen > cap(x.TotalGroup) {
 		x.TotalGroup = append(x.TotalGroup, make([]uint8, __TotalGroupLen-len(x.TotalGroup))...)
 	}
-	x.TotalGroup = x.TotalGroup[:__TotalGroupLen]
-	copy(x.TotalGroup, __TotalGroupSlice)
-	for i := __TotalGroupLen; i < len(x.TotalGroup); i++ {
-		x.TotalGroup[i] = 0
+	if __TotalGroupLen > len(x.TotalGroup) {
+		x.TotalGroup = x.TotalGroup[:__TotalGroupLen]
 	}
+	copy(x.TotalGroup, __TotalGroupSlice)
+	x.TotalGroup = x.TotalGroup[:__TotalGroupLen]
 }
 
 type StructFieldSize struct {
@@ -449,10 +449,13 @@ func (x *EnumFieldData) Read(viewer *EnumFieldDataViewer, reader *karmem.Reader)
 	if __TagsLen > cap(x.Tags) {
 		x.Tags = append(x.Tags, make([]Tag, __TagsLen-len(x.Tags))...)
 	}
-	x.Tags = x.Tags[:__TagsLen]
-	for i := range x.Tags {
+	if __TagsLen > len(x.Tags) {
+		x.Tags = x.Tags[:__TagsLen]
+	}
+	for i := 0; i < __TagsLen; i++ {
 		x.Tags[i].Read(&__TagsSlice[i], reader)
 	}
+	x.Tags = x.Tags[:__TagsLen]
 }
 
 type EnumField struct {
@@ -609,43 +612,49 @@ func (x *EnumData) Read(viewer *EnumDataViewer, reader *karmem.Reader) {
 	if __FieldsLen > cap(x.Fields) {
 		x.Fields = append(x.Fields, make([]EnumField, __FieldsLen-len(x.Fields))...)
 	}
-	x.Fields = x.Fields[:__FieldsLen]
-	for i := range x.Fields {
+	if __FieldsLen > len(x.Fields) {
+		x.Fields = x.Fields[:__FieldsLen]
+	}
+	for i := 0; i < __FieldsLen; i++ {
 		x.Fields[i].Read(&__FieldsSlice[i], reader)
 	}
+	x.Fields = x.Fields[:__FieldsLen]
 	__TagsSlice := viewer.Tags(reader)
 	__TagsLen := len(__TagsSlice)
 	if __TagsLen > cap(x.Tags) {
 		x.Tags = append(x.Tags, make([]Tag, __TagsLen-len(x.Tags))...)
 	}
-	x.Tags = x.Tags[:__TagsLen]
-	for i := range x.Tags {
+	if __TagsLen > len(x.Tags) {
+		x.Tags = x.Tags[:__TagsLen]
+	}
+	for i := 0; i < __TagsLen; i++ {
 		x.Tags[i].Read(&__TagsSlice[i], reader)
 	}
+	x.Tags = x.Tags[:__TagsLen]
 	x.IsSequential = viewer.IsSequential()
 }
 
-type Enum struct {
+type Enumeration struct {
 	Data EnumData
 }
 
-func NewEnum() Enum {
-	return Enum{}
+func NewEnumeration() Enumeration {
+	return Enumeration{}
 }
 
-func (x *Enum) PacketIdentifier() PacketIdentifier {
-	return PacketIdentifierEnum
+func (x *Enumeration) PacketIdentifier() PacketIdentifier {
+	return PacketIdentifierEnumeration
 }
 
-func (x *Enum) Reset() {
-	x.Read((*EnumViewer)(unsafe.Pointer(&_Null)), _NullReader)
+func (x *Enumeration) Reset() {
+	x.Read((*EnumerationViewer)(unsafe.Pointer(&_Null)), _NullReader)
 }
 
-func (x *Enum) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
+func (x *Enumeration) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
 	return x.Write(writer, 0)
 }
 
-func (x *Enum) Write(writer *karmem.Writer, start uint) (offset uint, err error) {
+func (x *Enumeration) Write(writer *karmem.Writer, start uint) (offset uint, err error) {
 	offset = start
 	size := uint(8)
 	if offset == 0 {
@@ -667,11 +676,11 @@ func (x *Enum) Write(writer *karmem.Writer, start uint) (offset uint, err error)
 	return offset, nil
 }
 
-func (x *Enum) ReadAsRoot(reader *karmem.Reader) {
-	x.Read(NewEnumViewer(reader, 0), reader)
+func (x *Enumeration) ReadAsRoot(reader *karmem.Reader) {
+	x.Read(NewEnumerationViewer(reader, 0), reader)
 }
 
-func (x *Enum) Read(viewer *EnumViewer, reader *karmem.Reader) {
+func (x *Enumeration) Read(viewer *EnumerationViewer, reader *karmem.Reader) {
 	x.Data.Read(viewer.Data(reader), reader)
 }
 
@@ -775,10 +784,13 @@ func (x *StructFieldData) Read(viewer *StructFieldDataViewer, reader *karmem.Rea
 	if __TagsLen > cap(x.Tags) {
 		x.Tags = append(x.Tags, make([]Tag, __TagsLen-len(x.Tags))...)
 	}
-	x.Tags = x.Tags[:__TagsLen]
-	for i := range x.Tags {
+	if __TagsLen > len(x.Tags) {
+		x.Tags = x.Tags[:__TagsLen]
+	}
+	for i := 0; i < __TagsLen; i++ {
 		x.Tags[i].Read(&__TagsSlice[i], reader)
 	}
+	x.Tags = x.Tags[:__TagsLen]
 	x.Size.Read(viewer.Size(reader), reader)
 }
 
@@ -940,43 +952,49 @@ func (x *StructData) Read(viewer *StructDataViewer, reader *karmem.Reader) {
 	if __FieldsLen > cap(x.Fields) {
 		x.Fields = append(x.Fields, make([]StructField, __FieldsLen-len(x.Fields))...)
 	}
-	x.Fields = x.Fields[:__FieldsLen]
-	for i := range x.Fields {
+	if __FieldsLen > len(x.Fields) {
+		x.Fields = x.Fields[:__FieldsLen]
+	}
+	for i := 0; i < __FieldsLen; i++ {
 		x.Fields[i].Read(&__FieldsSlice[i], reader)
 	}
+	x.Fields = x.Fields[:__FieldsLen]
 	x.Class = StructClass(viewer.Class())
 	__TagsSlice := viewer.Tags(reader)
 	__TagsLen := len(__TagsSlice)
 	if __TagsLen > cap(x.Tags) {
 		x.Tags = append(x.Tags, make([]Tag, __TagsLen-len(x.Tags))...)
 	}
-	x.Tags = x.Tags[:__TagsLen]
-	for i := range x.Tags {
+	if __TagsLen > len(x.Tags) {
+		x.Tags = x.Tags[:__TagsLen]
+	}
+	for i := 0; i < __TagsLen; i++ {
 		x.Tags[i].Read(&__TagsSlice[i], reader)
 	}
+	x.Tags = x.Tags[:__TagsLen]
 }
 
-type Struct struct {
+type Structure struct {
 	Data StructData
 }
 
-func NewStruct() Struct {
-	return Struct{}
+func NewStructure() Structure {
+	return Structure{}
 }
 
-func (x *Struct) PacketIdentifier() PacketIdentifier {
-	return PacketIdentifierStruct
+func (x *Structure) PacketIdentifier() PacketIdentifier {
+	return PacketIdentifierStructure
 }
 
-func (x *Struct) Reset() {
-	x.Read((*StructViewer)(unsafe.Pointer(&_Null)), _NullReader)
+func (x *Structure) Reset() {
+	x.Read((*StructureViewer)(unsafe.Pointer(&_Null)), _NullReader)
 }
 
-func (x *Struct) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
+func (x *Structure) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
 	return x.Write(writer, 0)
 }
 
-func (x *Struct) Write(writer *karmem.Writer, start uint) (offset uint, err error) {
+func (x *Structure) Write(writer *karmem.Writer, start uint) (offset uint, err error) {
 	offset = start
 	size := uint(8)
 	if offset == 0 {
@@ -998,11 +1016,11 @@ func (x *Struct) Write(writer *karmem.Writer, start uint) (offset uint, err erro
 	return offset, nil
 }
 
-func (x *Struct) ReadAsRoot(reader *karmem.Reader) {
-	x.Read(NewStructViewer(reader, 0), reader)
+func (x *Structure) ReadAsRoot(reader *karmem.Reader) {
+	x.Read(NewStructureViewer(reader, 0), reader)
 }
 
-func (x *Struct) Read(viewer *StructViewer, reader *karmem.Reader) {
+func (x *Structure) Read(viewer *StructureViewer, reader *karmem.Reader) {
 	x.Data.Read(viewer.Data(reader), reader)
 }
 
@@ -1143,11 +1161,10 @@ func (x *ContentOptions) Read(viewer *ContentOptionsViewer, reader *karmem.Reade
 
 type Content struct {
 	Tags    []Tag
-	Structs []Struct
-	Enums   []Enum
+	Structs []Structure
+	Enums   []Enumeration
 	Size    ContentSize
-	Options ContentOptions
-	Module  string
+	Name    string
 }
 
 func NewContent() Content {
@@ -1175,7 +1192,7 @@ func (x *Content) Write(writer *karmem.Writer, start uint) (offset uint, err err
 			return 0, err
 		}
 	}
-	writer.Write4At(offset, uint32(60))
+	writer.Write4At(offset, uint32(56))
 	__TagsSize := uint(32 * len(x.Tags))
 	__TagsOffset, err := writer.Alloc(__TagsSize)
 	if err != nil {
@@ -1227,25 +1244,16 @@ func (x *Content) Write(writer *karmem.Writer, start uint) (offset uint, err err
 	if _, err := x.Size.Write(writer, __SizeOffset); err != nil {
 		return offset, err
 	}
-	__OptionsSize := uint(48)
-	__OptionsOffset, err := writer.Alloc(__OptionsSize)
+	__NameSize := uint(1 * len(x.Name))
+	__NameOffset, err := writer.Alloc(__NameSize)
 	if err != nil {
 		return 0, err
 	}
-	writer.Write4At(offset+44, uint32(__OptionsOffset))
-	if _, err := x.Options.Write(writer, __OptionsOffset); err != nil {
-		return offset, err
-	}
-	__ModuleSize := uint(1 * len(x.Module))
-	__ModuleOffset, err := writer.Alloc(__ModuleSize)
-	if err != nil {
-		return 0, err
-	}
-	writer.Write4At(offset+48, uint32(__ModuleOffset))
-	writer.Write4At(offset+48+4, uint32(__ModuleSize))
-	writer.Write4At(offset+48+4+4, 1)
-	__ModuleSlice := [3]uint{*(*uint)(unsafe.Pointer(&x.Module)), __ModuleSize, __ModuleSize}
-	writer.WriteAt(__ModuleOffset, *(*[]byte)(unsafe.Pointer(&__ModuleSlice)))
+	writer.Write4At(offset+44, uint32(__NameOffset))
+	writer.Write4At(offset+44+4, uint32(__NameSize))
+	writer.Write4At(offset+44+4+4, 1)
+	__NameSlice := [3]uint{*(*uint)(unsafe.Pointer(&x.Name)), __NameSize, __NameSize}
+	writer.WriteAt(__NameOffset, *(*[]byte)(unsafe.Pointer(&__NameSlice)))
 
 	return offset, nil
 }
@@ -1260,35 +1268,43 @@ func (x *Content) Read(viewer *ContentViewer, reader *karmem.Reader) {
 	if __TagsLen > cap(x.Tags) {
 		x.Tags = append(x.Tags, make([]Tag, __TagsLen-len(x.Tags))...)
 	}
-	x.Tags = x.Tags[:__TagsLen]
-	for i := range x.Tags {
+	if __TagsLen > len(x.Tags) {
+		x.Tags = x.Tags[:__TagsLen]
+	}
+	for i := 0; i < __TagsLen; i++ {
 		x.Tags[i].Read(&__TagsSlice[i], reader)
 	}
+	x.Tags = x.Tags[:__TagsLen]
 	__StructsSlice := viewer.Structs(reader)
 	__StructsLen := len(__StructsSlice)
 	if __StructsLen > cap(x.Structs) {
-		x.Structs = append(x.Structs, make([]Struct, __StructsLen-len(x.Structs))...)
+		x.Structs = append(x.Structs, make([]Structure, __StructsLen-len(x.Structs))...)
 	}
-	x.Structs = x.Structs[:__StructsLen]
-	for i := range x.Structs {
+	if __StructsLen > len(x.Structs) {
+		x.Structs = x.Structs[:__StructsLen]
+	}
+	for i := 0; i < __StructsLen; i++ {
 		x.Structs[i].Read(&__StructsSlice[i], reader)
 	}
+	x.Structs = x.Structs[:__StructsLen]
 	__EnumsSlice := viewer.Enums(reader)
 	__EnumsLen := len(__EnumsSlice)
 	if __EnumsLen > cap(x.Enums) {
-		x.Enums = append(x.Enums, make([]Enum, __EnumsLen-len(x.Enums))...)
+		x.Enums = append(x.Enums, make([]Enumeration, __EnumsLen-len(x.Enums))...)
 	}
-	x.Enums = x.Enums[:__EnumsLen]
-	for i := range x.Enums {
+	if __EnumsLen > len(x.Enums) {
+		x.Enums = x.Enums[:__EnumsLen]
+	}
+	for i := 0; i < __EnumsLen; i++ {
 		x.Enums[i].Read(&__EnumsSlice[i], reader)
 	}
+	x.Enums = x.Enums[:__EnumsLen]
 	x.Size.Read(viewer.Size(reader), reader)
-	x.Options.Read(viewer.Options(reader), reader)
-	__ModuleString := viewer.Module(reader)
-	if x.Module != __ModuleString {
-		__ModuleStringCopy := make([]byte, len(__ModuleString))
-		copy(__ModuleStringCopy, __ModuleString)
-		x.Module = *(*string)(unsafe.Pointer(&__ModuleStringCopy))
+	__NameString := viewer.Name(reader)
+	if x.Name != __NameString {
+		__NameStringCopy := make([]byte, len(__NameString))
+		copy(__NameStringCopy, __NameString)
+		x.Name = *(*string)(unsafe.Pointer(&__NameStringCopy))
 	}
 }
 
@@ -1655,22 +1671,22 @@ func (x *EnumDataViewer) IsSequential() (v bool) {
 	return *(*bool)(unsafe.Add(unsafe.Pointer(&x._data), 44))
 }
 
-type EnumViewer struct {
+type EnumerationViewer struct {
 	_data [8]byte
 }
 
-func NewEnumViewer(reader *karmem.Reader, offset uint32) (v *EnumViewer) {
+func NewEnumerationViewer(reader *karmem.Reader, offset uint32) (v *EnumerationViewer) {
 	if !reader.IsValidOffset(offset, 8) {
-		return (*EnumViewer)(unsafe.Pointer(&_Null))
+		return (*EnumerationViewer)(unsafe.Pointer(&_Null))
 	}
-	v = (*EnumViewer)(unsafe.Add(reader.Pointer, offset))
+	v = (*EnumerationViewer)(unsafe.Add(reader.Pointer, offset))
 	return v
 }
 
-func (x *EnumViewer) size() uint32 {
+func (x *EnumerationViewer) size() uint32 {
 	return 8
 }
-func (x *EnumViewer) Data(reader *karmem.Reader) (v *EnumDataViewer) {
+func (x *EnumerationViewer) Data(reader *karmem.Reader) (v *EnumDataViewer) {
 	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 0))
 	return NewEnumDataViewer(reader, offset)
 }
@@ -1847,22 +1863,22 @@ func (x *StructDataViewer) Tags(reader *karmem.Reader) (v []TagViewer) {
 	return *(*[]TagViewer)(unsafe.Pointer(&slice))
 }
 
-type StructViewer struct {
+type StructureViewer struct {
 	_data [8]byte
 }
 
-func NewStructViewer(reader *karmem.Reader, offset uint32) (v *StructViewer) {
+func NewStructureViewer(reader *karmem.Reader, offset uint32) (v *StructureViewer) {
 	if !reader.IsValidOffset(offset, 8) {
-		return (*StructViewer)(unsafe.Pointer(&_Null))
+		return (*StructureViewer)(unsafe.Pointer(&_Null))
 	}
-	v = (*StructViewer)(unsafe.Add(reader.Pointer, offset))
+	v = (*StructureViewer)(unsafe.Add(reader.Pointer, offset))
 	return v
 }
 
-func (x *StructViewer) size() uint32 {
+func (x *StructureViewer) size() uint32 {
 	return 8
 }
-func (x *StructViewer) Data(reader *karmem.Reader) (v *StructDataViewer) {
+func (x *StructureViewer) Data(reader *karmem.Reader) (v *StructDataViewer) {
 	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 0))
 	return NewStructDataViewer(reader, offset)
 }
@@ -1989,35 +2005,35 @@ func (x *ContentViewer) Tags(reader *karmem.Reader) (v []TagViewer) {
 	}
 	return *(*[]TagViewer)(unsafe.Pointer(&slice))
 }
-func (x *ContentViewer) Structs(reader *karmem.Reader) (v []StructViewer) {
+func (x *ContentViewer) Structs(reader *karmem.Reader) (v []StructureViewer) {
 	if 16+12 > x.size() {
-		return []StructViewer{}
+		return []StructureViewer{}
 	}
 	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 16))
 	size := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 16+4))
 	if !reader.IsValidOffset(offset, size) {
-		return []StructViewer{}
+		return []StructureViewer{}
 	}
 	length := uintptr(size / 8)
 	slice := [3]uintptr{
 		uintptr(unsafe.Add(reader.Pointer, offset)), length, length,
 	}
-	return *(*[]StructViewer)(unsafe.Pointer(&slice))
+	return *(*[]StructureViewer)(unsafe.Pointer(&slice))
 }
-func (x *ContentViewer) Enums(reader *karmem.Reader) (v []EnumViewer) {
+func (x *ContentViewer) Enums(reader *karmem.Reader) (v []EnumerationViewer) {
 	if 28+12 > x.size() {
-		return []EnumViewer{}
+		return []EnumerationViewer{}
 	}
 	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 28))
 	size := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 28+4))
 	if !reader.IsValidOffset(offset, size) {
-		return []EnumViewer{}
+		return []EnumerationViewer{}
 	}
 	length := uintptr(size / 8)
 	slice := [3]uintptr{
 		uintptr(unsafe.Add(reader.Pointer, offset)), length, length,
 	}
-	return *(*[]EnumViewer)(unsafe.Pointer(&slice))
+	return *(*[]EnumerationViewer)(unsafe.Pointer(&slice))
 }
 func (x *ContentViewer) Size(reader *karmem.Reader) (v *ContentSizeViewer) {
 	if 40+4 > x.size() {
@@ -2026,19 +2042,12 @@ func (x *ContentViewer) Size(reader *karmem.Reader) (v *ContentSizeViewer) {
 	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 40))
 	return NewContentSizeViewer(reader, offset)
 }
-func (x *ContentViewer) Options(reader *karmem.Reader) (v *ContentOptionsViewer) {
-	if 44+4 > x.size() {
-		return (*ContentOptionsViewer)(unsafe.Pointer(&_Null))
-	}
-	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 44))
-	return NewContentOptionsViewer(reader, offset)
-}
-func (x *ContentViewer) Module(reader *karmem.Reader) (v string) {
-	if 48+12 > x.size() {
+func (x *ContentViewer) Name(reader *karmem.Reader) (v string) {
+	if 44+12 > x.size() {
 		return v
 	}
-	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 48))
-	size := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 48+4))
+	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 44))
+	size := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 44+4))
 	if !reader.IsValidOffset(offset, size) {
 		return ""
 	}

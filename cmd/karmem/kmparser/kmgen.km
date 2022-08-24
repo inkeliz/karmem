@@ -23,12 +23,12 @@ enum TypeFormat uint8 {
 }
 
 
-struct Tag inline {
+struct Tag inline @id(`9280816983786621498`) {
     Name  []char;
     Value []char;
 }
 
-struct StructSize table {
+struct StructSize table @id(`2296279785726396957`) {
     Minimum    uint32;
     Content    uint32;
     Padding    uint32;
@@ -36,13 +36,13 @@ struct StructSize table {
     TotalGroup []uint8;
 }
 
-struct StructFieldSize table {
+struct StructFieldSize table @id(`3117293985139574571`) {
     Minimum    uint32;
     Allocation uint32;
     Field      uint32;
 }
 
-struct Type table {
+struct Type table @id(`2206764383142231373`) {
     Schema      []char;
     PlainSchema []char;
     Length      uint32;
@@ -50,17 +50,17 @@ struct Type table {
     Model       TypeModel;
 }
 
-struct EnumFieldData table {
+struct EnumFieldData table @id(`6917629752752470509`) {
     Name  []char;
     Value []char;
     Tags  []Tag;
 }
 
-struct EnumField inline {
+struct EnumField inline @id(`18350873289003309128`) {
     Data EnumFieldData;
 }
 
-struct EnumData table {
+struct EnumData table @id(`18057555498029063613`) {
     Name         []char;
     Type         Type;
     Fields       []EnumField;
@@ -68,11 +68,11 @@ struct EnumData table {
     IsSequential bool;
 }
 
-struct Enum inline {
+struct Enumeration inline @id(`1253319329451847685`) {
     Data EnumData;
 }
 
-struct StructFieldData table {
+struct StructFieldData table @id(`17962757807284521522`) {
     Name   []char;
     Type   Type;
     Offset uint32;
@@ -80,11 +80,11 @@ struct StructFieldData table {
     Size   StructFieldSize;
 }
 
-struct StructField inline {
+struct StructField inline @id(`12155838558451759529`) {
     Data StructFieldData;
 }
 
-struct StructData table {
+struct StructData table @id(`8290009745541165076`) {
     ID     uint64;
     Name   []char;
     Size   StructSize;
@@ -93,25 +93,24 @@ struct StructData table {
     Tags   []Tag;
 }
 
-struct Struct inline {
+struct Structure inline @id(`18088017590773436939`) {
     Data StructData;
 }
 
-struct ContentSize table {
+struct ContentSize table @id(`8764462619562198222`) {
     Largest uint32;
 }
 
-struct ContentOptions table {
+struct ContentOptions table @id(`12347233001904861813`) {
     Module []char;
     Import []char;
     Prefix []char;
 }
 
-struct Content table {
+struct Content table @id(`6792576797909524956`) {
     Tags    []Tag;
-    Structs []Struct;
-    Enums   []Enum;
+    Structs []Structure;
+    Enums   []Enumeration;
     Size    ContentSize;
-    Options ContentOptions;
-    Module  []char;
+    Name    []char;
 }

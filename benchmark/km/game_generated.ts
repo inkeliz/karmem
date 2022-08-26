@@ -1,7 +1,7 @@
 
 import * as karmem from '../../assemblyscript/karmem'
 
-let _Null = new StaticArray<u8>(152)
+let _Null = new StaticArray<u8>(111)
 let _NullReader = karmem.NewReader(_Null)
 
 export type Color = u8;
@@ -45,7 +45,7 @@ export class Vec3 {
 
     static Write(x: Vec3, writer: karmem.Writer, start: u32): boolean {
         let offset = start;
-        const size: u32 = 16;
+        const size: u32 = 12;
         if (offset == 0) {
             offset = writer.Alloc(size);
             if (offset == 0xFFFFFFFF) {
@@ -104,7 +104,7 @@ export class WeaponData {
 
     static Write(x: WeaponData, writer: karmem.Writer, start: u32): boolean {
         let offset = start;
-        const size: u32 = 16;
+        const size: u32 = 12;
         if (offset == 0) {
             offset = writer.Alloc(size);
             if (offset == 0xFFFFFFFF) {
@@ -159,14 +159,14 @@ export class Weapon {
 
     static Write(x: Weapon, writer: karmem.Writer, start: u32): boolean {
         let offset = start;
-        const size: u32 = 8;
+        const size: u32 = 4;
         if (offset == 0) {
             offset = writer.Alloc(size);
             if (offset == 0xFFFFFFFF) {
                 return false;
             }
         }
-        const __DataSize: u32 = 16;
+        const __DataSize: u32 = 12;
         let __DataOffset = writer.Alloc(__DataSize);
         if (__DataOffset == 0) {
             return false;
@@ -227,21 +227,21 @@ export class MonsterData {
 
     static Write(x: MonsterData, writer: karmem.Writer, start: u32): boolean {
         let offset = start;
-        const size: u32 = 152;
+        const size: u32 = 111;
         if (offset == 0) {
             offset = writer.Alloc(size);
             if (offset == 0xFFFFFFFF) {
                 return false;
             }
         }
-        writer.WriteAt<u32>(offset, 147);
+        writer.WriteAt<u32>(offset, 111);
         let __PosOffset: u32 = offset + 4;
         if (!Vec3.Write(x.Pos, writer, __PosOffset)) {
             return false;
         }
-        let __ManaOffset: u32 = offset + 20;
+        let __ManaOffset: u32 = offset + 16;
         writer.WriteAt<i16>(__ManaOffset, x.Mana);
-        let __HealthOffset: u32 = offset + 22;
+        let __HealthOffset: u32 = offset + 18;
         writer.WriteAt<i16>(__HealthOffset, x.Health);
         const __NameString : Uint8Array = Uint8Array.wrap(String.UTF8.encode(x.Name, false))
         const __NameSize: u32 = 1 * __NameString.length;
@@ -249,58 +249,54 @@ export class MonsterData {
         if (__NameOffset == 0) {
             return false;
         }
-        writer.WriteAt<u32>(offset +24, __NameOffset);
-        writer.WriteAt<u32>(offset +24 +4, __NameSize);
-        writer.WriteAt<u32>(offset + 24 + 4 + 4, 1)
+        writer.WriteAt<u32>(offset +20, __NameOffset);
+        writer.WriteAt<u32>(offset +20 +4, __NameSize);
         writer.WriteSliceAt<Uint8Array>(__NameOffset, __NameString);
-        let __TeamOffset: u32 = offset + 36;
+        let __TeamOffset: u32 = offset + 28;
         writer.WriteAt<Team>(__TeamOffset, x.Team);
         const __InventorySize: u32 = 1 * x.Inventory.length;
         let __InventoryOffset = writer.Alloc(__InventorySize);
         if (__InventoryOffset == 0) {
             return false;
         }
-        writer.WriteAt<u32>(offset +37, __InventoryOffset);
-        writer.WriteAt<u32>(offset +37 +4, __InventorySize);
-        writer.WriteAt<u32>(offset + 37 + 4 + 4, 1)
+        writer.WriteAt<u32>(offset +29, __InventoryOffset);
+        writer.WriteAt<u32>(offset +29 +4, __InventorySize);
         writer.WriteSliceAt<Array<u8>>(__InventoryOffset, x.Inventory);
-        let __ColorOffset: u32 = offset + 49;
+        let __ColorOffset: u32 = offset + 37;
         writer.WriteAt<Color>(__ColorOffset, x.Color);
-        let __HitboxOffset: u32 = offset + 50;
+        let __HitboxOffset: u32 = offset + 38;
         writer.WriteArrayAt<StaticArray<f64>>(__HitboxOffset, x.Hitbox);
         const __StatusSize: u32 = 4 * x.Status.length;
         let __StatusOffset = writer.Alloc(__StatusSize);
         if (__StatusOffset == 0) {
             return false;
         }
-        writer.WriteAt<u32>(offset +90, __StatusOffset);
-        writer.WriteAt<u32>(offset +90 +4, __StatusSize);
-        writer.WriteAt<u32>(offset + 90 + 4 + 4, 4)
+        writer.WriteAt<u32>(offset +78, __StatusOffset);
+        writer.WriteAt<u32>(offset +78 +4, __StatusSize);
         writer.WriteSliceAt<Array<i32>>(__StatusOffset, x.Status);
-        let __WeaponsOffset: u32 = offset + 102;
+        let __WeaponsOffset: u32 = offset + 86;
         let __WeaponsLen = x.Weapons.length;
         for (let i = 0; i < __WeaponsLen; i++) {
             if (!Weapon.Write(x.Weapons[i], writer, __WeaponsOffset)) {
                 return false;
             }
-            __WeaponsOffset += 8;
+            __WeaponsOffset += 4;
         }
-        const __PathSize: u32 = 16 * x.Path.length;
+        const __PathSize: u32 = 12 * x.Path.length;
         let __PathOffset = writer.Alloc(__PathSize);
         if (__PathOffset == 0) {
             return false;
         }
-        writer.WriteAt<u32>(offset +134, __PathOffset);
-        writer.WriteAt<u32>(offset +134 +4, __PathSize);
-        writer.WriteAt<u32>(offset + 134 + 4 + 4, 16)
+        writer.WriteAt<u32>(offset +102, __PathOffset);
+        writer.WriteAt<u32>(offset +102 +4, __PathSize);
         let __PathLen = x.Path.length;
         for (let i = 0; i < __PathLen; i++) {
             if (!Vec3.Write(x.Path[i], writer, __PathOffset)) {
                 return false;
             }
-            __PathOffset += 16;
+            __PathOffset += 12;
         }
-        let __IsAliveOffset: u32 = offset + 146;
+        let __IsAliveOffset: u32 = offset + 110;
         writer.WriteAt<bool>(__IsAliveOffset, x.IsAlive);
 
         return true
@@ -427,14 +423,14 @@ export class Monster {
 
     static Write(x: Monster, writer: karmem.Writer, start: u32): boolean {
         let offset = start;
-        const size: u32 = 8;
+        const size: u32 = 4;
         if (offset == 0) {
             offset = writer.Alloc(size);
             if (offset == 0xFFFFFFFF) {
                 return false;
             }
         }
-        const __DataSize: u32 = 152;
+        const __DataSize: u32 = 111;
         let __DataOffset = writer.Alloc(__DataSize);
         if (__DataOffset == 0) {
             return false;
@@ -484,28 +480,27 @@ export class Monsters {
 
     static Write(x: Monsters, writer: karmem.Writer, start: u32): boolean {
         let offset = start;
-        const size: u32 = 24;
+        const size: u32 = 12;
         if (offset == 0) {
             offset = writer.Alloc(size);
             if (offset == 0xFFFFFFFF) {
                 return false;
             }
         }
-        writer.WriteAt<u32>(offset, 16);
-        const __MonstersSize: u32 = 8 * x.Monsters.length;
+        writer.WriteAt<u32>(offset, 12);
+        const __MonstersSize: u32 = 4 * x.Monsters.length;
         let __MonstersOffset = writer.Alloc(__MonstersSize);
         if (__MonstersOffset == 0) {
             return false;
         }
         writer.WriteAt<u32>(offset +4, __MonstersOffset);
         writer.WriteAt<u32>(offset +4 +4, __MonstersSize);
-        writer.WriteAt<u32>(offset + 4 + 4 + 4, 8)
         let __MonstersLen = x.Monsters.length;
         for (let i = 0; i < __MonstersLen; i++) {
             if (!Monster.Write(x.Monsters[i], writer, __MonstersOffset)) {
                 return false;
             }
-            __MonstersOffset += 8;
+            __MonstersOffset += 4;
         }
 
         return true
@@ -545,11 +540,11 @@ export function NewMonsters(): Monsters {
 @unmanaged
 export class Vec3Viewer {
     private _0: u64;
-    private _1: u64;
+    private _1: u32;
 
     @inline
     SizeOf(): u32 {
-        return 16;
+        return 12;
     }
     @inline
     X(): f32 {
@@ -566,7 +561,7 @@ export class Vec3Viewer {
 }
 
 @inline export function NewVec3Viewer(reader: karmem.Reader, offset: u32): Vec3Viewer {
-    if (!reader.IsValidOffset(offset, 16)) {
+    if (!reader.IsValidOffset(offset, 12)) {
         return changetype<Vec3Viewer>(changetype<usize>(_Null))
     }
 
@@ -576,7 +571,7 @@ export class Vec3Viewer {
 @unmanaged
 export class WeaponDataViewer {
     private _0: u64;
-    private _1: u64;
+    private _1: u32;
 
     @inline
     SizeOf(): u32 {
@@ -599,7 +594,7 @@ export class WeaponDataViewer {
 }
 
 @inline export function NewWeaponDataViewer(reader: karmem.Reader, offset: u32): WeaponDataViewer {
-    if (!reader.IsValidOffset(offset, 8)) {
+    if (!reader.IsValidOffset(offset, 4)) {
         return changetype<WeaponDataViewer>(changetype<usize>(_Null))
     }
 
@@ -611,11 +606,11 @@ export class WeaponDataViewer {
 }
 @unmanaged
 export class WeaponViewer {
-    private _0: u64;
+    private _0: u32;
 
     @inline
     SizeOf(): u32 {
-        return 8;
+        return 4;
     }
     @inline
     Data(reader: karmem.Reader): WeaponDataViewer {
@@ -625,7 +620,7 @@ export class WeaponViewer {
 }
 
 @inline export function NewWeaponViewer(reader: karmem.Reader, offset: u32): WeaponViewer {
-    if (!reader.IsValidOffset(offset, 8)) {
+    if (!reader.IsValidOffset(offset, 4)) {
         return changetype<WeaponViewer>(changetype<usize>(_Null))
     }
 
@@ -647,12 +642,9 @@ export class MonsterDataViewer {
     private _10: u64;
     private _11: u64;
     private _12: u64;
-    private _13: u64;
-    private _14: u64;
-    private _15: u64;
-    private _16: u64;
-    private _17: u64;
-    private _18: u64;
+    private _13: u32;
+    private _14: u16;
+    private _15: u8;
 
     @inline
     SizeOf(): u32 {
@@ -660,32 +652,32 @@ export class MonsterDataViewer {
     }
     @inline
     Pos(): Vec3Viewer {
-        if ((<u32>4 + <u32>16) > this.SizeOf()) {
+        if ((<u32>4 + <u32>12) > this.SizeOf()) {
             return changetype<Vec3Viewer>(changetype<usize>(_Null));
         }
         return changetype<Vec3Viewer>(changetype<usize>(this) + 4);
     }
     @inline
     Mana(): i16 {
-        if ((<u32>20 + <u32>2) > this.SizeOf()) {
+        if ((<u32>16 + <u32>2) > this.SizeOf()) {
             return 0
         }
-        return load<i16>(changetype<usize>(this) + 20);
+        return load<i16>(changetype<usize>(this) + 16);
     }
     @inline
     Health(): i16 {
-        if ((<u32>22 + <u32>2) > this.SizeOf()) {
+        if ((<u32>18 + <u32>2) > this.SizeOf()) {
             return 0
         }
-        return load<i16>(changetype<usize>(this) + 22);
+        return load<i16>(changetype<usize>(this) + 18);
     }
     @inline
     Name(reader: karmem.Reader): string {
-        if ((<u32>24 + <u32>12) > this.SizeOf()) {
+        if ((<u32>20 + <u32>8) > this.SizeOf()) {
             return ""
         }
-        let offset: u32 = load<u32>(changetype<usize>(this) + 24);
-        let size: u32 = load<u32>(changetype<usize>(this) + 24 +4);
+        let offset: u32 = load<u32>(changetype<usize>(this) + 20);
+        let size: u32 = load<u32>(changetype<usize>(this) + 20 +4);
         if (!reader.IsValidOffset(offset, size)) {
             return "";
         }
@@ -693,18 +685,18 @@ export class MonsterDataViewer {
     }
     @inline
     Team(): Team {
-        if ((<u32>36 + <u32>1) > this.SizeOf()) {
+        if ((<u32>28 + <u32>1) > this.SizeOf()) {
             return 0
         }
-        return load<Team>(changetype<usize>(this) + 36);
+        return load<Team>(changetype<usize>(this) + 28);
     }
     @inline
     Inventory(reader: karmem.Reader): karmem.Slice<u8> {
-        if ((<u32>37 + <u32>12) > this.SizeOf()) {
+        if ((<u32>29 + <u32>8) > this.SizeOf()) {
             return new karmem.Slice<u8>(0,0,0)
         }
-        let offset: u32 = load<u32>(changetype<usize>(this) + 37);
-        let size: u32 = load<u32>(changetype<usize>(this) + 37 +4);
+        let offset: u32 = load<u32>(changetype<usize>(this) + 29);
+        let size: u32 = load<u32>(changetype<usize>(this) + 29 +4);
         if (!reader.IsValidOffset(offset, size)) {
             return new karmem.Slice<u8>(0, 0, 0);
         }
@@ -716,25 +708,25 @@ export class MonsterDataViewer {
     }
     @inline
     Color(): Color {
-        if ((<u32>49 + <u32>1) > this.SizeOf()) {
+        if ((<u32>37 + <u32>1) > this.SizeOf()) {
             return 0
         }
-        return load<Color>(changetype<usize>(this) + 49);
+        return load<Color>(changetype<usize>(this) + 37);
     }
     @inline
     Hitbox(): karmem.Slice<f64> {
-        if ((<u32>50 + <u32>40) > this.SizeOf()) {
+        if ((<u32>38 + <u32>40) > this.SizeOf()) {
             return new karmem.Slice<f64>(0,0,0)
         }
-        return new karmem.Slice<f64>(changetype<usize>(this) + 50, 5, 8);
+        return new karmem.Slice<f64>(changetype<usize>(this) + 38, 5, 8);
     }
     @inline
     Status(reader: karmem.Reader): karmem.Slice<i32> {
-        if ((<u32>90 + <u32>12) > this.SizeOf()) {
+        if ((<u32>78 + <u32>8) > this.SizeOf()) {
             return new karmem.Slice<i32>(0,0,0)
         }
-        let offset: u32 = load<u32>(changetype<usize>(this) + 90);
-        let size: u32 = load<u32>(changetype<usize>(this) + 90 +4);
+        let offset: u32 = load<u32>(changetype<usize>(this) + 78);
+        let size: u32 = load<u32>(changetype<usize>(this) + 78 +4);
         if (!reader.IsValidOffset(offset, size)) {
             return new karmem.Slice<i32>(0, 0, 0);
         }
@@ -746,38 +738,38 @@ export class MonsterDataViewer {
     }
     @inline
     Weapons(): karmem.Slice<WeaponViewer> {
-        if ((<u32>102 + <u32>32) > this.SizeOf()) {
+        if ((<u32>86 + <u32>16) > this.SizeOf()) {
             return new karmem.Slice<WeaponViewer>(0,0,0)
         }
-        return new karmem.Slice<WeaponViewer>(changetype<usize>(this) + 102, 4, 8);
+        return new karmem.Slice<WeaponViewer>(changetype<usize>(this) + 86, 4, 4);
     }
     @inline
     Path(reader: karmem.Reader): karmem.Slice<Vec3Viewer> {
-        if ((<u32>134 + <u32>12) > this.SizeOf()) {
+        if ((<u32>102 + <u32>8) > this.SizeOf()) {
             return new karmem.Slice<Vec3Viewer>(0,0,0)
         }
-        let offset: u32 = load<u32>(changetype<usize>(this) + 134);
-        let size: u32 = load<u32>(changetype<usize>(this) + 134 +4);
+        let offset: u32 = load<u32>(changetype<usize>(this) + 102);
+        let size: u32 = load<u32>(changetype<usize>(this) + 102 +4);
         if (!reader.IsValidOffset(offset, size)) {
             return new karmem.Slice<Vec3Viewer>(0, 0, 0);
         }
-        let length = size / 16;
+        let length = size / 12;
         if (length > 2000) {
             length = 2000;
         }
-        return new karmem.Slice<Vec3Viewer>(reader.Pointer + offset, length, 16);
+        return new karmem.Slice<Vec3Viewer>(reader.Pointer + offset, length, 12);
     }
     @inline
     IsAlive(): bool {
-        if ((<u32>146 + <u32>1) > this.SizeOf()) {
+        if ((<u32>110 + <u32>1) > this.SizeOf()) {
             return false
         }
-        return load<bool>(changetype<usize>(this) + 146);
+        return load<bool>(changetype<usize>(this) + 110);
     }
 }
 
 @inline export function NewMonsterDataViewer(reader: karmem.Reader, offset: u32): MonsterDataViewer {
-    if (!reader.IsValidOffset(offset, 8)) {
+    if (!reader.IsValidOffset(offset, 4)) {
         return changetype<MonsterDataViewer>(changetype<usize>(_Null))
     }
 
@@ -789,11 +781,11 @@ export class MonsterDataViewer {
 }
 @unmanaged
 export class MonsterViewer {
-    private _0: u64;
+    private _0: u32;
 
     @inline
     SizeOf(): u32 {
-        return 8;
+        return 4;
     }
     @inline
     Data(reader: karmem.Reader): MonsterDataViewer {
@@ -803,7 +795,7 @@ export class MonsterViewer {
 }
 
 @inline export function NewMonsterViewer(reader: karmem.Reader, offset: u32): MonsterViewer {
-    if (!reader.IsValidOffset(offset, 8)) {
+    if (!reader.IsValidOffset(offset, 4)) {
         return changetype<MonsterViewer>(changetype<usize>(_Null))
     }
 
@@ -813,8 +805,7 @@ export class MonsterViewer {
 @unmanaged
 export class MonstersViewer {
     private _0: u64;
-    private _1: u64;
-    private _2: u64;
+    private _1: u32;
 
     @inline
     SizeOf(): u32 {
@@ -822,7 +813,7 @@ export class MonstersViewer {
     }
     @inline
     Monsters(reader: karmem.Reader): karmem.Slice<MonsterViewer> {
-        if ((<u32>4 + <u32>12) > this.SizeOf()) {
+        if ((<u32>4 + <u32>8) > this.SizeOf()) {
             return new karmem.Slice<MonsterViewer>(0,0,0)
         }
         let offset: u32 = load<u32>(changetype<usize>(this) + 4);
@@ -830,16 +821,16 @@ export class MonstersViewer {
         if (!reader.IsValidOffset(offset, size)) {
             return new karmem.Slice<MonsterViewer>(0, 0, 0);
         }
-        let length = size / 8;
+        let length = size / 4;
         if (length > 2000) {
             length = 2000;
         }
-        return new karmem.Slice<MonsterViewer>(reader.Pointer + offset, length, 8);
+        return new karmem.Slice<MonsterViewer>(reader.Pointer + offset, length, 4);
     }
 }
 
 @inline export function NewMonstersViewer(reader: karmem.Reader, offset: u32): MonstersViewer {
-    if (!reader.IsValidOffset(offset, 8)) {
+    if (!reader.IsValidOffset(offset, 4)) {
         return changetype<MonstersViewer>(changetype<usize>(_Null))
     }
 

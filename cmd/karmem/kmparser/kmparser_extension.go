@@ -1,5 +1,9 @@
 package kmparser
 
+import (
+	"fmt"
+)
+
 type Tags []Tag
 
 func (x Tags) Get(s string) (string, bool) {
@@ -9,6 +13,24 @@ func (x Tags) Get(s string) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+func (x Tags) GetBoolean(s string) (r int, err error) {
+	for i := range x {
+		if x[i].Name == s {
+			switch x[i].Value {
+			case "":
+				fallthrough
+			case "true":
+				return 1, nil
+			case "false":
+				return 0, nil
+			default:
+				return -1, fmt.Errorf(`invalid value of "%s" for %s`, x[i].Value, x[i].Name)
+			}
+		}
+	}
+	return -1, nil
 }
 
 func (x *Type) IsBasic() bool {

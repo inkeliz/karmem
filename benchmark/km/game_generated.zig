@@ -5,8 +5,8 @@ const testing = std.testing;
 const Allocator = std.mem.Allocator;
 const mem = @import("std").mem;
 
-var _Null: [152]u8 = [_]u8{ 0 } ** 152;
-var _NullReader: karmem.Reader = karmem.NewReader(std.heap.page_allocator, _Null[0..152]);
+var _Null: [111]u8 = [_]u8{ 0 } ** 111;
+var _NullReader: karmem.Reader = karmem.NewReader(std.heap.page_allocator, _Null[0..111]);
 
 
 pub const EnumColor = enum(u8) {
@@ -55,7 +55,7 @@ pub const Vec3 = struct {
 
     pub fn Write(x: *Vec3, writer: *karmem.Writer, start: usize) Allocator.Error!u32 {
         var offset: u32 = @intCast(u32, start);
-        var size: u32 = 16;
+        var size: u32 = 12;
         if (offset == 0) {
             offset = try karmem.Writer.Alloc(writer, size);
         }
@@ -106,7 +106,7 @@ pub const WeaponData = struct {
 
     pub fn Write(x: *WeaponData, writer: *karmem.Writer, start: usize) Allocator.Error!u32 {
         var offset: u32 = @intCast(u32, start);
-        var size: u32 = 16;
+        var size: u32 = 12;
         if (offset == 0) {
             offset = try karmem.Writer.Alloc(writer, size);
         }
@@ -155,11 +155,11 @@ pub const Weapon = struct {
 
     pub fn Write(x: *Weapon, writer: *karmem.Writer, start: usize) Allocator.Error!u32 {
         var offset: u32 = @intCast(u32, start);
-        var size: u32 = 8;
+        var size: u32 = 4;
         if (offset == 0) {
             offset = try karmem.Writer.Alloc(writer, size);
         }
-        var __DataSize: usize = 16;
+        var __DataSize: usize = 12;
         var __DataOffset = try karmem.Writer.Alloc(writer, __DataSize);
 
         karmem.Writer.WriteAt(writer, offset+0, @ptrCast([*]const u8, &__DataOffset), 4);
@@ -217,73 +217,65 @@ pub const MonsterData = struct {
 
     pub fn Write(x: *MonsterData, writer: *karmem.Writer, start: usize) Allocator.Error!u32 {
         var offset: u32 = @intCast(u32, start);
-        var size: u32 = 152;
+        var size: u32 = 111;
         if (offset == 0) {
             offset = try karmem.Writer.Alloc(writer, size);
         }
-        var sizeData: u32 = 147;
+        var sizeData: u32 = 111;
         karmem.Writer.WriteAt(writer, offset, @ptrCast([*]const u8, &sizeData), 4);
         var __PosOffset = offset + 4;
         _ = try Vec3.Write(&x.Pos, writer, __PosOffset);
-        var __ManaOffset = offset + 20;
+        var __ManaOffset = offset + 16;
         karmem.Writer.WriteAt(writer, __ManaOffset, @ptrCast([*]const u8, &x.Mana), 2);
-        var __HealthOffset = offset + 22;
+        var __HealthOffset = offset + 18;
         karmem.Writer.WriteAt(writer, __HealthOffset, @ptrCast([*]const u8, &x.Health), 2);
         var __NameSize: usize = 1 * x.Name.len;
         var __NameOffset = try karmem.Writer.Alloc(writer, __NameSize);
 
-        karmem.Writer.WriteAt(writer, offset+24, @ptrCast([*]const u8, &__NameOffset), 4);
-        karmem.Writer.WriteAt(writer, offset+24+4, @ptrCast([*]const u8, &__NameSize), 4);
-        var __NameSizeEach: u32 = 1;
-        karmem.Writer.WriteAt(writer, offset+24+4+4, @ptrCast([*]const u8, &__NameSizeEach), 4);
+        karmem.Writer.WriteAt(writer, offset+20, @ptrCast([*]const u8, &__NameOffset), 4);
+        karmem.Writer.WriteAt(writer, offset+20+4, @ptrCast([*]const u8, &__NameSize), 4);
         karmem.Writer.WriteAt(writer, __NameOffset, x.Name.ptr, __NameSize);
-        var __TeamOffset = offset + 36;
+        var __TeamOffset = offset + 28;
         karmem.Writer.WriteAt(writer, __TeamOffset, @ptrCast([*]const u8, &x.Team), 1);
         var __InventorySize: usize = 1 * x.Inventory.len;
         var __InventoryOffset = try karmem.Writer.Alloc(writer, __InventorySize);
 
-        karmem.Writer.WriteAt(writer, offset+37, @ptrCast([*]const u8, &__InventoryOffset), 4);
-        karmem.Writer.WriteAt(writer, offset+37+4, @ptrCast([*]const u8, &__InventorySize), 4);
-        var __InventorySizeEach: u32 = 1;
-        karmem.Writer.WriteAt(writer, offset+37+4+4, @ptrCast([*]const u8, &__InventorySizeEach), 4);
+        karmem.Writer.WriteAt(writer, offset+29, @ptrCast([*]const u8, &__InventoryOffset), 4);
+        karmem.Writer.WriteAt(writer, offset+29+4, @ptrCast([*]const u8, &__InventorySize), 4);
         karmem.Writer.WriteAt(writer, __InventoryOffset, @ptrCast(*[]const u8, &x.Inventory).ptr, __InventorySize);
-        var __ColorOffset = offset + 49;
+        var __ColorOffset = offset + 37;
         karmem.Writer.WriteAt(writer, __ColorOffset, @ptrCast([*]const u8, &x.Color), 1);
         var __HitboxSize: usize = 8 * x.Hitbox.len;
-        var __HitboxOffset = offset + 50;
+        var __HitboxOffset = offset + 38;
         karmem.Writer.WriteAt(writer, __HitboxOffset, @ptrCast([*]const u8, &x.Hitbox), __HitboxSize);
         var __StatusSize: usize = 4 * x.Status.len;
         var __StatusOffset = try karmem.Writer.Alloc(writer, __StatusSize);
 
-        karmem.Writer.WriteAt(writer, offset+90, @ptrCast([*]const u8, &__StatusOffset), 4);
-        karmem.Writer.WriteAt(writer, offset+90+4, @ptrCast([*]const u8, &__StatusSize), 4);
-        var __StatusSizeEach: u32 = 4;
-        karmem.Writer.WriteAt(writer, offset+90+4+4, @ptrCast([*]const u8, &__StatusSizeEach), 4);
+        karmem.Writer.WriteAt(writer, offset+78, @ptrCast([*]const u8, &__StatusOffset), 4);
+        karmem.Writer.WriteAt(writer, offset+78+4, @ptrCast([*]const u8, &__StatusSize), 4);
         karmem.Writer.WriteAt(writer, __StatusOffset, @ptrCast(*[]const u8, &x.Status).ptr, __StatusSize);
-        var __WeaponsSize: usize = 8 * x.Weapons.len;
-        var __WeaponsOffset = offset + 102;
+        var __WeaponsSize: usize = 4 * x.Weapons.len;
+        var __WeaponsOffset = offset + 86;
         var __WeaponsIndex: usize = 0;
         var __WeaponsEnd: usize = __WeaponsOffset + __WeaponsSize;
         while (__WeaponsOffset < __WeaponsEnd) {
             _ = try Weapon.Write(&x.Weapons[__WeaponsIndex], writer, __WeaponsOffset);
-            __WeaponsOffset = __WeaponsOffset + 8;
+            __WeaponsOffset = __WeaponsOffset + 4;
             __WeaponsIndex = __WeaponsIndex + 1;
         }
-        var __PathSize: usize = 16 * x.Path.len;
+        var __PathSize: usize = 12 * x.Path.len;
         var __PathOffset = try karmem.Writer.Alloc(writer, __PathSize);
 
-        karmem.Writer.WriteAt(writer, offset+134, @ptrCast([*]const u8, &__PathOffset), 4);
-        karmem.Writer.WriteAt(writer, offset+134+4, @ptrCast([*]const u8, &__PathSize), 4);
-        var __PathSizeEach: u32 = 16;
-        karmem.Writer.WriteAt(writer, offset+134+4+4, @ptrCast([*]const u8, &__PathSizeEach), 4);
+        karmem.Writer.WriteAt(writer, offset+102, @ptrCast([*]const u8, &__PathOffset), 4);
+        karmem.Writer.WriteAt(writer, offset+102+4, @ptrCast([*]const u8, &__PathSize), 4);
         var __PathIndex: usize = 0;
         var __PathEnd: usize = __PathOffset + __PathSize;
         while (__PathOffset < __PathEnd) {
             _ = try Vec3.Write(&x.Path[__PathIndex], writer, __PathOffset);
-            __PathOffset = __PathOffset + 16;
+            __PathOffset = __PathOffset + 12;
             __PathIndex = __PathIndex + 1;
         }
-        var __IsAliveOffset = offset + 146;
+        var __IsAliveOffset = offset + 110;
         karmem.Writer.WriteAt(writer, __IsAliveOffset, @ptrCast([*]const u8, &x.IsAlive), 1);
 
         return offset;
@@ -448,11 +440,11 @@ pub const Monster = struct {
 
     pub fn Write(x: *Monster, writer: *karmem.Writer, start: usize) Allocator.Error!u32 {
         var offset: u32 = @intCast(u32, start);
-        var size: u32 = 8;
+        var size: u32 = 4;
         if (offset == 0) {
             offset = try karmem.Writer.Alloc(writer, size);
         }
-        var __DataSize: usize = 152;
+        var __DataSize: usize = 111;
         var __DataOffset = try karmem.Writer.Alloc(writer, __DataSize);
 
         karmem.Writer.WriteAt(writer, offset+0, @ptrCast([*]const u8, &__DataOffset), 4);
@@ -496,24 +488,22 @@ pub const Monsters = struct {
 
     pub fn Write(x: *Monsters, writer: *karmem.Writer, start: usize) Allocator.Error!u32 {
         var offset: u32 = @intCast(u32, start);
-        var size: u32 = 24;
+        var size: u32 = 12;
         if (offset == 0) {
             offset = try karmem.Writer.Alloc(writer, size);
         }
-        var sizeData: u32 = 16;
+        var sizeData: u32 = 12;
         karmem.Writer.WriteAt(writer, offset, @ptrCast([*]const u8, &sizeData), 4);
-        var __MonstersSize: usize = 8 * x.Monsters.len;
+        var __MonstersSize: usize = 4 * x.Monsters.len;
         var __MonstersOffset = try karmem.Writer.Alloc(writer, __MonstersSize);
 
         karmem.Writer.WriteAt(writer, offset+4, @ptrCast([*]const u8, &__MonstersOffset), 4);
         karmem.Writer.WriteAt(writer, offset+4+4, @ptrCast([*]const u8, &__MonstersSize), 4);
-        var __MonstersSizeEach: u32 = 8;
-        karmem.Writer.WriteAt(writer, offset+4+4+4, @ptrCast([*]const u8, &__MonstersSizeEach), 4);
         var __MonstersIndex: usize = 0;
         var __MonstersEnd: usize = __MonstersOffset + __MonstersSize;
         while (__MonstersOffset < __MonstersEnd) {
             _ = try Monster.Write(&x.Monsters[__MonstersIndex], writer, __MonstersOffset);
-            __MonstersOffset = __MonstersOffset + 8;
+            __MonstersOffset = __MonstersOffset + 4;
             __MonstersIndex = __MonstersIndex + 1;
         }
 
@@ -561,12 +551,12 @@ pub fn NewMonsters() Monsters {
 }
 
 
-pub const Vec3Viewer = struct {
-    _data: [16]u8,
+pub const Vec3Viewer = extern struct {
+    _data: [12]u8,
 
     pub fn Size(x: *const Vec3Viewer) u32 {
     _ = x;
-        return 16;
+        return 12;
     }
     pub fn X(x: *const Vec3Viewer) f32 {
         return @ptrCast(*align(1) const f32, x._data[0..0+@sizeOf(f32)]).*;
@@ -581,15 +571,15 @@ pub const Vec3Viewer = struct {
 };
 
 pub fn NewVec3Viewer(reader: *karmem.Reader, offset: u32) *const Vec3Viewer {
-    if (!karmem.Reader.IsValidOffset(reader, offset, 16)) {
+    if (!karmem.Reader.IsValidOffset(reader, offset, 12)) {
         return @ptrCast(*Vec3Viewer, &_Null[0]);
     }
-    var v = @ptrCast(*align(1) const Vec3Viewer, reader.memory[offset..offset+16]);
+    var v = @ptrCast(*align(1) const Vec3Viewer, reader.memory[offset..offset+12]);
     return v;
 }
 
-pub const WeaponDataViewer = struct {
-    _data: [16]u8,
+pub const WeaponDataViewer = extern struct {
+    _data: [12]u8,
 
     pub fn Size(x: *const WeaponDataViewer) u32 {
     _ = x;
@@ -611,22 +601,22 @@ pub const WeaponDataViewer = struct {
 };
 
 pub fn NewWeaponDataViewer(reader: *karmem.Reader, offset: u32) *const WeaponDataViewer {
-    if (!karmem.Reader.IsValidOffset(reader, offset, 8)) {
+    if (!karmem.Reader.IsValidOffset(reader, offset, 4)) {
         return @ptrCast(*WeaponDataViewer, &_Null[0]);
     }
-    var v = @ptrCast(*align(1) const WeaponDataViewer, reader.memory[offset..offset+8]);
+    var v = @ptrCast(*align(1) const WeaponDataViewer, reader.memory[offset..offset+4]);
     if (!karmem.Reader.IsValidOffset(reader, offset, WeaponDataViewer.Size(v))) {
         return @ptrCast(*WeaponDataViewer, &_Null[0]);
     }
     return v;
 }
 
-pub const WeaponViewer = struct {
-    _data: [8]u8,
+pub const WeaponViewer = extern struct {
+    _data: [4]u8,
 
     pub fn Size(x: *const WeaponViewer) u32 {
     _ = x;
-        return 8;
+        return 4;
     }
     pub fn Data(x: *const WeaponViewer, reader: *karmem.Reader) *const WeaponDataViewer {
         var offset = @ptrCast(*align(1) const u32, x._data[0..0+4]).*;
@@ -636,44 +626,44 @@ pub const WeaponViewer = struct {
 };
 
 pub fn NewWeaponViewer(reader: *karmem.Reader, offset: u32) *const WeaponViewer {
-    if (!karmem.Reader.IsValidOffset(reader, offset, 8)) {
+    if (!karmem.Reader.IsValidOffset(reader, offset, 4)) {
         return @ptrCast(*WeaponViewer, &_Null[0]);
     }
-    var v = @ptrCast(*align(1) const WeaponViewer, reader.memory[offset..offset+8]);
+    var v = @ptrCast(*align(1) const WeaponViewer, reader.memory[offset..offset+4]);
     return v;
 }
 
-pub const MonsterDataViewer = struct {
-    _data: [152]u8,
+pub const MonsterDataViewer = extern struct {
+    _data: [111]u8,
 
     pub fn Size(x: *const MonsterDataViewer) u32 {
     _ = x;
         return @ptrCast(*align(1) const u32, x._data[0..4]).*;
     }
     pub fn Pos(x: *const MonsterDataViewer) *const Vec3Viewer {
-        if ((4 + 16) > MonsterDataViewer.Size(x)) {
+        if ((4 + 12) > MonsterDataViewer.Size(x)) {
             return @ptrCast(*Vec3Viewer, &_Null[0]);
         }
         return @ptrCast(*const Vec3Viewer, x._data[4..4+@sizeOf(*const Vec3Viewer)]);
     }
     pub fn Mana(x: *const MonsterDataViewer) i16 {
-        if ((20 + 2) > MonsterDataViewer.Size(x)) {
+        if ((16 + 2) > MonsterDataViewer.Size(x)) {
             return 0;
         }
-        return @ptrCast(*align(1) const i16, x._data[20..20+@sizeOf(i16)]).*;
+        return @ptrCast(*align(1) const i16, x._data[16..16+@sizeOf(i16)]).*;
     }
     pub fn Health(x: *const MonsterDataViewer) i16 {
-        if ((22 + 2) > MonsterDataViewer.Size(x)) {
+        if ((18 + 2) > MonsterDataViewer.Size(x)) {
             return 0;
         }
-        return @ptrCast(*align(1) const i16, x._data[22..22+@sizeOf(i16)]).*;
+        return @ptrCast(*align(1) const i16, x._data[18..18+@sizeOf(i16)]).*;
     }
     pub fn Name(x: *const MonsterDataViewer, reader: *karmem.Reader) []u8 {
-        if ((24 + 12) > MonsterDataViewer.Size(x)) {
+        if ((20 + 8) > MonsterDataViewer.Size(x)) {
             return &[_]u8{};
         }
-        var offset = @ptrCast(*align(1) const u32, x._data[24..24+4]).*;
-        var size = @ptrCast(*align(1) const u32, x._data[24+4..24+4+4]).*;
+        var offset = @ptrCast(*align(1) const u32, x._data[20..20+4]).*;
+        var size = @ptrCast(*align(1) const u32, x._data[20+4..20+4+4]).*;
         if (!karmem.Reader.IsValidOffset(reader, offset, size)) {
             return&[_]u8{};
         }
@@ -685,17 +675,17 @@ pub const MonsterDataViewer = struct {
         return @ptrCast(*[]u8, &slice).*;
     }
     pub fn Team(x: *const MonsterDataViewer) EnumTeam {
-        if ((36 + 1) > MonsterDataViewer.Size(x)) {
+        if ((28 + 1) > MonsterDataViewer.Size(x)) {
             return DefaultEnumTeam;
         }
-        return @ptrCast(*align(1) const EnumTeam, x._data[36..36+@sizeOf(EnumTeam)]).*;
+        return @ptrCast(*align(1) const EnumTeam, x._data[28..28+@sizeOf(EnumTeam)]).*;
     }
     pub fn Inventory(x: *const MonsterDataViewer, reader: *karmem.Reader) []u8 {
-        if ((37 + 12) > MonsterDataViewer.Size(x)) {
+        if ((29 + 8) > MonsterDataViewer.Size(x)) {
             return &[_]u8{};
         }
-        var offset = @ptrCast(*align(1) const u32, x._data[37..37+4]).*;
-        var size = @ptrCast(*align(1) const u32, x._data[37+4..37+4+4]).*;
+        var offset = @ptrCast(*align(1) const u32, x._data[29..29+4]).*;
+        var size = @ptrCast(*align(1) const u32, x._data[29+4..29+4+4]).*;
         if (!karmem.Reader.IsValidOffset(reader, offset, size)) {
             return&[_]u8{};
         }
@@ -707,24 +697,24 @@ pub const MonsterDataViewer = struct {
         return @ptrCast(*[]u8, &slice).*;
     }
     pub fn Color(x: *const MonsterDataViewer) EnumColor {
-        if ((49 + 1) > MonsterDataViewer.Size(x)) {
+        if ((37 + 1) > MonsterDataViewer.Size(x)) {
             return DefaultEnumColor;
         }
-        return @ptrCast(*align(1) const EnumColor, x._data[49..49+@sizeOf(EnumColor)]).*;
+        return @ptrCast(*align(1) const EnumColor, x._data[37..37+@sizeOf(EnumColor)]).*;
     }
     pub fn Hitbox(x: *const MonsterDataViewer) []f64 {
-        if ((50 + 40) > MonsterDataViewer.Size(x)) {
+        if ((38 + 40) > MonsterDataViewer.Size(x)) {
             return &[_]f64{};
         }
-        var slice = [2]usize{@ptrToInt(x)+50, 5};
+        var slice = [2]usize{@ptrToInt(x)+38, 5};
         return @ptrCast(*align(1) const []f64, &slice).*;
     }
     pub fn Status(x: *const MonsterDataViewer, reader: *karmem.Reader) []i32 {
-        if ((90 + 12) > MonsterDataViewer.Size(x)) {
+        if ((78 + 8) > MonsterDataViewer.Size(x)) {
             return &[_]i32{};
         }
-        var offset = @ptrCast(*align(1) const u32, x._data[90..90+4]).*;
-        var size = @ptrCast(*align(1) const u32, x._data[90+4..90+4+4]).*;
+        var offset = @ptrCast(*align(1) const u32, x._data[78..78+4]).*;
+        var size = @ptrCast(*align(1) const u32, x._data[78+4..78+4+4]).*;
         if (!karmem.Reader.IsValidOffset(reader, offset, size)) {
             return&[_]i32{};
         }
@@ -736,22 +726,22 @@ pub const MonsterDataViewer = struct {
         return @ptrCast(*[]i32, &slice).*;
     }
     pub fn Weapons(x: *const MonsterDataViewer) []const WeaponViewer {
-        if ((102 + 32) > MonsterDataViewer.Size(x)) {
+        if ((86 + 16) > MonsterDataViewer.Size(x)) {
             return &[_]WeaponViewer{};
         }
-        var slice = [2]usize{@ptrToInt(x)+102, 4};
+        var slice = [2]usize{@ptrToInt(x)+86, 4};
         return @ptrCast(*align(1) const []WeaponViewer, &slice).*;
     }
     pub fn Path(x: *const MonsterDataViewer, reader: *karmem.Reader) []const Vec3Viewer {
-        if ((134 + 12) > MonsterDataViewer.Size(x)) {
+        if ((102 + 8) > MonsterDataViewer.Size(x)) {
             return &[_]Vec3Viewer{};
         }
-        var offset = @ptrCast(*align(1) const u32, x._data[134..134+4]).*;
-        var size = @ptrCast(*align(1) const u32, x._data[134+4..134+4+4]).*;
+        var offset = @ptrCast(*align(1) const u32, x._data[102..102+4]).*;
+        var size = @ptrCast(*align(1) const u32, x._data[102+4..102+4+4]).*;
         if (!karmem.Reader.IsValidOffset(reader, offset, size)) {
             return &[_]Vec3Viewer{};
         }
-        var length = size / 16;
+        var length = size / 12;
         if (length > 2000) {
             length = 2000;
         }
@@ -759,31 +749,31 @@ pub const MonsterDataViewer = struct {
         return @ptrCast(*[]const Vec3Viewer, &slice).*;
     }
     pub fn IsAlive(x: *const MonsterDataViewer) bool {
-        if ((146 + 1) > MonsterDataViewer.Size(x)) {
+        if ((110 + 1) > MonsterDataViewer.Size(x)) {
             return false;
         }
-        return @ptrCast(*align(1) const bool, x._data[146..146+@sizeOf(bool)]).*;
+        return @ptrCast(*align(1) const bool, x._data[110..110+@sizeOf(bool)]).*;
     }
 
 };
 
 pub fn NewMonsterDataViewer(reader: *karmem.Reader, offset: u32) *const MonsterDataViewer {
-    if (!karmem.Reader.IsValidOffset(reader, offset, 8)) {
+    if (!karmem.Reader.IsValidOffset(reader, offset, 4)) {
         return @ptrCast(*MonsterDataViewer, &_Null[0]);
     }
-    var v = @ptrCast(*align(1) const MonsterDataViewer, reader.memory[offset..offset+8]);
+    var v = @ptrCast(*align(1) const MonsterDataViewer, reader.memory[offset..offset+4]);
     if (!karmem.Reader.IsValidOffset(reader, offset, MonsterDataViewer.Size(v))) {
         return @ptrCast(*MonsterDataViewer, &_Null[0]);
     }
     return v;
 }
 
-pub const MonsterViewer = struct {
-    _data: [8]u8,
+pub const MonsterViewer = extern struct {
+    _data: [4]u8,
 
     pub fn Size(x: *const MonsterViewer) u32 {
     _ = x;
-        return 8;
+        return 4;
     }
     pub fn Data(x: *const MonsterViewer, reader: *karmem.Reader) *const MonsterDataViewer {
         var offset = @ptrCast(*align(1) const u32, x._data[0..0+4]).*;
@@ -793,22 +783,22 @@ pub const MonsterViewer = struct {
 };
 
 pub fn NewMonsterViewer(reader: *karmem.Reader, offset: u32) *const MonsterViewer {
-    if (!karmem.Reader.IsValidOffset(reader, offset, 8)) {
+    if (!karmem.Reader.IsValidOffset(reader, offset, 4)) {
         return @ptrCast(*MonsterViewer, &_Null[0]);
     }
-    var v = @ptrCast(*align(1) const MonsterViewer, reader.memory[offset..offset+8]);
+    var v = @ptrCast(*align(1) const MonsterViewer, reader.memory[offset..offset+4]);
     return v;
 }
 
-pub const MonstersViewer = struct {
-    _data: [24]u8,
+pub const MonstersViewer = extern struct {
+    _data: [12]u8,
 
     pub fn Size(x: *const MonstersViewer) u32 {
     _ = x;
         return @ptrCast(*align(1) const u32, x._data[0..4]).*;
     }
     pub fn Monsters(x: *const MonstersViewer, reader: *karmem.Reader) []const MonsterViewer {
-        if ((4 + 12) > MonstersViewer.Size(x)) {
+        if ((4 + 8) > MonstersViewer.Size(x)) {
             return &[_]MonsterViewer{};
         }
         var offset = @ptrCast(*align(1) const u32, x._data[4..4+4]).*;
@@ -816,7 +806,7 @@ pub const MonstersViewer = struct {
         if (!karmem.Reader.IsValidOffset(reader, offset, size)) {
             return &[_]MonsterViewer{};
         }
-        var length = size / 8;
+        var length = size / 4;
         if (length > 2000) {
             length = 2000;
         }
@@ -827,10 +817,10 @@ pub const MonstersViewer = struct {
 };
 
 pub fn NewMonstersViewer(reader: *karmem.Reader, offset: u32) *const MonstersViewer {
-    if (!karmem.Reader.IsValidOffset(reader, offset, 8)) {
+    if (!karmem.Reader.IsValidOffset(reader, offset, 4)) {
         return @ptrCast(*MonstersViewer, &_Null[0]);
     }
-    var v = @ptrCast(*align(1) const MonstersViewer, reader.memory[offset..offset+8]);
+    var v = @ptrCast(*align(1) const MonstersViewer, reader.memory[offset..offset+4]);
     if (!karmem.Reader.IsValidOffset(reader, offset, MonstersViewer.Size(v))) {
         return @ptrCast(*MonstersViewer, &_Null[0]);
     }

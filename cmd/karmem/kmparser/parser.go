@@ -19,10 +19,10 @@ import (
 
 // Reader reads and decodes Karmem files.
 type Reader struct {
-	Parsed        Content
-	hasher        func(s string) uint64
-	hasherHash    hash.Hash
-	hasherKey     []byte
+	Parsed     Content
+	hasher     func(s string) uint64
+	hasherHash hash.Hash
+	hasherKey  []byte
 
 	path  string
 	buf   *bufio.Reader
@@ -69,7 +69,7 @@ func (r *Reader) headerPackage() parserFunc {
 	b := r.nextRune()
 	switch {
 	case b == '@':
-		r.error = fmt.Errorf(`invalid header, expecting package name got "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid header, expecting package name got %q`, string(b))
 		return nil
 
 	case b == ';':
@@ -80,14 +80,14 @@ func (r *Reader) headerPackage() parserFunc {
 		return r.headerTagsOrEnd
 
 	case unicode.IsControl(b):
-		r.error = fmt.Errorf(`invalid header, expecting ";" got "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid header, expecting ";" got %q`, string(b))
 		return nil
 
 	case unicode.IsLetter(b):
 		r.Parsed.Name += string(b)
 
 	default:
-		r.error = fmt.Errorf(`invalid header, expecting ";" got "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid header, expecting ";" got %q`, string(b))
 		return nil
 	}
 
@@ -102,6 +102,13 @@ func (r *Reader) headerTagsOrEnd() parserFunc {
 		return func() parserFunc { return r.tagsInit(&r.Parsed.Tags[len(r.Parsed.Tags)-1], r.headerTagsOrEnd) }
 
 	case b == ';':
+		v, err := Tags(r.Parsed.Tags).GetBoolean("packed")
+		if err != nil {
+			r.error = err
+			return nil
+		}
+		r.Parsed.Packed = v == 1
+
 		key, ok := Tags(r.Parsed.Tags).Get("key")
 		if ok {
 			k := blake2b.Sum256([]byte(key))
@@ -132,7 +139,7 @@ func (r *Reader) tagsInit(t *Tag, f parserFunc) parserFunc {
 		t.Name += string(b)
 
 	default:
-		r.error = fmt.Errorf(`invalid tag, expecting tag formatted as "@tag(value)" and receives "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid tag, expecting tag formatted as "@tag(value)" and receives %q`, string(b))
 		return nil
 	}
 
@@ -156,7 +163,7 @@ func (r *Reader) tagsValue(t *Tag, f parserFunc, ignore bool) parserFunc {
 
 	case ignore:
 		if unicode.IsSpace(b) && !unicodeSpaceTab(b) {
-			r.error = fmt.Errorf(`invalid tag, expecting tag formatted as "@tag(value)" and receives "%s"`, string(b))
+			r.error = fmt.Errorf(`invalid tag, expecting tag formatted as "@tag(value)" and receives %q`, string(b))
 			return nil
 		}
 		fallthrough
@@ -164,7 +171,7 @@ func (r *Reader) tagsValue(t *Tag, f parserFunc, ignore bool) parserFunc {
 		t.Value += string(b)
 
 	default:
-		r.error = fmt.Errorf(`invalid tag, expecting tag formatted as "@tag(value)" and receives "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid tag, expecting tag formatted as "@tag(value)" and receives %q`, string(b))
 		return nil
 	}
 
@@ -189,7 +196,7 @@ func (r *Reader) bodyInit() parserFunc {
 		return r.structInit
 
 	default:
-		r.error = fmt.Errorf(`invalid type, expecting "enum" or "struct" and got "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid type, expecting "enum" or "struct" and got %q`, string(b))
 		return nil
 	}
 }
@@ -224,14 +231,14 @@ func (r *Reader) enumName() parserFunc {
 
 	case unicode.IsLetter(b):
 		if len(t.Name) == 0 && unicode.IsLower(b) {
-			r.error = fmt.Errorf(`invalid field name, names can't start with lowercase, got "%s"`, string(b))
+			r.error = fmt.Errorf(`invalid field name, names can't start with lowercase, got %q`, string(b))
 			return nil
 		}
 		t.Name += string(b)
 		return r.enumName
 
 	default:
-		r.error = fmt.Errorf(`invalid enum name, expecting "enum [name] [type] {}" got "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid enum name, expecting "enum [name] [type] {}" got %q`, string(b))
 		return nil
 	}
 }
@@ -245,7 +252,7 @@ func (r *Reader) enumType() parserFunc {
 
 	case b == '@':
 		if t.Type.Schema == "" {
-			r.error = fmt.Errorf(`invalid enum, expecting "[type] [@tag()] {" got tag before the type: "%s"`, string(b))
+			r.error = fmt.Errorf(`invalid enum, expecting "[type] [@tag()] {" got tag before the type: %q`, string(b))
 			return nil
 		}
 
@@ -261,7 +268,7 @@ func (r *Reader) enumType() parserFunc {
 		return r.enumType
 
 	default:
-		r.error = fmt.Errorf(`invalid enum, expecting "[type] {" got "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid enum, expecting "[type] {" got %q`, string(b))
 		return nil
 	}
 }
@@ -286,20 +293,20 @@ func (r *Reader) enumFieldName() parserFunc {
 
 	case unicode.IsNumber(b):
 		if len(f.Name) == 0 {
-			r.error = fmt.Errorf(`invalid name, enum names can't use number as first char, got "%s"`, string(b))
+			r.error = fmt.Errorf(`invalid name, enum names can't use number as first char, got %q`, string(b))
 			return nil
 		}
 		fallthrough
 	case unicode.IsLetter(b):
 		if len(f.Name) == 0 && unicode.IsLower(b) {
-			r.error = fmt.Errorf(`invalid field name, names can't start with lowercase, got "%s"`, string(b))
+			r.error = fmt.Errorf(`invalid field name, names can't start with lowercase, got %q`, string(b))
 			return nil
 		}
 		f.Name += string(b)
 		return r.enumFieldName
 
 	default:
-		r.error = fmt.Errorf(`invalid enum name, got "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid enum name, got %q`, string(b))
 		return nil
 	}
 }
@@ -352,7 +359,7 @@ func (r *Reader) enumFieldValue() parserFunc {
 
 		for i := range t.Fields {
 			if t.Fields[i].Data.Name == f.Name && &t.Fields[i].Data != f {
-				r.error = fmt.Errorf(`duplicated enum field name of %s`, f.Name)
+				r.error = fmt.Errorf(`duplicated enum field name of %q`, f.Name)
 				return nil
 			}
 		}
@@ -376,7 +383,7 @@ func (r *Reader) enumFieldValue() parserFunc {
 		return r.enumFieldValue
 
 	default:
-		r.error = fmt.Errorf(`invalid enum value, expecting "name [= value];" got "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid enum value, expecting "name [= value];" got %q`, string(b))
 		return nil
 	}
 }
@@ -406,7 +413,7 @@ func (r *Reader) enumEnd() parserFunc {
 	switch {
 	case b == '}':
 		if !r._uniqueName(f.Name) {
-			r.error = fmt.Errorf(`duplicated enum name of %s`, f.Name)
+			r.error = fmt.Errorf(`duplicated enum name of %q`, f.Name)
 			return nil
 		}
 		var hasDefault bool
@@ -417,7 +424,7 @@ func (r *Reader) enumEnd() parserFunc {
 			}
 		}
 		if !hasDefault {
-			r.error = fmt.Errorf(`enum "%s" doesn't have default value. It must have one enum with value 0`, t.Name)
+			r.error = fmt.Errorf(`enum %q doesn't have default value. It must have one enum with value 0`, t.Name)
 			return nil
 		}
 		return r.bodyInit
@@ -428,7 +435,7 @@ func (r *Reader) enumEnd() parserFunc {
 		t.Fields = append(t.Fields, EnumField{})
 		return r.enumFieldName
 	default:
-		r.error = fmt.Errorf(`invalid enum value, expecting "name [= value];" got "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid enum value, expecting "name [= value];" got %q`, string(b))
 		return nil
 	}
 }
@@ -452,20 +459,20 @@ func (r *Reader) structName() parserFunc {
 
 	case unicode.IsNumber(b):
 		if len(t.Name) == 0 {
-			r.error = fmt.Errorf(`invalid struct name, can't start with number, got "%s"`, string(b))
+			r.error = fmt.Errorf(`invalid struct name, can't start with number, got %q`, string(b))
 			return nil
 		}
 		t.Name += string(b)
 		return r.structName
 	case unicode.IsLetter(b):
 		if len(t.Name) == 0 && unicode.IsLower(b) {
-			r.error = fmt.Errorf(`invalid field name, names can't start with lowercase, got "%s"`, string(b))
+			r.error = fmt.Errorf(`invalid field name, names can't start with lowercase, got %q`, string(b))
 		}
 		t.Name += string(b)
 		return r.structName
 
 	default:
-		r.error = fmt.Errorf(`invalid struct name, expecting "struct [name] [inline | table] [@tag()] {}" got "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid struct name, expecting "struct [name] [inline | table] [@tag()] {}" got %q`, string(b))
 		return nil
 	}
 }
@@ -483,6 +490,18 @@ func (r *Reader) structTypeEnd() parserFunc {
 			r.error = errors.New(`invalid struct, missing type (inline/table)"`)
 			return nil
 		}
+
+		v, err := Tags(t.Tags).GetBoolean("packed")
+		if err != nil {
+			r.error = err
+			return nil
+		}
+		if v > -1 {
+			t.Packed = v == 1
+		} else {
+			t.Packed = r.Parsed.Packed
+		}
+
 		t.Fields = append(t.Fields, StructField{})
 		return r.structFieldName
 
@@ -519,7 +538,7 @@ func (r *Reader) structType() parserFunc {
 		r.prevRune()
 		return r.structTypeEnd
 	default:
-		r.error = fmt.Errorf(`invalid struct format got "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid struct format got %q`, string(b))
 		return nil
 	}
 }
@@ -541,21 +560,28 @@ func (r *Reader) structFieldName() parserFunc {
 
 	case unicode.IsNumber(b):
 		if len(f.Name) == 0 {
-			r.error = fmt.Errorf(`invalid name, names can't start with numbers, got "%s"`, string(b))
+			r.error = fmt.Errorf(`invalid name, names can't start with numbers, got %q`, string(b))
 			return nil
 		}
 		fallthrough
 	case unicode.IsLetter(b):
 		if len(f.Name) == 0 && unicode.IsLower(b) {
-			r.error = fmt.Errorf(`invalid field name, names can't start with lowercase, got "%s"`, string(b))
+			r.error = fmt.Errorf(`invalid field name, names can't start with lowercase, got %q`, string(b))
 		}
 		f.Name += string(b)
 		return r.structFieldName
 
 	default:
-		r.error = fmt.Errorf(`invalid struct field name got "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid struct field name got %q`, string(b))
 		return nil
 	}
+}
+
+var _paddings = map[uint32]PaddingType{
+	1: {Data: Type{Schema: "uint8", PlainSchema: "uint8", Length: 1, Format: TypeFormatPrimitive, Model: TypeModelSingle}},
+	2: {Data: Type{Schema: "uint16", PlainSchema: "uint16", Length: 2, Format: TypeFormatPrimitive, Model: TypeModelSingle}},
+	4: {Data: Type{Schema: "uint32", PlainSchema: "uint32", Length: 4, Format: TypeFormatPrimitive, Model: TypeModelSingle}},
+	8: {Data: Type{Schema: "uint64", PlainSchema: "uint64", Length: 8, Format: TypeFormatPrimitive, Model: TypeModelSingle}},
 }
 
 var _primitives = map[string]uint32{
@@ -577,17 +603,21 @@ var _primitives = map[string]uint32{
 	"float32": 4,
 	"float64": 8,
 
-	"*":  4,     // Pointer
-	"[]": 4 * 3, // Slice
+	"*":         4,     // Pointer
+	"[PACKED]":  4 * 2, // Dynamic Array
+	"[PADDING]": 4 * 3, // Padding Dynamic Array
 }
 
-func (r *Reader) _typeFormatOf(field *StructFieldData) (StructFieldSize, TypeFormat, error) {
+func (r *Reader) _typeFormatOf(t *StructData, field *StructFieldData) (StructFieldSize, TypeFormat, error) {
 	size := StructFieldSize{}
 	if s, ok := _primitives[field.Type.PlainSchema]; ok {
 		switch field.Type.Model {
 		case TypeModelSlice, TypeModelSliceLimited:
 			size.Minimum = s
-			size.Field = _primitives["[]"]
+			size.Field = _primitives["[PACKED]"]
+			if !t.Packed {
+				size.Field = _primitives["[PADDING]"]
+			}
 			size.Allocation = s
 		case TypeModelArray:
 			size.Minimum = s * field.Type.Length
@@ -610,7 +640,10 @@ func (r *Reader) _typeFormatOf(field *StructFieldData) (StructFieldSize, TypeFor
 			if r.Parsed.Structs[i].Data.Class == StructClassInline {
 				size.Minimum = r.Parsed.Structs[i].Data.Size.Total * field.Type.Length
 				if field.Type.Model == TypeModelSlice || field.Type.Model == TypeModelSliceLimited {
-					size.Field = _primitives["[]"]
+					size.Field = _primitives["[PACKED]"]
+					if !t.Packed {
+						size.Field = _primitives["[PADDING]"]
+					}
 					size.Allocation = r.Parsed.Structs[i].Data.Size.Total
 				} else {
 					size.Field = size.Minimum
@@ -638,7 +671,7 @@ func (r *Reader) _typeFormatOf(field *StructFieldData) (StructFieldSize, TypeFor
 		}
 	}
 
-	return size, TypeFormatNone, fmt.Errorf("invalid type of %s", field.Type.PlainSchema)
+	return size, TypeFormatNone, fmt.Errorf("invalid type of %q", field.Type.PlainSchema)
 }
 
 func (r *Reader) structFieldType() parserFunc {
@@ -660,7 +693,7 @@ func (r *Reader) structFieldType() parserFunc {
 			f.Type.Length = 1
 		}
 
-		size, format, err := r._typeFormatOf(f)
+		size, format, err := r._typeFormatOf(t, f)
 		if err != nil {
 			r.error = err
 			return nil
@@ -688,7 +721,7 @@ func (r *Reader) structFieldType() parserFunc {
 
 	case b == '[':
 		if f.Type.Schema != "" {
-			r.error = fmt.Errorf(`invalid array type name, types must be [<n] or [n] or [] got "%s"`, string(b))
+			r.error = fmt.Errorf(`invalid array type name, types must be [<n] or [n] or [] got %q`, string(b))
 			return nil
 		}
 		f.Type.Schema += string(b)
@@ -696,7 +729,7 @@ func (r *Reader) structFieldType() parserFunc {
 
 	case b == '<':
 		if !strings.HasPrefix(f.Type.Schema, "[") {
-			r.error = fmt.Errorf(`invalid array type name, types must be [<n] or [n] or [] got "%s"`, string(b))
+			r.error = fmt.Errorf(`invalid array type name, types must be [<n] or [n] or [] got %q`, string(b))
 			return nil
 		}
 		f.Type.Schema += string(b)
@@ -704,7 +737,7 @@ func (r *Reader) structFieldType() parserFunc {
 
 	case b == ']':
 		if !strings.Contains(f.Type.Schema, "[") || strings.Contains(f.Type.Schema, "]") {
-			r.error = fmt.Errorf(`invalid array type name, types must be [n] or [] got "%s"`, string(b))
+			r.error = fmt.Errorf(`invalid array type name, types must be [n] or [] got %q`, string(b))
 			return nil
 		}
 
@@ -715,7 +748,7 @@ func (r *Reader) structFieldType() parserFunc {
 			f.Type.Model = TypeModelSliceLimited
 			length, err := strconv.ParseUint(f.Type.Schema[i+1:], 10, 32)
 			if err != nil {
-				r.error = fmt.Errorf(`invalid lenght of "%s"`, f.Type.Schema)
+				r.error = fmt.Errorf(`invalid length of %q`, f.Type.Schema)
 				return nil
 			}
 			f.Type.Length = uint32(length)
@@ -724,7 +757,7 @@ func (r *Reader) structFieldType() parserFunc {
 			f.Type.Model = TypeModelArray
 			length, err := strconv.ParseUint(f.Type.Schema[1:], 10, 32)
 			if err != nil {
-				r.error = fmt.Errorf(`invalid lenght of "%s"`, f.Type.Schema[1:])
+				r.error = fmt.Errorf(`invalid length of %q`, f.Type.Schema[1:])
 				return nil
 			}
 			f.Type.Length = uint32(length)
@@ -736,7 +769,7 @@ func (r *Reader) structFieldType() parserFunc {
 
 	case unicode.IsNumber(b):
 		if len(f.Type.Schema) == 0 || strings.HasSuffix(f.Type.Schema, "]") {
-			r.error = fmt.Errorf(`invalid type name, types must start with letter got "%s"`, string(b))
+			r.error = fmt.Errorf(`invalid type name, types must start with letter got %q`, string(b))
 			return nil
 		}
 		f.Type.Schema += string(b)
@@ -747,7 +780,7 @@ func (r *Reader) structFieldType() parserFunc {
 
 	case unicode.IsLetter(b):
 		if strings.HasPrefix(f.Type.Schema, "[") && !strings.Contains(f.Type.Schema, "]") {
-			r.error = fmt.Errorf(`invalid array lenght, got "%s"`, string(b))
+			r.error = fmt.Errorf(`invalid array length, got %q`, string(b))
 			return nil
 		}
 		f.Type.Schema += string(b)
@@ -755,7 +788,7 @@ func (r *Reader) structFieldType() parserFunc {
 		return r.structFieldType
 
 	default:
-		r.error = fmt.Errorf(`invalid struct field type, expecting "Name type [@tag(value)];" got "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid struct field type, expecting "Name type [@tag(value)];" got %q`, string(b))
 		return nil
 	}
 }
@@ -767,18 +800,43 @@ func (r *Reader) structEnd() parserFunc {
 	switch {
 	case b == '}':
 		if !r._uniqueName(t.Name) {
-			r.error = fmt.Errorf(`duplicated struct name of %s`, t.Name)
+			r.error = fmt.Errorf(`duplicated struct name of %q`, t.Name)
 			return nil
 		}
 
-		t.Size.Padding = 8 - (t.Size.Content % 8)
+		t.Size.Padding = 0
+		if !t.Packed {
+			switch t.Class {
+			case StructClassTable:
+				// StructClassTable is always packed.
+				// That is backward compatible with old versions of Karmem.
+			case StructClassInline:
+				// StructClassInline uses padding if Packed isn't enabled.
+				// That is a bug in old versions of Karmem, but we have to support it.
+				t.Size.Padding = 8 - (t.Size.Content % 8)
+			}
+		}
+
 		t.Size.Total = t.Size.Padding + t.Size.Content
-		t.Size.TotalGroup = make([]uint8, t.Size.Total/8)
+		t.Size.TotalGroup = make([]PaddingType, 0, (t.Size.Total/8)+1)
+		for total := t.Size.Total; total != 0; {
+			for _, pt := range []uint32{8, 4, 2, 1} {
+				if total >= pt {
+					t.Size.TotalGroup = append(t.Size.TotalGroup, _paddings[pt])
+					total -= pt
+					break
+				}
+			}
+		}
 
 		if t.Class == StructClassTable {
-			t.Size.Minimum = 8
+			if !t.Packed {
+				t.Size.Minimum = 8
+			} else {
+				t.Size.Minimum = 4
+			}
 		} else {
-			t.Size.Minimum = t.Size.Total
+			t.Size.Minimum = t.Size.Content
 		}
 
 		if t.Size.Total > r.Parsed.Size.Largest {
@@ -811,7 +869,7 @@ func (r *Reader) structEnd() parserFunc {
 		return r.structEnd
 
 	default:
-		r.error = fmt.Errorf(`invalid struct, expecting "}" got "%s"`, string(b))
+		r.error = fmt.Errorf(`invalid struct, expecting "}" got %q`, string(b))
 		return nil
 	}
 }

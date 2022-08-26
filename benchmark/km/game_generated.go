@@ -7,7 +7,7 @@ import (
 
 var _ unsafe.Pointer
 
-var _Null = make([]byte, 152)
+var _Null = make([]byte, 111)
 var _NullReader = karmem.NewReader(_Null)
 
 type (
@@ -69,7 +69,7 @@ func (x *Vec3) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
 
 func (x *Vec3) Write(writer *karmem.Writer, start uint) (offset uint, err error) {
 	offset = start
-	size := uint(16)
+	size := uint(12)
 	if offset == 0 {
 		offset, err = writer.Alloc(size)
 		if err != nil {
@@ -119,7 +119,7 @@ func (x *WeaponData) WriteAsRoot(writer *karmem.Writer) (offset uint, err error)
 
 func (x *WeaponData) Write(writer *karmem.Writer, start uint) (offset uint, err error) {
 	offset = start
-	size := uint(16)
+	size := uint(12)
 	if offset == 0 {
 		offset, err = writer.Alloc(size)
 		if err != nil {
@@ -166,14 +166,14 @@ func (x *Weapon) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
 
 func (x *Weapon) Write(writer *karmem.Writer, start uint) (offset uint, err error) {
 	offset = start
-	size := uint(8)
+	size := uint(4)
 	if offset == 0 {
 		offset, err = writer.Alloc(size)
 		if err != nil {
 			return 0, err
 		}
 	}
-	__DataSize := uint(16)
+	__DataSize := uint(12)
 	__DataOffset, err := writer.Alloc(__DataSize)
 	if err != nil {
 		return 0, err
@@ -227,84 +227,80 @@ func (x *MonsterData) WriteAsRoot(writer *karmem.Writer) (offset uint, err error
 
 func (x *MonsterData) Write(writer *karmem.Writer, start uint) (offset uint, err error) {
 	offset = start
-	size := uint(152)
+	size := uint(111)
 	if offset == 0 {
 		offset, err = writer.Alloc(size)
 		if err != nil {
 			return 0, err
 		}
 	}
-	writer.Write4At(offset, uint32(147))
+	writer.Write4At(offset, uint32(111))
 	__PosOffset := offset + 4
 	if _, err := x.Pos.Write(writer, __PosOffset); err != nil {
 		return offset, err
 	}
-	__ManaOffset := offset + 20
+	__ManaOffset := offset + 16
 	writer.Write2At(__ManaOffset, *(*uint16)(unsafe.Pointer(&x.Mana)))
-	__HealthOffset := offset + 22
+	__HealthOffset := offset + 18
 	writer.Write2At(__HealthOffset, *(*uint16)(unsafe.Pointer(&x.Health)))
 	__NameSize := uint(1 * len(x.Name))
 	__NameOffset, err := writer.Alloc(__NameSize)
 	if err != nil {
 		return 0, err
 	}
-	writer.Write4At(offset+24, uint32(__NameOffset))
-	writer.Write4At(offset+24+4, uint32(__NameSize))
-	writer.Write4At(offset+24+4+4, 1)
+	writer.Write4At(offset+20, uint32(__NameOffset))
+	writer.Write4At(offset+20+4, uint32(__NameSize))
 	__NameSlice := [3]uint{*(*uint)(unsafe.Pointer(&x.Name)), __NameSize, __NameSize}
 	writer.WriteAt(__NameOffset, *(*[]byte)(unsafe.Pointer(&__NameSlice)))
-	__TeamOffset := offset + 36
+	__TeamOffset := offset + 28
 	writer.Write1At(__TeamOffset, *(*uint8)(unsafe.Pointer(&x.Team)))
 	__InventorySize := uint(1 * len(x.Inventory))
 	__InventoryOffset, err := writer.Alloc(__InventorySize)
 	if err != nil {
 		return 0, err
 	}
-	writer.Write4At(offset+37, uint32(__InventoryOffset))
-	writer.Write4At(offset+37+4, uint32(__InventorySize))
-	writer.Write4At(offset+37+4+4, 1)
+	writer.Write4At(offset+29, uint32(__InventoryOffset))
+	writer.Write4At(offset+29+4, uint32(__InventorySize))
 	__InventorySlice := *(*[3]uint)(unsafe.Pointer(&x.Inventory))
 	__InventorySlice[1] = __InventorySize
 	__InventorySlice[2] = __InventorySize
 	writer.WriteAt(__InventoryOffset, *(*[]byte)(unsafe.Pointer(&__InventorySlice)))
-	__ColorOffset := offset + 49
+	__ColorOffset := offset + 37
 	writer.Write1At(__ColorOffset, *(*uint8)(unsafe.Pointer(&x.Color)))
-	__HitboxOffset := offset + 50
+	__HitboxOffset := offset + 38
 	writer.WriteAt(__HitboxOffset, (*[40]byte)(unsafe.Pointer(&x.Hitbox))[:])
 	__StatusSize := uint(4 * len(x.Status))
 	__StatusOffset, err := writer.Alloc(__StatusSize)
 	if err != nil {
 		return 0, err
 	}
-	writer.Write4At(offset+90, uint32(__StatusOffset))
-	writer.Write4At(offset+90+4, uint32(__StatusSize))
-	writer.Write4At(offset+90+4+4, 4)
+	writer.Write4At(offset+78, uint32(__StatusOffset))
+	writer.Write4At(offset+78+4, uint32(__StatusSize))
 	__StatusSlice := *(*[3]uint)(unsafe.Pointer(&x.Status))
 	__StatusSlice[1] = __StatusSize
 	__StatusSlice[2] = __StatusSize
 	writer.WriteAt(__StatusOffset, *(*[]byte)(unsafe.Pointer(&__StatusSlice)))
-	__WeaponsOffset := offset + 102
+	__WeaponsOffset := offset + 86
 	for i := range x.Weapons {
 		if _, err := x.Weapons[i].Write(writer, __WeaponsOffset); err != nil {
 			return offset, err
 		}
-		__WeaponsOffset += 8
+		__WeaponsOffset += 4
 	}
-	__PathSize := uint(16 * len(x.Path))
+	__PathSize := uint(12 * len(x.Path))
 	__PathOffset, err := writer.Alloc(__PathSize)
 	if err != nil {
 		return 0, err
 	}
-	writer.Write4At(offset+134, uint32(__PathOffset))
-	writer.Write4At(offset+134+4, uint32(__PathSize))
-	writer.Write4At(offset+134+4+4, 16)
+	writer.Write4At(offset+102, uint32(__PathOffset))
+	writer.Write4At(offset+102+4, uint32(__PathSize))
 	for i := range x.Path {
 		if _, err := x.Path[i].Write(writer, __PathOffset); err != nil {
 			return offset, err
 		}
-		__PathOffset += 16
+		__PathOffset += 12
 	}
-	__IsAliveOffset := offset + 146
+	__IsAliveOffset := offset + 110
 	writer.Write1At(__IsAliveOffset, *(*uint8)(unsafe.Pointer(&x.IsAlive)))
 
 	return offset, nil
@@ -403,14 +399,14 @@ func (x *Monster) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
 
 func (x *Monster) Write(writer *karmem.Writer, start uint) (offset uint, err error) {
 	offset = start
-	size := uint(8)
+	size := uint(4)
 	if offset == 0 {
 		offset, err = writer.Alloc(size)
 		if err != nil {
 			return 0, err
 		}
 	}
-	__DataSize := uint(152)
+	__DataSize := uint(111)
 	__DataOffset, err := writer.Alloc(__DataSize)
 	if err != nil {
 		return 0, err
@@ -453,27 +449,26 @@ func (x *Monsters) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
 
 func (x *Monsters) Write(writer *karmem.Writer, start uint) (offset uint, err error) {
 	offset = start
-	size := uint(24)
+	size := uint(12)
 	if offset == 0 {
 		offset, err = writer.Alloc(size)
 		if err != nil {
 			return 0, err
 		}
 	}
-	writer.Write4At(offset, uint32(16))
-	__MonstersSize := uint(8 * len(x.Monsters))
+	writer.Write4At(offset, uint32(12))
+	__MonstersSize := uint(4 * len(x.Monsters))
 	__MonstersOffset, err := writer.Alloc(__MonstersSize)
 	if err != nil {
 		return 0, err
 	}
 	writer.Write4At(offset+4, uint32(__MonstersOffset))
 	writer.Write4At(offset+4+4, uint32(__MonstersSize))
-	writer.Write4At(offset+4+4+4, 8)
 	for i := range x.Monsters {
 		if _, err := x.Monsters[i].Write(writer, __MonstersOffset); err != nil {
 			return offset, err
 		}
-		__MonstersOffset += 8
+		__MonstersOffset += 4
 	}
 
 	return offset, nil
@@ -498,12 +493,10 @@ func (x *Monsters) Read(viewer *MonstersViewer, reader *karmem.Reader) {
 	x.Monsters = x.Monsters[:__MonstersLen]
 }
 
-type Vec3Viewer struct {
-	_data [16]byte
-}
+type Vec3Viewer [12]byte
 
 func NewVec3Viewer(reader *karmem.Reader, offset uint32) (v *Vec3Viewer) {
-	if !reader.IsValidOffset(offset, 16) {
+	if !reader.IsValidOffset(offset, 12) {
 		return (*Vec3Viewer)(unsafe.Pointer(&_Null))
 	}
 	v = (*Vec3Viewer)(unsafe.Add(reader.Pointer, offset))
@@ -511,24 +504,22 @@ func NewVec3Viewer(reader *karmem.Reader, offset uint32) (v *Vec3Viewer) {
 }
 
 func (x *Vec3Viewer) size() uint32 {
-	return 16
+	return 12
 }
 func (x *Vec3Viewer) X() (v float32) {
-	return *(*float32)(unsafe.Add(unsafe.Pointer(&x._data), 0))
+	return *(*float32)(unsafe.Add(unsafe.Pointer(x), 0))
 }
 func (x *Vec3Viewer) Y() (v float32) {
-	return *(*float32)(unsafe.Add(unsafe.Pointer(&x._data), 4))
+	return *(*float32)(unsafe.Add(unsafe.Pointer(x), 4))
 }
 func (x *Vec3Viewer) Z() (v float32) {
-	return *(*float32)(unsafe.Add(unsafe.Pointer(&x._data), 8))
+	return *(*float32)(unsafe.Add(unsafe.Pointer(x), 8))
 }
 
-type WeaponDataViewer struct {
-	_data [16]byte
-}
+type WeaponDataViewer [12]byte
 
 func NewWeaponDataViewer(reader *karmem.Reader, offset uint32) (v *WeaponDataViewer) {
-	if !reader.IsValidOffset(offset, 8) {
+	if !reader.IsValidOffset(offset, 4) {
 		return (*WeaponDataViewer)(unsafe.Pointer(&_Null))
 	}
 	v = (*WeaponDataViewer)(unsafe.Add(reader.Pointer, offset))
@@ -539,27 +530,25 @@ func NewWeaponDataViewer(reader *karmem.Reader, offset uint32) (v *WeaponDataVie
 }
 
 func (x *WeaponDataViewer) size() uint32 {
-	return *(*uint32)(unsafe.Pointer(&x._data))
+	return *(*uint32)(unsafe.Pointer(x))
 }
 func (x *WeaponDataViewer) Damage() (v int32) {
 	if 4+4 > x.size() {
 		return v
 	}
-	return *(*int32)(unsafe.Add(unsafe.Pointer(&x._data), 4))
+	return *(*int32)(unsafe.Add(unsafe.Pointer(x), 4))
 }
 func (x *WeaponDataViewer) Range() (v int32) {
 	if 8+4 > x.size() {
 		return v
 	}
-	return *(*int32)(unsafe.Add(unsafe.Pointer(&x._data), 8))
+	return *(*int32)(unsafe.Add(unsafe.Pointer(x), 8))
 }
 
-type WeaponViewer struct {
-	_data [8]byte
-}
+type WeaponViewer [4]byte
 
 func NewWeaponViewer(reader *karmem.Reader, offset uint32) (v *WeaponViewer) {
-	if !reader.IsValidOffset(offset, 8) {
+	if !reader.IsValidOffset(offset, 4) {
 		return (*WeaponViewer)(unsafe.Pointer(&_Null))
 	}
 	v = (*WeaponViewer)(unsafe.Add(reader.Pointer, offset))
@@ -567,19 +556,17 @@ func NewWeaponViewer(reader *karmem.Reader, offset uint32) (v *WeaponViewer) {
 }
 
 func (x *WeaponViewer) size() uint32 {
-	return 8
+	return 4
 }
 func (x *WeaponViewer) Data(reader *karmem.Reader) (v *WeaponDataViewer) {
-	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 0))
+	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 0))
 	return NewWeaponDataViewer(reader, offset)
 }
 
-type MonsterDataViewer struct {
-	_data [152]byte
-}
+type MonsterDataViewer [111]byte
 
 func NewMonsterDataViewer(reader *karmem.Reader, offset uint32) (v *MonsterDataViewer) {
-	if !reader.IsValidOffset(offset, 8) {
+	if !reader.IsValidOffset(offset, 4) {
 		return (*MonsterDataViewer)(unsafe.Pointer(&_Null))
 	}
 	v = (*MonsterDataViewer)(unsafe.Add(reader.Pointer, offset))
@@ -590,32 +577,32 @@ func NewMonsterDataViewer(reader *karmem.Reader, offset uint32) (v *MonsterDataV
 }
 
 func (x *MonsterDataViewer) size() uint32 {
-	return *(*uint32)(unsafe.Pointer(&x._data))
+	return *(*uint32)(unsafe.Pointer(x))
 }
 func (x *MonsterDataViewer) Pos() (v *Vec3Viewer) {
-	if 4+16 > x.size() {
+	if 4+12 > x.size() {
 		return (*Vec3Viewer)(unsafe.Pointer(&_Null))
 	}
-	return (*Vec3Viewer)(unsafe.Add(unsafe.Pointer(&x._data), 4))
+	return (*Vec3Viewer)(unsafe.Add(unsafe.Pointer(x), 4))
 }
 func (x *MonsterDataViewer) Mana() (v int16) {
-	if 20+2 > x.size() {
+	if 16+2 > x.size() {
 		return v
 	}
-	return *(*int16)(unsafe.Add(unsafe.Pointer(&x._data), 20))
+	return *(*int16)(unsafe.Add(unsafe.Pointer(x), 16))
 }
 func (x *MonsterDataViewer) Health() (v int16) {
-	if 22+2 > x.size() {
+	if 18+2 > x.size() {
 		return v
 	}
-	return *(*int16)(unsafe.Add(unsafe.Pointer(&x._data), 22))
+	return *(*int16)(unsafe.Add(unsafe.Pointer(x), 18))
 }
 func (x *MonsterDataViewer) Name(reader *karmem.Reader) (v string) {
-	if 24+12 > x.size() {
+	if 20+8 > x.size() {
 		return v
 	}
-	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 24))
-	size := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 24+4))
+	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 20))
+	size := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 20+4))
 	if !reader.IsValidOffset(offset, size) {
 		return ""
 	}
@@ -629,17 +616,17 @@ func (x *MonsterDataViewer) Name(reader *karmem.Reader) (v string) {
 	return *(*string)(unsafe.Pointer(&slice))
 }
 func (x *MonsterDataViewer) Team() (v Team) {
-	if 36+1 > x.size() {
+	if 28+1 > x.size() {
 		return v
 	}
-	return *(*Team)(unsafe.Add(unsafe.Pointer(&x._data), 36))
+	return *(*Team)(unsafe.Add(unsafe.Pointer(x), 28))
 }
 func (x *MonsterDataViewer) Inventory(reader *karmem.Reader) (v []byte) {
-	if 37+12 > x.size() {
+	if 29+8 > x.size() {
 		return []byte{}
 	}
-	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 37))
-	size := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 37+4))
+	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 29))
+	size := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 29+4))
 	if !reader.IsValidOffset(offset, size) {
 		return []byte{}
 	}
@@ -653,26 +640,26 @@ func (x *MonsterDataViewer) Inventory(reader *karmem.Reader) (v []byte) {
 	return *(*[]byte)(unsafe.Pointer(&slice))
 }
 func (x *MonsterDataViewer) Color() (v Color) {
-	if 49+1 > x.size() {
+	if 37+1 > x.size() {
 		return v
 	}
-	return *(*Color)(unsafe.Add(unsafe.Pointer(&x._data), 49))
+	return *(*Color)(unsafe.Add(unsafe.Pointer(x), 37))
 }
 func (x *MonsterDataViewer) Hitbox() (v []float64) {
-	if 50+40 > x.size() {
+	if 38+40 > x.size() {
 		return []float64{}
 	}
 	slice := [3]uintptr{
-		uintptr(unsafe.Add(unsafe.Pointer(&x._data), 50)), 5, 5,
+		uintptr(unsafe.Add(unsafe.Pointer(x), 38)), 5, 5,
 	}
 	return *(*[]float64)(unsafe.Pointer(&slice))
 }
 func (x *MonsterDataViewer) Status(reader *karmem.Reader) (v []int32) {
-	if 90+12 > x.size() {
+	if 78+8 > x.size() {
 		return []int32{}
 	}
-	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 90))
-	size := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 90+4))
+	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 78))
+	size := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 78+4))
 	if !reader.IsValidOffset(offset, size) {
 		return []int32{}
 	}
@@ -686,24 +673,24 @@ func (x *MonsterDataViewer) Status(reader *karmem.Reader) (v []int32) {
 	return *(*[]int32)(unsafe.Pointer(&slice))
 }
 func (x *MonsterDataViewer) Weapons() (v []WeaponViewer) {
-	if 102+32 > x.size() {
+	if 86+16 > x.size() {
 		return []WeaponViewer{}
 	}
 	slice := [3]uintptr{
-		uintptr(unsafe.Add(unsafe.Pointer(&x._data), 102)), 4, 4,
+		uintptr(unsafe.Add(unsafe.Pointer(x), 86)), 4, 4,
 	}
 	return *(*[]WeaponViewer)(unsafe.Pointer(&slice))
 }
 func (x *MonsterDataViewer) Path(reader *karmem.Reader) (v []Vec3Viewer) {
-	if 134+12 > x.size() {
+	if 102+8 > x.size() {
 		return []Vec3Viewer{}
 	}
-	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 134))
-	size := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 134+4))
+	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 102))
+	size := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 102+4))
 	if !reader.IsValidOffset(offset, size) {
 		return []Vec3Viewer{}
 	}
-	length := uintptr(size / 16)
+	length := uintptr(size / 12)
 	if length > 2000 {
 		length = 2000
 	}
@@ -713,18 +700,16 @@ func (x *MonsterDataViewer) Path(reader *karmem.Reader) (v []Vec3Viewer) {
 	return *(*[]Vec3Viewer)(unsafe.Pointer(&slice))
 }
 func (x *MonsterDataViewer) IsAlive() (v bool) {
-	if 146+1 > x.size() {
+	if 110+1 > x.size() {
 		return v
 	}
-	return *(*bool)(unsafe.Add(unsafe.Pointer(&x._data), 146))
+	return *(*bool)(unsafe.Add(unsafe.Pointer(x), 110))
 }
 
-type MonsterViewer struct {
-	_data [8]byte
-}
+type MonsterViewer [4]byte
 
 func NewMonsterViewer(reader *karmem.Reader, offset uint32) (v *MonsterViewer) {
-	if !reader.IsValidOffset(offset, 8) {
+	if !reader.IsValidOffset(offset, 4) {
 		return (*MonsterViewer)(unsafe.Pointer(&_Null))
 	}
 	v = (*MonsterViewer)(unsafe.Add(reader.Pointer, offset))
@@ -732,19 +717,17 @@ func NewMonsterViewer(reader *karmem.Reader, offset uint32) (v *MonsterViewer) {
 }
 
 func (x *MonsterViewer) size() uint32 {
-	return 8
+	return 4
 }
 func (x *MonsterViewer) Data(reader *karmem.Reader) (v *MonsterDataViewer) {
-	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 0))
+	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 0))
 	return NewMonsterDataViewer(reader, offset)
 }
 
-type MonstersViewer struct {
-	_data [24]byte
-}
+type MonstersViewer [12]byte
 
 func NewMonstersViewer(reader *karmem.Reader, offset uint32) (v *MonstersViewer) {
-	if !reader.IsValidOffset(offset, 8) {
+	if !reader.IsValidOffset(offset, 4) {
 		return (*MonstersViewer)(unsafe.Pointer(&_Null))
 	}
 	v = (*MonstersViewer)(unsafe.Add(reader.Pointer, offset))
@@ -755,18 +738,18 @@ func NewMonstersViewer(reader *karmem.Reader, offset uint32) (v *MonstersViewer)
 }
 
 func (x *MonstersViewer) size() uint32 {
-	return *(*uint32)(unsafe.Pointer(&x._data))
+	return *(*uint32)(unsafe.Pointer(x))
 }
 func (x *MonstersViewer) Monsters(reader *karmem.Reader) (v []MonsterViewer) {
-	if 4+12 > x.size() {
+	if 4+8 > x.size() {
 		return []MonsterViewer{}
 	}
-	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 4))
-	size := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), 4+4))
+	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 4))
+	size := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 4+4))
 	if !reader.IsValidOffset(offset, size) {
 		return []MonsterViewer{}
 	}
-	length := uintptr(size / 8)
+	length := uintptr(size / 4)
 	if length > 2000 {
 		length = 2000
 	}

@@ -1,0 +1,9 @@
+karmem demo @packed();
+
+struct X table @id(123) @expectedId(123) {
+    A uint32;
+}
+
+struct Y table @id(18446744073709551615) @expectedId(18446744073709551615) {
+    A uint32;
+}

@@ -8,7 +8,7 @@ namespace km;
 
 internal static unsafe class _Globals
 {
-    private static long _largest = 152;
+    private static long _largest = 111;
     private static void* _null = null;
     private static Karmem.Reader? _nullReader = null;
 
@@ -82,7 +82,7 @@ public unsafe struct Vec3 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Write(Karmem.Writer writer, uint start) {
         var offset = start;
-        var size = (uint)16;
+        var size = (uint)12;
         if (offset == 0) {
             offset = writer.Alloc(size);
             if (offset == uint.MaxValue) {
@@ -140,7 +140,7 @@ public unsafe struct WeaponData {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Write(Karmem.Writer writer, uint start) {
         var offset = start;
-        var size = (uint)16;
+        var size = (uint)12;
         if (offset == 0) {
             offset = writer.Alloc(size);
             if (offset == uint.MaxValue) {
@@ -195,14 +195,14 @@ public unsafe struct Weapon {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Write(Karmem.Writer writer, uint start) {
         var offset = start;
-        var size = (uint)8;
+        var size = (uint)4;
         if (offset == 0) {
             offset = writer.Alloc(size);
             if (offset == uint.MaxValue) {
                 return false;
             }
         }
-        var __DataSize = (uint)16;
+        var __DataSize = (uint)12;
         var __DataOffset = writer.Alloc(__DataSize);
         if (offset == uint.MaxValue) {
             return false;
@@ -264,48 +264,46 @@ public unsafe struct MonsterData {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Write(Karmem.Writer writer, uint start) {
         var offset = start;
-        var size = (uint)152;
+        var size = (uint)111;
         if (offset == 0) {
             offset = writer.Alloc(size);
             if (offset == uint.MaxValue) {
                 return false;
             }
         }
-        writer.WriteAt(offset, (uint)147);
+        writer.WriteAt(offset, (uint)111);
         var __PosOffset = offset+4;
             if (!this._Pos.Write(writer, __PosOffset)) {
                 return false;
             }
-        var __ManaOffset = offset+20;
+        var __ManaOffset = offset+16;
         writer.WriteAt(__ManaOffset, this._Mana);
-        var __HealthOffset = offset+22;
+        var __HealthOffset = offset+18;
         writer.WriteAt(__HealthOffset, this._Health);
         var __NameSize = (uint)(4 * this._Name.Length);
         var __NameOffset = writer.Alloc(__NameSize);
         if (offset == uint.MaxValue) {
             return false;
         }
-        writer.WriteAt(offset+24, (uint)__NameOffset);
-        writer.WriteAt(offset+24 + 4 + 4, (uint)1);
+        writer.WriteAt(offset+20, (uint)__NameOffset);
         var __NameStringSize = writer.WriteAt(__NameOffset, this._Name);
-        writer.WriteAt(offset+24 + 4, (uint)__NameStringSize);
-        var __TeamOffset = offset+36;
+        writer.WriteAt(offset+20 + 4, (uint)__NameStringSize);
+        var __TeamOffset = offset+28;
         writer.WriteAt(__TeamOffset, (long)this._Team);
         var __InventorySize = (uint)(1 * this._Inventory.Count);
         var __InventoryOffset = writer.Alloc(__InventorySize);
         if (offset == uint.MaxValue) {
             return false;
         }
-        writer.WriteAt(offset+37, (uint)__InventoryOffset);
-        writer.WriteAt(offset+37 + 4, (uint)__InventorySize);
-        writer.WriteAt(offset+37 + 4 + 4, (uint)1);
+        writer.WriteAt(offset+29, (uint)__InventoryOffset);
+        writer.WriteAt(offset+29 + 4, (uint)__InventorySize);
         for (var i = 0; i < this._Inventory.Count; i++) {
             writer.WriteAt(__InventoryOffset, this._Inventory[i]);
             __InventoryOffset += 1;
         }
-        var __ColorOffset = offset+49;
+        var __ColorOffset = offset+37;
         writer.WriteAt(__ColorOffset, (long)this._Color);
-        var __HitboxOffset = offset+50;
+        var __HitboxOffset = offset+38;
         for (var i = 0; i < 5; i++) {
             if (i < this._Hitbox.Count) {
                 writer.WriteAt(__HitboxOffset, this._Hitbox[i]);
@@ -319,35 +317,33 @@ public unsafe struct MonsterData {
         if (offset == uint.MaxValue) {
             return false;
         }
-        writer.WriteAt(offset+90, (uint)__StatusOffset);
-        writer.WriteAt(offset+90 + 4, (uint)__StatusSize);
-        writer.WriteAt(offset+90 + 4 + 4, (uint)4);
+        writer.WriteAt(offset+78, (uint)__StatusOffset);
+        writer.WriteAt(offset+78 + 4, (uint)__StatusSize);
         for (var i = 0; i < this._Status.Count; i++) {
             writer.WriteAt(__StatusOffset, this._Status[i]);
             __StatusOffset += 4;
         }
-        var __WeaponsOffset = offset+102;
+        var __WeaponsOffset = offset+86;
             for (var i = 0; i < this._Weapons.Count; i++) {
                 if (!this._Weapons[i].Write(writer, __WeaponsOffset)) {
                     return false;
                 }
-                __WeaponsOffset += 8;
+                __WeaponsOffset += 4;
             }
-        var __PathSize = (uint)(16 * this._Path.Count);
+        var __PathSize = (uint)(12 * this._Path.Count);
         var __PathOffset = writer.Alloc(__PathSize);
         if (offset == uint.MaxValue) {
             return false;
         }
-        writer.WriteAt(offset+134, (uint)__PathOffset);
-        writer.WriteAt(offset+134 + 4, (uint)__PathSize);
-        writer.WriteAt(offset+134 + 4 + 4, (uint)16);
+        writer.WriteAt(offset+102, (uint)__PathOffset);
+        writer.WriteAt(offset+102 + 4, (uint)__PathSize);
             for (var i = 0; i < this._Path.Count; i++) {
                 if (!this._Path[i].Write(writer, __PathOffset)) {
                     return false;
                 }
-                __PathOffset += 16;
+                __PathOffset += 12;
             }
-        var __IsAliveOffset = offset+146;
+        var __IsAliveOffset = offset+110;
         writer.WriteAt(__IsAliveOffset, this._IsAlive);
 
         return true;
@@ -484,14 +480,14 @@ public unsafe struct Monster {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Write(Karmem.Writer writer, uint start) {
         var offset = start;
-        var size = (uint)8;
+        var size = (uint)4;
         if (offset == 0) {
             offset = writer.Alloc(size);
             if (offset == uint.MaxValue) {
                 return false;
             }
         }
-        var __DataSize = (uint)152;
+        var __DataSize = (uint)111;
         var __DataOffset = writer.Alloc(__DataSize);
         if (offset == uint.MaxValue) {
             return false;
@@ -542,27 +538,26 @@ public unsafe struct Monsters {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Write(Karmem.Writer writer, uint start) {
         var offset = start;
-        var size = (uint)24;
+        var size = (uint)12;
         if (offset == 0) {
             offset = writer.Alloc(size);
             if (offset == uint.MaxValue) {
                 return false;
             }
         }
-        writer.WriteAt(offset, (uint)16);
-        var __MonstersSize = (uint)(8 * this._Monsters.Count);
+        writer.WriteAt(offset, (uint)12);
+        var __MonstersSize = (uint)(4 * this._Monsters.Count);
         var __MonstersOffset = writer.Alloc(__MonstersSize);
         if (offset == uint.MaxValue) {
             return false;
         }
         writer.WriteAt(offset+4, (uint)__MonstersOffset);
         writer.WriteAt(offset+4 + 4, (uint)__MonstersSize);
-        writer.WriteAt(offset+4 + 4 + 4, (uint)8);
             for (var i = 0; i < this._Monsters.Count; i++) {
                 if (!this._Monsters[i].Write(writer, __MonstersOffset)) {
                     return false;
                 }
-                __MonstersOffset += 8;
+                __MonstersOffset += 4;
             }
 
         return true;
@@ -594,14 +589,14 @@ public unsafe struct Monsters {
     }
 }
 
-[StructLayout(LayoutKind.Sequential, Pack=0, Size=16)]
+[StructLayout(LayoutKind.Sequential, Pack=1, Size=12)]
 public unsafe struct Vec3Viewer {
-    private readonly long _0;
-    private readonly long _1;
+    private readonly ulong _0;
+    private readonly uint _1;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ref Vec3Viewer NewVec3Viewer(Karmem.Reader reader, uint offset) {
-        if (!reader.IsValidOffset(offset, 16)) {
+        if (!reader.IsValidOffset(offset, 12)) {
             return ref *(Vec3Viewer*)(nuint)_Globals.Null();
         }
         ref Vec3Viewer v = ref *(Vec3Viewer*)(reader.MemoryPointer + offset);
@@ -610,7 +605,7 @@ public unsafe struct Vec3Viewer {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private uint KarmemSizeOf() {
-        return 16;
+        return 12;
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float X() {
@@ -626,14 +621,14 @@ public unsafe struct Vec3Viewer {
     }
 }
     
-[StructLayout(LayoutKind.Sequential, Pack=0, Size=16)]
+[StructLayout(LayoutKind.Sequential, Pack=1, Size=12)]
 public unsafe struct WeaponDataViewer {
-    private readonly long _0;
-    private readonly long _1;
+    private readonly ulong _0;
+    private readonly uint _1;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ref WeaponDataViewer NewWeaponDataViewer(Karmem.Reader reader, uint offset) {
-        if (!reader.IsValidOffset(offset, 8)) {
+        if (!reader.IsValidOffset(offset, 4)) {
             return ref *(WeaponDataViewer*)(nuint)_Globals.Null();
         }
         ref WeaponDataViewer v = ref *(WeaponDataViewer*)(reader.MemoryPointer + offset);
@@ -663,13 +658,13 @@ public unsafe struct WeaponDataViewer {
     }
 }
     
-[StructLayout(LayoutKind.Sequential, Pack=0, Size=8)]
+[StructLayout(LayoutKind.Sequential, Pack=1, Size=4)]
 public unsafe struct WeaponViewer {
-    private readonly long _0;
+    private readonly uint _0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ref WeaponViewer NewWeaponViewer(Karmem.Reader reader, uint offset) {
-        if (!reader.IsValidOffset(offset, 8)) {
+        if (!reader.IsValidOffset(offset, 4)) {
             return ref *(WeaponViewer*)(nuint)_Globals.Null();
         }
         ref WeaponViewer v = ref *(WeaponViewer*)(reader.MemoryPointer + offset);
@@ -678,7 +673,7 @@ public unsafe struct WeaponViewer {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private uint KarmemSizeOf() {
-        return 8;
+        return 4;
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref WeaponDataViewer Data(Karmem.Reader reader) {
@@ -687,31 +682,28 @@ public unsafe struct WeaponViewer {
     }
 }
     
-[StructLayout(LayoutKind.Sequential, Pack=0, Size=152)]
+[StructLayout(LayoutKind.Sequential, Pack=1, Size=111)]
 public unsafe struct MonsterDataViewer {
-    private readonly long _0;
-    private readonly long _1;
-    private readonly long _2;
-    private readonly long _3;
-    private readonly long _4;
-    private readonly long _5;
-    private readonly long _6;
-    private readonly long _7;
-    private readonly long _8;
-    private readonly long _9;
-    private readonly long _10;
-    private readonly long _11;
-    private readonly long _12;
-    private readonly long _13;
-    private readonly long _14;
-    private readonly long _15;
-    private readonly long _16;
-    private readonly long _17;
-    private readonly long _18;
+    private readonly ulong _0;
+    private readonly ulong _1;
+    private readonly ulong _2;
+    private readonly ulong _3;
+    private readonly ulong _4;
+    private readonly ulong _5;
+    private readonly ulong _6;
+    private readonly ulong _7;
+    private readonly ulong _8;
+    private readonly ulong _9;
+    private readonly ulong _10;
+    private readonly ulong _11;
+    private readonly ulong _12;
+    private readonly uint _13;
+    private readonly ushort _14;
+    private readonly byte _15;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ref MonsterDataViewer NewMonsterDataViewer(Karmem.Reader reader, uint offset) {
-        if (!reader.IsValidOffset(offset, 8)) {
+        if (!reader.IsValidOffset(offset, 4)) {
             return ref *(MonsterDataViewer*)(nuint)_Globals.Null();
         }
         ref MonsterDataViewer v = ref *(MonsterDataViewer*)(reader.MemoryPointer + offset);
@@ -727,32 +719,32 @@ public unsafe struct MonsterDataViewer {
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref Vec3Viewer Pos() {
-        if (4 + 16 > this.KarmemSizeOf()) {
+        if (4 + 12 > this.KarmemSizeOf()) {
             return ref *(Vec3Viewer*)((nuint)_Globals.Null());
         }
         return ref *(Vec3Viewer*)((nuint)Unsafe.AsPointer(ref this) + 4);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public short Mana() {
-        if (20 + 2 > this.KarmemSizeOf()) {
+        if (16 + 2 > this.KarmemSizeOf()) {
             return 0;
         }
-        return *(short*)((nuint)Unsafe.AsPointer(ref this) + 20);
+        return *(short*)((nuint)Unsafe.AsPointer(ref this) + 16);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public short Health() {
-        if (22 + 2 > this.KarmemSizeOf()) {
+        if (18 + 2 > this.KarmemSizeOf()) {
             return 0;
         }
-        return *(short*)((nuint)Unsafe.AsPointer(ref this) + 22);
+        return *(short*)((nuint)Unsafe.AsPointer(ref this) + 18);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string Name(Karmem.Reader reader) {
-        if (24 + 12 > this.KarmemSizeOf()) {
+        if (20 + 8 > this.KarmemSizeOf()) {
             return "";
         }
-        var offset = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 24);
-        var size = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 24 + 4);
+        var offset = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 20);
+        var size = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 20 + 4);
         if (!reader.IsValidOffset(offset, size)) {
             return "";
         }
@@ -764,18 +756,18 @@ public unsafe struct MonsterDataViewer {
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Team Team() {
-        if (36 + 1 > this.KarmemSizeOf()) {
+        if (28 + 1 > this.KarmemSizeOf()) {
             return 0;
         }
-        return *(Team*)((nuint)Unsafe.AsPointer(ref this) + 36);
+        return *(Team*)((nuint)Unsafe.AsPointer(ref this) + 28);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlySpan<byte> Inventory(Karmem.Reader reader) {
-        if (37 + 12 > this.KarmemSizeOf()) {
+        if (29 + 8 > this.KarmemSizeOf()) {
             return new ReadOnlySpan<byte>();
         }
-        var offset = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 37);
-        var size = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 37 + 4);
+        var offset = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 29);
+        var size = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 29 + 4);
         if (!reader.IsValidOffset(offset, size)) {
             return new ReadOnlySpan<byte>();
         }
@@ -787,25 +779,25 @@ public unsafe struct MonsterDataViewer {
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Color Color() {
-        if (49 + 1 > this.KarmemSizeOf()) {
+        if (37 + 1 > this.KarmemSizeOf()) {
             return 0;
         }
-        return *(Color*)((nuint)Unsafe.AsPointer(ref this) + 49);
+        return *(Color*)((nuint)Unsafe.AsPointer(ref this) + 37);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlySpan<double> Hitbox() {
-        if (50 + 40 > this.KarmemSizeOf()) {
+        if (38 + 40 > this.KarmemSizeOf()) {
             return new ReadOnlySpan<double>();
         }
-        return new ReadOnlySpan<double>((void*)((nuint)Unsafe.AsPointer(ref this) + 50), 5);
+        return new ReadOnlySpan<double>((void*)((nuint)Unsafe.AsPointer(ref this) + 38), 5);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlySpan<int> Status(Karmem.Reader reader) {
-        if (90 + 12 > this.KarmemSizeOf()) {
+        if (78 + 8 > this.KarmemSizeOf()) {
             return new ReadOnlySpan<int>();
         }
-        var offset = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 90);
-        var size = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 90 + 4);
+        var offset = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 78);
+        var size = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 78 + 4);
         if (!reader.IsValidOffset(offset, size)) {
             return new ReadOnlySpan<int>();
         }
@@ -817,22 +809,22 @@ public unsafe struct MonsterDataViewer {
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlySpan<WeaponViewer> Weapons() {
-        if (102 + 32 > this.KarmemSizeOf()) {
+        if (86 + 16 > this.KarmemSizeOf()) {
             return new ReadOnlySpan<WeaponViewer>();
         }
-        return new ReadOnlySpan<WeaponViewer>((void*)((nuint)Unsafe.AsPointer(ref this) + 102), 4);
+        return new ReadOnlySpan<WeaponViewer>((void*)((nuint)Unsafe.AsPointer(ref this) + 86), 4);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlySpan<Vec3Viewer> Path(Karmem.Reader reader) {
-        if (134 + 12 > this.KarmemSizeOf()) {
+        if (102 + 8 > this.KarmemSizeOf()) {
             return new ReadOnlySpan<Vec3Viewer>();
         }
-        var offset = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 134);
-        var size = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 134 + 4);
+        var offset = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 102);
+        var size = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 102 + 4);
         if (!reader.IsValidOffset(offset, size)) {
             return new ReadOnlySpan<Vec3Viewer>();
         }
-        var length = size / 16;
+        var length = size / 12;
         if (length > 2000) {
             length = 2000;
         }
@@ -840,20 +832,20 @@ public unsafe struct MonsterDataViewer {
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsAlive() {
-        if (146 + 1 > this.KarmemSizeOf()) {
+        if (110 + 1 > this.KarmemSizeOf()) {
             return false;
         }
-        return *(bool*)((nuint)Unsafe.AsPointer(ref this) + 146);
+        return *(bool*)((nuint)Unsafe.AsPointer(ref this) + 110);
     }
 }
     
-[StructLayout(LayoutKind.Sequential, Pack=0, Size=8)]
+[StructLayout(LayoutKind.Sequential, Pack=1, Size=4)]
 public unsafe struct MonsterViewer {
-    private readonly long _0;
+    private readonly uint _0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ref MonsterViewer NewMonsterViewer(Karmem.Reader reader, uint offset) {
-        if (!reader.IsValidOffset(offset, 8)) {
+        if (!reader.IsValidOffset(offset, 4)) {
             return ref *(MonsterViewer*)(nuint)_Globals.Null();
         }
         ref MonsterViewer v = ref *(MonsterViewer*)(reader.MemoryPointer + offset);
@@ -862,7 +854,7 @@ public unsafe struct MonsterViewer {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private uint KarmemSizeOf() {
-        return 8;
+        return 4;
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref MonsterDataViewer Data(Karmem.Reader reader) {
@@ -871,15 +863,14 @@ public unsafe struct MonsterViewer {
     }
 }
     
-[StructLayout(LayoutKind.Sequential, Pack=0, Size=24)]
+[StructLayout(LayoutKind.Sequential, Pack=1, Size=12)]
 public unsafe struct MonstersViewer {
-    private readonly long _0;
-    private readonly long _1;
-    private readonly long _2;
+    private readonly ulong _0;
+    private readonly uint _1;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ref MonstersViewer NewMonstersViewer(Karmem.Reader reader, uint offset) {
-        if (!reader.IsValidOffset(offset, 8)) {
+        if (!reader.IsValidOffset(offset, 4)) {
             return ref *(MonstersViewer*)(nuint)_Globals.Null();
         }
         ref MonstersViewer v = ref *(MonstersViewer*)(reader.MemoryPointer + offset);
@@ -895,7 +886,7 @@ public unsafe struct MonstersViewer {
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlySpan<MonsterViewer> Monsters(Karmem.Reader reader) {
-        if (4 + 12 > this.KarmemSizeOf()) {
+        if (4 + 8 > this.KarmemSizeOf()) {
             return new ReadOnlySpan<MonsterViewer>();
         }
         var offset = *(uint*)((nuint)Unsafe.AsPointer(ref this) + 4);
@@ -903,7 +894,7 @@ public unsafe struct MonstersViewer {
         if (!reader.IsValidOffset(offset, size)) {
             return new ReadOnlySpan<MonsterViewer>();
         }
-        var length = size / 8;
+        var length = size / 4;
         if (length > 2000) {
             length = 2000;
         }

@@ -90,8 +90,10 @@ uint32_t {{$root.Data.Name}}Write({{$root.Data.Name}} * x, KarmemWriter * writer
     KarmemWriterWriteAt(writer, offset+{{$field.Data.Offset}}, (void *) &__{{$field.Data.Name}}Offset, 4);
     {{- if $field.Data.Type.IsSlice}}
     KarmemWriterWriteAt(writer, offset+{{$field.Data.Offset}}+4, (void *) &__{{$field.Data.Name}}Size, 4);
+    {{- if not $root.Data.Packed }}
     uint32_t __{{$field.Data.Name}}SizeEach = {{$field.Data.Size.Allocation}};
     KarmemWriterWriteAt(writer, offset+{{$field.Data.Offset}}+4+4, (void *) &__{{$field.Data.Name}}SizeEach, 4);
+    {{- end }}
     {{- end }}
 {{- end }}
 {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
@@ -233,9 +235,11 @@ void {{$root.Data.Name}}Reset({{$root.Data.Name}} * x) {
     {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
     {{- range $root := .Structs}}
 
-typedef struct {
+#pragma pack(1)
+typedef struct __attribute__((packed)) {
     uint8_t _data[{{$root.Data.Size.Total}}];
 } {{$root.Data.Name}}Viewer;
+#pragma options align=reset
 
 uint32_t {{$root.Data.Name}}ViewerSize({{$root.Data.Name}}Viewer * x) {
 {{- if $root.Data.IsTable}}

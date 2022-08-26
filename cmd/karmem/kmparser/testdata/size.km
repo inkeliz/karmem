@@ -1,0 +1,261 @@
+karmem demo;
+
+enum UserRegion uint32 {
+    Undefined; Asia; Africa; NorthAmerica; SouthAmerica; Europe; Oceania;
+}
+
+struct AP inline @packed() @total(`4`) @padding(`0`) @content(`4`) {
+    Region UserRegion;
+}
+
+struct AL inline @total(`8`) @padding(`4`) @content(`4`) {
+    Region UserRegion;
+}
+
+struct BP inline @packed() @total(`8`) @padding(`0`) @content(`8`) {
+    String []char;
+}
+
+struct BL inline @total(`16`) @padding(`4`) @content(`12`) {
+    String []char;
+}
+
+struct CP inline @packed() @total(`8`) @padding(`0`) @content(`8`) {
+    X uint64;
+}
+
+struct CL inline @total(`16`) @padding(`8`) @content(`8`) {
+    X uint64;
+}
+
+struct TCP table @packed() @total(`12`) @padding(`0`) @content(`12`) {
+    X uint64;
+}
+
+struct TCL table @total(`12`) @padding(`0`) @content(`12`) {
+    X uint64;
+}
+
+struct DP inline @packed() @total(`8`) @padding(`0`) @content(`8`) {
+    X []uint64;
+}
+
+struct DL inline @total(`16`) @padding(`4`) @content(`12`) {
+    X []uint64;
+}
+
+struct TDP table @packed() @total(`12`) @padding(`0`) @content(`12`) {
+    X []uint64;
+}
+
+struct TDL table @total(`16`) @padding(`0`) @content(`16`) {
+    X []uint64;
+}
+
+struct InlinePacked inline @packed() @total(`2`) @padding(`0`) @content(`2`) {
+    X uint16;
+}
+
+struct InlineOld inline @total(`8`) @padding(`6`) @content(`2`) {
+    X uint16;
+}
+
+struct EP inline @packed() @total(`2`) @padding(`0`) @content(`2`) {
+    X InlinePacked;
+}
+
+struct EL inline @total(`8`) @padding(`6`) @content(`2`) {
+    X InlinePacked;
+}
+
+struct TEP table @packed() @total(`6`) @padding(`0`) @content(`6`) {
+    X InlinePacked;
+}
+
+struct TEL table @total(`6`) @padding(`0`) @content(`6`) {
+    X InlinePacked;
+}
+
+struct LEP inline @packed() @total(`8`) @padding(`0`) @content(`8`) {
+    X InlineOld;
+}
+
+struct LEL inline @total(`16`) @padding(`8`) @content(`8`) {
+    X InlineOld;
+}
+
+struct LTEP table @packed() @total(`12`) @padding(`0`) @content(`12`) {
+    X InlineOld;
+}
+
+struct LTEL table @total(`12`) @padding(`0`) @content(`12`) {
+    X InlineOld;
+}
+
+struct TablePacked table @packed() @total(`6`) @padding(`0`) @content(`6`) {
+    X uint16;
+}
+
+struct TableOld table @total(`6`) @padding(`0`) @content(`6`) {
+    X uint16;
+}
+
+struct FP inline @packed() @total(`4`) @padding(`0`) @content(`4`) {
+    X TablePacked;
+}
+
+struct FL inline @total(`8`) @padding(`4`) @content(`4`) {
+    X TablePacked;
+}
+
+struct FFP inline @packed() @total(`8`) @padding(`0`) @content(`8`) {
+    X TablePacked;
+    Y TablePacked;
+}
+
+struct FFL inline @total(`16`) @padding(`8`) @content(`8`) {
+    X TablePacked;
+    Y TablePacked;
+}
+
+struct TFFP table @packed() @total(`12`) @padding(`0`) @content(`12`) {
+    X TablePacked;
+    Y TablePacked;
+}
+
+struct TFFL table @total(`12`) @padding(`0`) @content(`12`) {
+    X TablePacked;
+    Y TablePacked;
+}
+
+struct TFP table @packed() @total(`8`) @padding(`0`) @content(`8`) {
+    X TablePacked;
+}
+
+struct TFL table @total(`8`) @padding(`0`) @content(`8`) {
+    X TablePacked;
+}
+
+struct GP inline @packed() @total(`4`) @padding(`0`) @content(`4`) {
+    X TableOld;
+}
+
+struct GL table @total(`8`) @padding(`0`) @content(`8`) {
+    X TableOld;
+}
+
+struct GGL inline @packed() @total(`8`) @padding(`0`) @content(`8`) {
+    X TableOld;
+    Y TableOld;
+}
+
+struct GGP inline @total(`16`) @padding(`8`) @content(`8`) {
+    X TableOld;
+    Y TableOld;
+}
+
+struct OGGL table @packed() @total(`8`) @padding(`0`) @content(`8`) {
+    X TableOld;
+}
+
+struct OGGP table @total(`8`) @padding(`0`) @content(`8`) {
+    X TableOld;
+}
+
+struct TGGL table @packed() @total(`12`) @padding(`0`) @content(`12`) {
+    X TableOld;
+    Y TableOld;
+}
+
+struct TGGP table @total(`12`) @padding(`0`) @content(`12`) {
+    X TableOld;
+    Y TableOld;
+}
+
+struct InlineArrayPacked inline @packed() @total(`8`) @padding(`0`) @content(`8`) {
+    Array []uint32;
+}
+
+struct IJP inline @packed() @total(`8`) @padding(`0`) @content(`8`) {
+    X InlineArrayPacked;
+}
+
+struct IJL inline @total(`16`) @padding(`8`) @content(`8`) {
+    X InlineArrayPacked;
+}
+
+struct TIJP table @packed() @total(`12`) @padding(`0`) @content(`12`) {
+    X InlineArrayPacked;
+}
+
+struct TIJL table @total(`12`) @padding(`0`) @content(`12`) {
+    X InlineArrayPacked;
+}
+
+struct InlineArrayOld inline @total(`16`) @padding(`4`) @content(`12`) {
+    Array []uint32;
+}
+
+struct ILP inline @packed() @total(`16`) @padding(`0`) @content(`16`) {
+    X InlineArrayOld;
+}
+
+struct ILL inline @total(`24`) @padding(`8`) @content(`16`) {
+    X InlineArrayOld;
+}
+
+struct TILP table @packed() @total(`20`) @padding(`0`) @content(`20`) {
+    X InlineArrayOld;
+}
+
+struct TILL table @total(`20`) @padding(`0`) @content(`20`) {
+    X InlineArrayOld;
+}
+
+struct IHP inline @packed() @total(`19`) @padding(`0`) @content(`19`) {
+    A uint16;
+    B uint32;
+    C uint32;
+    D uint8;
+    E []uint8;
+}
+
+struct IHL inline @total(`24`) @padding(`1`) @content(`23`) {
+    A uint16;
+    B uint32;
+    C uint32;
+    D uint8;
+    E []uint8;
+}
+
+struct IHXP inline @packed() @total(`19`) @padding(`0`) @content(`19`) {
+    A uint16;
+    B uint32;
+    C uint32;
+    D uint8;
+    E InlineArrayPacked;
+}
+
+struct IHXL inline @total(`24`) @padding(`5`) @content(`19`) {
+    A uint16;
+    B uint32;
+    C uint32;
+    D uint8;
+    E InlineArrayPacked;
+}
+
+struct IHZP inline @packed() @total(`27`) @padding(`0`) @content(`27`) {
+    A uint16;
+    B uint32;
+    C uint32;
+    D uint8;
+    E InlineArrayOld;
+}
+
+struct IHZL inline @total(`32`) @padding(`5`) @content(`27`) {
+    A uint16;
+    B uint32;
+    C uint32;
+    D uint8;
+    E InlineArrayOld;
+}

@@ -5,7 +5,7 @@
 #include "stdbool.h"
 #include "../../c/karmem.h"
 
-uint8_t _Null[152];
+uint8_t _Null[111];
 
 
 typedef uint8_t EnumColor;
@@ -21,16 +21,18 @@ const EnumTeam EnumTeamRobots = 3UL;
 const EnumTeam EnumTeamAliens = 4UL;
 
 
-typedef struct {
-    uint8_t _data[16];
+#pragma pack(1)
+typedef struct __attribute__((packed)) {
+    uint8_t _data[12];
 } Vec3Viewer;
+#pragma options align=reset
 
 uint32_t Vec3ViewerSize(Vec3Viewer * x) {
-    return 16;
+    return 12;
 }
 
 Vec3Viewer * NewVec3Viewer(KarmemReader * reader, uint32_t offset) {
-    if (KarmemReaderIsValidOffset(reader, offset, 16) == false) {
+    if (KarmemReaderIsValidOffset(reader, offset, 12) == false) {
         return (Vec3Viewer *) &_Null;
     }
     Vec3Viewer * v = (Vec3Viewer *) &reader->pointer[offset];
@@ -55,9 +57,11 @@ float Vec3Viewer_Z(Vec3Viewer * x) {
     return r;
 }
 
-typedef struct {
-    uint8_t _data[16];
+#pragma pack(1)
+typedef struct __attribute__((packed)) {
+    uint8_t _data[12];
 } WeaponDataViewer;
+#pragma options align=reset
 
 uint32_t WeaponDataViewerSize(WeaponDataViewer * x) {
     uint32_t r;
@@ -66,7 +70,7 @@ uint32_t WeaponDataViewerSize(WeaponDataViewer * x) {
 }
 
 WeaponDataViewer * NewWeaponDataViewer(KarmemReader * reader, uint32_t offset) {
-    if (KarmemReaderIsValidOffset(reader, offset, 8) == false) {
+    if (KarmemReaderIsValidOffset(reader, offset, 4) == false) {
         return (WeaponDataViewer *) &_Null;
     }
     WeaponDataViewer * v = (WeaponDataViewer *) &reader->pointer[offset];
@@ -94,16 +98,18 @@ int32_t WeaponDataViewer_Range(WeaponDataViewer * x) {
     return r;
 }
 
-typedef struct {
-    uint8_t _data[8];
+#pragma pack(1)
+typedef struct __attribute__((packed)) {
+    uint8_t _data[4];
 } WeaponViewer;
+#pragma options align=reset
 
 uint32_t WeaponViewerSize(WeaponViewer * x) {
-    return 8;
+    return 4;
 }
 
 WeaponViewer * NewWeaponViewer(KarmemReader * reader, uint32_t offset) {
-    if (KarmemReaderIsValidOffset(reader, offset, 8) == false) {
+    if (KarmemReaderIsValidOffset(reader, offset, 4) == false) {
         return (WeaponViewer *) &_Null;
     }
     WeaponViewer * v = (WeaponViewer *) &reader->pointer[offset];
@@ -116,9 +122,11 @@ WeaponDataViewer * WeaponViewer_Data(WeaponViewer * x, KarmemReader * reader) {
     return NewWeaponDataViewer(reader, offset);
 }
 
-typedef struct {
-    uint8_t _data[152];
+#pragma pack(1)
+typedef struct __attribute__((packed)) {
+    uint8_t _data[111];
 } MonsterDataViewer;
+#pragma options align=reset
 
 uint32_t MonsterDataViewerSize(MonsterDataViewer * x) {
     uint32_t r;
@@ -127,7 +135,7 @@ uint32_t MonsterDataViewerSize(MonsterDataViewer * x) {
 }
 
 MonsterDataViewer * NewMonsterDataViewer(KarmemReader * reader, uint32_t offset) {
-    if (KarmemReaderIsValidOffset(reader, offset, 8) == false) {
+    if (KarmemReaderIsValidOffset(reader, offset, 4) == false) {
         return (MonsterDataViewer *) &_Null;
     }
     MonsterDataViewer * v = (MonsterDataViewer *) &reader->pointer[offset];
@@ -138,37 +146,37 @@ MonsterDataViewer * NewMonsterDataViewer(KarmemReader * reader, uint32_t offset)
 }
 
 Vec3Viewer * MonsterDataViewer_Pos(MonsterDataViewer * x) {
-    if ((4 + 16) > MonsterDataViewerSize(x)) {
+    if ((4 + 12) > MonsterDataViewerSize(x)) {
         return (Vec3Viewer *) &_Null;
     }
         return (Vec3Viewer *) &x->_data[4];
 }
 
 int16_t MonsterDataViewer_Mana(MonsterDataViewer * x) {
-    if ((20 + 2) > MonsterDataViewerSize(x)) {
+    if ((16 + 2) > MonsterDataViewerSize(x)) {
         return 0;
     }
     int16_t r;
-    memcpy(&r, &x->_data[20], 2);
+    memcpy(&r, &x->_data[16], 2);
     return r;
 }
 
 int16_t MonsterDataViewer_Health(MonsterDataViewer * x) {
-    if ((22 + 2) > MonsterDataViewerSize(x)) {
+    if ((18 + 2) > MonsterDataViewerSize(x)) {
         return 0;
     }
     int16_t r;
-    memcpy(&r, &x->_data[22], 2);
+    memcpy(&r, &x->_data[18], 2);
     return r;
 }
 uint32_t MonsterDataViewer_NameLength(MonsterDataViewer * x, KarmemReader * reader) {
-    if ((24 + 12) > MonsterDataViewerSize(x)) {
+    if ((20 + 8) > MonsterDataViewerSize(x)) {
         return 0;
     }
     uint32_t offset;
-    memcpy(&offset, &x->_data[24], 4);
+    memcpy(&offset, &x->_data[20], 4);
     uint32_t size;
-    memcpy(&size, &x->_data[24 + 4], 4);
+    memcpy(&size, &x->_data[20 + 4], 4);
     if (KarmemReaderIsValidOffset(reader, offset, size) == false) {
         return 0;
     }
@@ -180,13 +188,13 @@ uint32_t MonsterDataViewer_NameLength(MonsterDataViewer * x, KarmemReader * read
 }
 
 uint8_t * MonsterDataViewer_Name(MonsterDataViewer * x, KarmemReader * reader) {
-    if ((24 + 12) > MonsterDataViewerSize(x)) {
+    if ((20 + 8) > MonsterDataViewerSize(x)) {
         return (uint8_t *) &_Null;
     }
     uint32_t offset;
-    memcpy(&offset, &x->_data[24], 4);
+    memcpy(&offset, &x->_data[20], 4);
     uint32_t size;
-    memcpy(&size, &x->_data[24 + 4], 4);
+    memcpy(&size, &x->_data[20 + 4], 4);
     if (KarmemReaderIsValidOffset(reader, offset, size) == false) {
         return (uint8_t *) &_Null;
     }
@@ -195,19 +203,19 @@ uint8_t * MonsterDataViewer_Name(MonsterDataViewer * x, KarmemReader * reader) {
 }
 
 EnumTeam MonsterDataViewer_Team(MonsterDataViewer * x) {
-    if ((36 + 1) > MonsterDataViewerSize(x)) {
+    if ((28 + 1) > MonsterDataViewerSize(x)) {
         return 0;
     }
-        return * (EnumTeam * ) &x->_data[36];
+        return * (EnumTeam * ) &x->_data[28];
 }
 uint32_t MonsterDataViewer_InventoryLength(MonsterDataViewer * x, KarmemReader * reader) {
-    if ((37 + 12) > MonsterDataViewerSize(x)) {
+    if ((29 + 8) > MonsterDataViewerSize(x)) {
         return 0;
     }
     uint32_t offset;
-    memcpy(&offset, &x->_data[37], 4);
+    memcpy(&offset, &x->_data[29], 4);
     uint32_t size;
-    memcpy(&size, &x->_data[37 + 4], 4);
+    memcpy(&size, &x->_data[29 + 4], 4);
     if (KarmemReaderIsValidOffset(reader, offset, size) == false) {
         return 0;
     }
@@ -219,13 +227,13 @@ uint32_t MonsterDataViewer_InventoryLength(MonsterDataViewer * x, KarmemReader *
 }
 
 uint8_t * MonsterDataViewer_Inventory(MonsterDataViewer * x, KarmemReader * reader) {
-    if ((37 + 12) > MonsterDataViewerSize(x)) {
+    if ((29 + 8) > MonsterDataViewerSize(x)) {
         return (uint8_t *) &_Null;
     }
     uint32_t offset;
-    memcpy(&offset, &x->_data[37], 4);
+    memcpy(&offset, &x->_data[29], 4);
     uint32_t size;
-    memcpy(&size, &x->_data[37 + 4], 4);
+    memcpy(&size, &x->_data[29 + 4], 4);
     if (KarmemReaderIsValidOffset(reader, offset, size) == false) {
         return (uint8_t *) &_Null;
     }
@@ -234,32 +242,32 @@ uint8_t * MonsterDataViewer_Inventory(MonsterDataViewer * x, KarmemReader * read
 }
 
 EnumColor MonsterDataViewer_Color(MonsterDataViewer * x) {
-    if ((49 + 1) > MonsterDataViewerSize(x)) {
+    if ((37 + 1) > MonsterDataViewerSize(x)) {
         return 0;
     }
-        return * (EnumColor * ) &x->_data[49];
+        return * (EnumColor * ) &x->_data[37];
 }
 uint32_t MonsterDataViewer_HitboxLength(MonsterDataViewer * x) {
-    if ((50 + 40) > MonsterDataViewerSize(x)) {
+    if ((38 + 40) > MonsterDataViewerSize(x)) {
         return 0;
     }
     return 5;
 }
 
 double * MonsterDataViewer_Hitbox(MonsterDataViewer * x) {
-    if ((50 + 40) > MonsterDataViewerSize(x)) {
+    if ((38 + 40) > MonsterDataViewerSize(x)) {
         return (double *) &_Null;
     }
-    return (double *) &x->_data[50];
+    return (double *) &x->_data[38];
 }
 uint32_t MonsterDataViewer_StatusLength(MonsterDataViewer * x, KarmemReader * reader) {
-    if ((90 + 12) > MonsterDataViewerSize(x)) {
+    if ((78 + 8) > MonsterDataViewerSize(x)) {
         return 0;
     }
     uint32_t offset;
-    memcpy(&offset, &x->_data[90], 4);
+    memcpy(&offset, &x->_data[78], 4);
     uint32_t size;
-    memcpy(&size, &x->_data[90 + 4], 4);
+    memcpy(&size, &x->_data[78 + 4], 4);
     if (KarmemReaderIsValidOffset(reader, offset, size) == false) {
         return 0;
     }
@@ -271,13 +279,13 @@ uint32_t MonsterDataViewer_StatusLength(MonsterDataViewer * x, KarmemReader * re
 }
 
 int32_t * MonsterDataViewer_Status(MonsterDataViewer * x, KarmemReader * reader) {
-    if ((90 + 12) > MonsterDataViewerSize(x)) {
+    if ((78 + 8) > MonsterDataViewerSize(x)) {
         return (int32_t *) &_Null;
     }
     uint32_t offset;
-    memcpy(&offset, &x->_data[90], 4);
+    memcpy(&offset, &x->_data[78], 4);
     uint32_t size;
-    memcpy(&size, &x->_data[90 + 4], 4);
+    memcpy(&size, &x->_data[78 + 4], 4);
     if (KarmemReaderIsValidOffset(reader, offset, size) == false) {
         return (int32_t *) &_Null;
     }
@@ -285,30 +293,30 @@ int32_t * MonsterDataViewer_Status(MonsterDataViewer * x, KarmemReader * reader)
     return (int32_t *) &reader->pointer[offset];
 }
 uint32_t MonsterDataViewer_WeaponsLength(MonsterDataViewer * x) {
-    if ((102 + 32) > MonsterDataViewerSize(x)) {
+    if ((86 + 16) > MonsterDataViewerSize(x)) {
         return 0;
     }
     return 4;
 }
 
 WeaponViewer * MonsterDataViewer_Weapons(MonsterDataViewer * x) {
-    if ((102 + 32) > MonsterDataViewerSize(x)) {
+    if ((86 + 16) > MonsterDataViewerSize(x)) {
         return (WeaponViewer *) &_Null;
     }
-    return (WeaponViewer *) &x->_data[102];
+    return (WeaponViewer *) &x->_data[86];
 }
 uint32_t MonsterDataViewer_PathLength(MonsterDataViewer * x, KarmemReader * reader) {
-    if ((134 + 12) > MonsterDataViewerSize(x)) {
+    if ((102 + 8) > MonsterDataViewerSize(x)) {
         return 0;
     }
     uint32_t offset;
-    memcpy(&offset, &x->_data[134], 4);
+    memcpy(&offset, &x->_data[102], 4);
     uint32_t size;
-    memcpy(&size, &x->_data[134 + 4], 4);
+    memcpy(&size, &x->_data[102 + 4], 4);
     if (KarmemReaderIsValidOffset(reader, offset, size) == false) {
         return 0;
     }
-    uint32_t length = size / 16;
+    uint32_t length = size / 12;
     if (length > 2000) {
         length = 2000;
     }
@@ -316,39 +324,41 @@ uint32_t MonsterDataViewer_PathLength(MonsterDataViewer * x, KarmemReader * read
 }
 
 Vec3Viewer * MonsterDataViewer_Path(MonsterDataViewer * x, KarmemReader * reader) {
-    if ((134 + 12) > MonsterDataViewerSize(x)) {
+    if ((102 + 8) > MonsterDataViewerSize(x)) {
         return (Vec3Viewer *) &_Null;
     }
     uint32_t offset;
-    memcpy(&offset, &x->_data[134], 4);
+    memcpy(&offset, &x->_data[102], 4);
     uint32_t size;
-    memcpy(&size, &x->_data[134 + 4], 4);
+    memcpy(&size, &x->_data[102 + 4], 4);
     if (KarmemReaderIsValidOffset(reader, offset, size) == false) {
         return (Vec3Viewer *) &_Null;
     }
-    uint32_t length = size / 16;
+    uint32_t length = size / 12;
     return (Vec3Viewer *) &reader->pointer[offset];
 }
 
 bool MonsterDataViewer_IsAlive(MonsterDataViewer * x) {
-    if ((146 + 1) > MonsterDataViewerSize(x)) {
+    if ((110 + 1) > MonsterDataViewerSize(x)) {
         return false;
     }
     bool r;
-    memcpy(&r, &x->_data[146], 1);
+    memcpy(&r, &x->_data[110], 1);
     return r;
 }
 
-typedef struct {
-    uint8_t _data[8];
+#pragma pack(1)
+typedef struct __attribute__((packed)) {
+    uint8_t _data[4];
 } MonsterViewer;
+#pragma options align=reset
 
 uint32_t MonsterViewerSize(MonsterViewer * x) {
-    return 8;
+    return 4;
 }
 
 MonsterViewer * NewMonsterViewer(KarmemReader * reader, uint32_t offset) {
-    if (KarmemReaderIsValidOffset(reader, offset, 8) == false) {
+    if (KarmemReaderIsValidOffset(reader, offset, 4) == false) {
         return (MonsterViewer *) &_Null;
     }
     MonsterViewer * v = (MonsterViewer *) &reader->pointer[offset];
@@ -361,9 +371,11 @@ MonsterDataViewer * MonsterViewer_Data(MonsterViewer * x, KarmemReader * reader)
     return NewMonsterDataViewer(reader, offset);
 }
 
-typedef struct {
-    uint8_t _data[24];
+#pragma pack(1)
+typedef struct __attribute__((packed)) {
+    uint8_t _data[12];
 } MonstersViewer;
+#pragma options align=reset
 
 uint32_t MonstersViewerSize(MonstersViewer * x) {
     uint32_t r;
@@ -372,7 +384,7 @@ uint32_t MonstersViewerSize(MonstersViewer * x) {
 }
 
 MonstersViewer * NewMonstersViewer(KarmemReader * reader, uint32_t offset) {
-    if (KarmemReaderIsValidOffset(reader, offset, 8) == false) {
+    if (KarmemReaderIsValidOffset(reader, offset, 4) == false) {
         return (MonstersViewer *) &_Null;
     }
     MonstersViewer * v = (MonstersViewer *) &reader->pointer[offset];
@@ -382,7 +394,7 @@ MonstersViewer * NewMonstersViewer(KarmemReader * reader, uint32_t offset) {
     return v;
 }
 uint32_t MonstersViewer_MonstersLength(MonstersViewer * x, KarmemReader * reader) {
-    if ((4 + 12) > MonstersViewerSize(x)) {
+    if ((4 + 8) > MonstersViewerSize(x)) {
         return 0;
     }
     uint32_t offset;
@@ -392,7 +404,7 @@ uint32_t MonstersViewer_MonstersLength(MonstersViewer * x, KarmemReader * reader
     if (KarmemReaderIsValidOffset(reader, offset, size) == false) {
         return 0;
     }
-    uint32_t length = size / 8;
+    uint32_t length = size / 4;
     if (length > 2000) {
         length = 2000;
     }
@@ -400,7 +412,7 @@ uint32_t MonstersViewer_MonstersLength(MonstersViewer * x, KarmemReader * reader
 }
 
 MonsterViewer * MonstersViewer_Monsters(MonstersViewer * x, KarmemReader * reader) {
-    if ((4 + 12) > MonstersViewerSize(x)) {
+    if ((4 + 8) > MonstersViewerSize(x)) {
         return (MonsterViewer *) &_Null;
     }
     uint32_t offset;
@@ -410,7 +422,7 @@ MonsterViewer * MonstersViewer_Monsters(MonstersViewer * x, KarmemReader * reade
     if (KarmemReaderIsValidOffset(reader, offset, size) == false) {
         return (MonsterViewer *) &_Null;
     }
-    uint32_t length = size / 8;
+    uint32_t length = size / 4;
     return (MonsterViewer *) &reader->pointer[offset];
 }
 typedef uint64_t EnumPacketIdentifier;
@@ -435,7 +447,7 @@ EnumPacketIdentifier Vec3PacketIdentifier(Vec3 * x) {
 
 uint32_t Vec3Write(Vec3 * x, KarmemWriter * writer, uint32_t start) {
     uint32_t offset = start;
-    uint32_t size = 16;
+    uint32_t size = 12;
     if (offset == 0) {
         offset = KarmemWriterAlloc(writer, size);
         if (offset == 0xFFFFFFFF) {
@@ -467,7 +479,7 @@ void Vec3ReadAsRoot(Vec3 * x, KarmemReader * reader) {
 }
 
 void Vec3Reset(Vec3 * x) {
-    KarmemReader reader = KarmemNewReader(&_Null[0], 152);
+    KarmemReader reader = KarmemNewReader(&_Null[0], 111);
     Vec3Read(x, (Vec3Viewer *) &_Null, &reader);
 }
 
@@ -487,7 +499,7 @@ EnumPacketIdentifier WeaponDataPacketIdentifier(WeaponData * x) {
 
 uint32_t WeaponDataWrite(WeaponData * x, KarmemWriter * writer, uint32_t start) {
     uint32_t offset = start;
-    uint32_t size = 16;
+    uint32_t size = 12;
     if (offset == 0) {
         offset = KarmemWriterAlloc(writer, size);
         if (offset == 0xFFFFFFFF) {
@@ -518,7 +530,7 @@ void WeaponDataReadAsRoot(WeaponData * x, KarmemReader * reader) {
 }
 
 void WeaponDataReset(WeaponData * x) {
-    KarmemReader reader = KarmemNewReader(&_Null[0], 152);
+    KarmemReader reader = KarmemNewReader(&_Null[0], 111);
     WeaponDataRead(x, (WeaponDataViewer *) &_Null, &reader);
 }
 
@@ -537,14 +549,14 @@ EnumPacketIdentifier WeaponPacketIdentifier(Weapon * x) {
 
 uint32_t WeaponWrite(Weapon * x, KarmemWriter * writer, uint32_t start) {
     uint32_t offset = start;
-    uint32_t size = 8;
+    uint32_t size = 4;
     if (offset == 0) {
         offset = KarmemWriterAlloc(writer, size);
         if (offset == 0xFFFFFFFF) {
             return 0;
         }
     }
-    uint32_t __DataSize = 16;
+    uint32_t __DataSize = 12;
     uint32_t __DataOffset = KarmemWriterAlloc(writer, __DataSize);
 
     KarmemWriterWriteAt(writer, offset+0, (void *) &__DataOffset, 4);
@@ -568,7 +580,7 @@ void WeaponReadAsRoot(Weapon * x, KarmemReader * reader) {
 }
 
 void WeaponReset(Weapon * x) {
-    KarmemReader reader = KarmemNewReader(&_Null[0], 152);
+    KarmemReader reader = KarmemNewReader(&_Null[0], 111);
     WeaponRead(x, (WeaponViewer *) &_Null, &reader);
 }
 
@@ -606,82 +618,74 @@ EnumPacketIdentifier MonsterDataPacketIdentifier(MonsterData * x) {
 
 uint32_t MonsterDataWrite(MonsterData * x, KarmemWriter * writer, uint32_t start) {
     uint32_t offset = start;
-    uint32_t size = 152;
+    uint32_t size = 111;
     if (offset == 0) {
         offset = KarmemWriterAlloc(writer, size);
         if (offset == 0xFFFFFFFF) {
             return 0;
         }
     }
-    uint32_t sizeData = 147;
+    uint32_t sizeData = 111;
     KarmemWriterWriteAt(writer, offset, (void *)&sizeData, 4);
     uint32_t __PosOffset = offset + 4;
     if (Vec3Write(&x->Pos, writer, __PosOffset) == 0) {
         return 0;
     }
-    uint32_t __ManaOffset = offset + 20;
+    uint32_t __ManaOffset = offset + 16;
     KarmemWriterWriteAt(writer, __ManaOffset, (void *) &x->Mana, 2);
-    uint32_t __HealthOffset = offset + 22;
+    uint32_t __HealthOffset = offset + 18;
     KarmemWriterWriteAt(writer, __HealthOffset, (void *) &x->Health, 2);
     uint32_t __NameSize = 1 * x->_Name_len;
     uint32_t __NameOffset = KarmemWriterAlloc(writer, __NameSize);
 
-    KarmemWriterWriteAt(writer, offset+24, (void *) &__NameOffset, 4);
-    KarmemWriterWriteAt(writer, offset+24+4, (void *) &__NameSize, 4);
-    uint32_t __NameSizeEach = 1;
-    KarmemWriterWriteAt(writer, offset+24+4+4, (void *) &__NameSizeEach, 4);
+    KarmemWriterWriteAt(writer, offset+20, (void *) &__NameOffset, 4);
+    KarmemWriterWriteAt(writer, offset+20+4, (void *) &__NameSize, 4);
     KarmemWriterWriteAt(writer, __NameOffset, (void *) x->Name, __NameSize);
-    uint32_t __TeamOffset = offset + 36;
+    uint32_t __TeamOffset = offset + 28;
     KarmemWriterWriteAt(writer, __TeamOffset, (void *) &x->Team, 1);
     uint32_t __InventorySize = 1 * x->_Inventory_len;
     uint32_t __InventoryOffset = KarmemWriterAlloc(writer, __InventorySize);
 
-    KarmemWriterWriteAt(writer, offset+37, (void *) &__InventoryOffset, 4);
-    KarmemWriterWriteAt(writer, offset+37+4, (void *) &__InventorySize, 4);
-    uint32_t __InventorySizeEach = 1;
-    KarmemWriterWriteAt(writer, offset+37+4+4, (void *) &__InventorySizeEach, 4);
+    KarmemWriterWriteAt(writer, offset+29, (void *) &__InventoryOffset, 4);
+    KarmemWriterWriteAt(writer, offset+29+4, (void *) &__InventorySize, 4);
     KarmemWriterWriteAt(writer, __InventoryOffset, (void *) x->Inventory, __InventorySize);
-    uint32_t __ColorOffset = offset + 49;
+    uint32_t __ColorOffset = offset + 37;
     KarmemWriterWriteAt(writer, __ColorOffset, (void *) &x->Color, 1);
     uint32_t __HitboxSize = 40;
-    uint32_t __HitboxOffset = offset + 50;
+    uint32_t __HitboxOffset = offset + 38;
     KarmemWriterWriteAt(writer, __HitboxOffset,(void *) x->Hitbox, __HitboxSize);
     uint32_t __StatusSize = 4 * x->_Status_len;
     uint32_t __StatusOffset = KarmemWriterAlloc(writer, __StatusSize);
 
-    KarmemWriterWriteAt(writer, offset+90, (void *) &__StatusOffset, 4);
-    KarmemWriterWriteAt(writer, offset+90+4, (void *) &__StatusSize, 4);
-    uint32_t __StatusSizeEach = 4;
-    KarmemWriterWriteAt(writer, offset+90+4+4, (void *) &__StatusSizeEach, 4);
+    KarmemWriterWriteAt(writer, offset+78, (void *) &__StatusOffset, 4);
+    KarmemWriterWriteAt(writer, offset+78+4, (void *) &__StatusSize, 4);
     KarmemWriterWriteAt(writer, __StatusOffset, (void *) x->Status, __StatusSize);
-    uint32_t __WeaponsSize = 32;
-    uint32_t __WeaponsOffset = offset + 102;
+    uint32_t __WeaponsSize = 16;
+    uint32_t __WeaponsOffset = offset + 86;
     uint32_t __WeaponsIndex = 0;
     uint32_t __WeaponsEnd = __WeaponsOffset + __WeaponsSize;
     while (__WeaponsOffset < __WeaponsEnd) {
         if (WeaponWrite(&x->Weapons[__WeaponsIndex], writer, __WeaponsOffset) == 0) {
             return 0;
         }
-        __WeaponsOffset = __WeaponsOffset + 8;
+        __WeaponsOffset = __WeaponsOffset + 4;
         __WeaponsIndex = __WeaponsIndex + 1;
     }
-    uint32_t __PathSize = 16 * x->_Path_len;
+    uint32_t __PathSize = 12 * x->_Path_len;
     uint32_t __PathOffset = KarmemWriterAlloc(writer, __PathSize);
 
-    KarmemWriterWriteAt(writer, offset+134, (void *) &__PathOffset, 4);
-    KarmemWriterWriteAt(writer, offset+134+4, (void *) &__PathSize, 4);
-    uint32_t __PathSizeEach = 16;
-    KarmemWriterWriteAt(writer, offset+134+4+4, (void *) &__PathSizeEach, 4);
+    KarmemWriterWriteAt(writer, offset+102, (void *) &__PathOffset, 4);
+    KarmemWriterWriteAt(writer, offset+102+4, (void *) &__PathSize, 4);
     uint32_t __PathIndex = 0;
     uint32_t __PathEnd = __PathOffset + __PathSize;
     while (__PathOffset < __PathEnd) {
         if (Vec3Write(&x->Path[__PathIndex], writer, __PathOffset) == 0) {
             return 0;
         }
-        __PathOffset = __PathOffset + 16;
+        __PathOffset = __PathOffset + 12;
         __PathIndex = __PathIndex + 1;
     }
-    uint32_t __IsAliveOffset = offset + 146;
+    uint32_t __IsAliveOffset = offset + 110;
     KarmemWriterWriteAt(writer, __IsAliveOffset, (void *) &x->IsAlive, 1);
 
     return offset;
@@ -817,7 +821,7 @@ void MonsterDataReadAsRoot(MonsterData * x, KarmemReader * reader) {
 }
 
 void MonsterDataReset(MonsterData * x) {
-    KarmemReader reader = KarmemNewReader(&_Null[0], 152);
+    KarmemReader reader = KarmemNewReader(&_Null[0], 111);
     MonsterDataRead(x, (MonsterDataViewer *) &_Null, &reader);
 }
 
@@ -836,14 +840,14 @@ EnumPacketIdentifier MonsterPacketIdentifier(Monster * x) {
 
 uint32_t MonsterWrite(Monster * x, KarmemWriter * writer, uint32_t start) {
     uint32_t offset = start;
-    uint32_t size = 8;
+    uint32_t size = 4;
     if (offset == 0) {
         offset = KarmemWriterAlloc(writer, size);
         if (offset == 0xFFFFFFFF) {
             return 0;
         }
     }
-    uint32_t __DataSize = 152;
+    uint32_t __DataSize = 111;
     uint32_t __DataOffset = KarmemWriterAlloc(writer, __DataSize);
 
     KarmemWriterWriteAt(writer, offset+0, (void *) &__DataOffset, 4);
@@ -867,7 +871,7 @@ void MonsterReadAsRoot(Monster * x, KarmemReader * reader) {
 }
 
 void MonsterReset(Monster * x) {
-    KarmemReader reader = KarmemNewReader(&_Null[0], 152);
+    KarmemReader reader = KarmemNewReader(&_Null[0], 111);
     MonsterRead(x, (MonsterViewer *) &_Null, &reader);
 }
 
@@ -888,29 +892,27 @@ EnumPacketIdentifier MonstersPacketIdentifier(Monsters * x) {
 
 uint32_t MonstersWrite(Monsters * x, KarmemWriter * writer, uint32_t start) {
     uint32_t offset = start;
-    uint32_t size = 24;
+    uint32_t size = 12;
     if (offset == 0) {
         offset = KarmemWriterAlloc(writer, size);
         if (offset == 0xFFFFFFFF) {
             return 0;
         }
     }
-    uint32_t sizeData = 16;
+    uint32_t sizeData = 12;
     KarmemWriterWriteAt(writer, offset, (void *)&sizeData, 4);
-    uint32_t __MonstersSize = 8 * x->_Monsters_len;
+    uint32_t __MonstersSize = 4 * x->_Monsters_len;
     uint32_t __MonstersOffset = KarmemWriterAlloc(writer, __MonstersSize);
 
     KarmemWriterWriteAt(writer, offset+4, (void *) &__MonstersOffset, 4);
     KarmemWriterWriteAt(writer, offset+4+4, (void *) &__MonstersSize, 4);
-    uint32_t __MonstersSizeEach = 8;
-    KarmemWriterWriteAt(writer, offset+4+4+4, (void *) &__MonstersSizeEach, 4);
     uint32_t __MonstersIndex = 0;
     uint32_t __MonstersEnd = __MonstersOffset + __MonstersSize;
     while (__MonstersOffset < __MonstersEnd) {
         if (MonsterWrite(&x->Monsters[__MonstersIndex], writer, __MonstersOffset) == 0) {
             return 0;
         }
-        __MonstersOffset = __MonstersOffset + 8;
+        __MonstersOffset = __MonstersOffset + 4;
         __MonstersIndex = __MonstersIndex + 1;
     }
 
@@ -950,7 +952,7 @@ void MonstersReadAsRoot(Monsters * x, KarmemReader * reader) {
 }
 
 void MonstersReset(Monsters * x) {
-    KarmemReader reader = KarmemNewReader(&_Null[0], 152);
+    KarmemReader reader = KarmemNewReader(&_Null[0], 111);
     MonstersRead(x, (MonstersViewer *) &_Null, &reader);
 }
 

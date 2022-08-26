@@ -1,4 +1,4 @@
-karmem kmparser;
+karmem kmparser @packed();
 
 enum StructClass uint8 {
     None;
@@ -23,6 +23,18 @@ enum TypeFormat uint8 {
 }
 
 
+struct Type table @id(`2206764383142231373`) {
+    Schema      []char;
+    PlainSchema []char;
+    Length      uint32;
+    Format      TypeFormat;
+    Model       TypeModel;
+}
+
+struct PaddingType inline @id(`6449815373135188035`) {
+    Data Type;
+}
+
 struct Tag inline @id(`9280816983786621498`) {
     Name  []char;
     Value []char;
@@ -33,21 +45,13 @@ struct StructSize table @id(`2296279785726396957`) {
     Content    uint32;
     Padding    uint32;
     Total      uint32;
-    TotalGroup []uint8;
+    TotalGroup []PaddingType;
 }
 
 struct StructFieldSize table @id(`3117293985139574571`) {
     Minimum    uint32;
     Allocation uint32;
     Field      uint32;
-}
-
-struct Type table @id(`2206764383142231373`) {
-    Schema      []char;
-    PlainSchema []char;
-    Length      uint32;
-    Format      TypeFormat;
-    Model       TypeModel;
 }
 
 struct EnumFieldData table @id(`6917629752752470509`) {
@@ -91,6 +95,7 @@ struct StructData table @id(`8290009745541165076`) {
     Fields []StructField;
     Class  StructClass;
     Tags   []Tag;
+    Packed bool;
 }
 
 struct Structure inline @id(`18088017590773436939`) {
@@ -113,4 +118,5 @@ struct Content table @id(`6792576797909524956`) {
     Enums   []Enumeration;
     Size    ContentSize;
     Name    []char;
+    Packed  bool;
 }

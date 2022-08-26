@@ -101,7 +101,9 @@
                 writer.Write4At(offset+{{$field.Data.Offset}}, uint32(__{{$field.Data.Name}}Offset))
                 {{- if $field.Data.Type.IsSlice}}
                     writer.Write4At(offset+{{$field.Data.Offset}} + 4, uint32(__{{$field.Data.Name}}Size))
+                        {{- if not $root.Data.Packed }}
                     writer.Write4At(offset+{{$field.Data.Offset}} + 4 + 4, {{$field.Data.Size.Allocation}})
+                        {{- end}}
                 {{- end }}
             {{- end }}
             {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
@@ -239,9 +241,7 @@
 {{define "struct_builder"}}
     {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
     {{- range $root := .Structs}}
-        type {{$root.Data.Name}}Viewer struct {
-        _data [{{$root.Data.Size.Total}}]byte
-        }
+        type {{$root.Data.Name}}Viewer [{{$root.Data.Size.Total}}]byte
 
         func New{{$root.Data.Name}}Viewer(reader *karmem.Reader, offset uint32) (v *{{$root.Data.Name}}Viewer) {
         if !reader.IsValidOffset(offset, {{$root.Data.Size.Minimum}}) {
@@ -258,7 +258,7 @@
 
         func (x *{{$root.Data.Name}}Viewer) size() uint32 {
         {{- if $root.Data.IsTable}}
-            return *(*uint32)(unsafe.Pointer(&x._data))
+            return *(*uint32)(unsafe.Pointer(x))
         {{- else}}
             return {{$root.Data.Size.Total}}
         {{- end }}
@@ -283,20 +283,20 @@
             {{- if $field.Data.Type.IsInline}}
                 {{- if not $field.Data.Type.IsArray}}
                     {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
-                        return *(*{{ToTypeView $field.Data.Type}})(unsafe.Add(unsafe.Pointer(&x._data), {{$field.Data.Offset}}))
+                        return *(*{{ToTypeView $field.Data.Type}})(unsafe.Add(unsafe.Pointer(x), {{$field.Data.Offset}}))
                     {{- else}}
-                        return ({{ToTypeView $field.Data.Type}})(unsafe.Add(unsafe.Pointer(&x._data), {{$field.Data.Offset}}))
+                        return ({{ToTypeView $field.Data.Type}})(unsafe.Add(unsafe.Pointer(x), {{$field.Data.Offset}}))
                     {{- end}}
                 {{- else}}
                     slice := [3]uintptr{
-                    uintptr(unsafe.Add(unsafe.Pointer(&x._data), {{$field.Data.Offset}})), {{$field.Data.Type.Length}}, {{$field.Data.Type.Length}},
+                    uintptr(unsafe.Add(unsafe.Pointer(x), {{$field.Data.Offset}})), {{$field.Data.Type.Length}}, {{$field.Data.Type.Length}},
                     }
                     return *(*{{ToTypeView $field.Data.Type}})(unsafe.Pointer(&slice))
                 {{- end}}
             {{- else }}
-                offset := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), {{$field.Data.Offset}}))
+                offset := *(*uint32)(unsafe.Add(unsafe.Pointer(x), {{$field.Data.Offset}}))
                 {{- if $field.Data.Type.IsSlice}}
-                    size := *(*uint32)(unsafe.Add(unsafe.Pointer(&x._data), {{$field.Data.Offset}} + 4))
+                    size := *(*uint32)(unsafe.Add(unsafe.Pointer(x), {{$field.Data.Offset}} + 4))
                     if !reader.IsValidOffset(offset, size) {
                     {{- if $field.Data.Type.IsString }}
                         return ""

@@ -47,7 +47,7 @@ That is a small example of how use Karmem.
 ### Schema
 
 ```go
-karmem app @golang.package(`app`);  
+karmem app @packed(true) @golang.package(`app`);  
   
 enum SocialNetwork uint8 { Unknown; Facebook; Instagram; Twitter; TikTok; }  
   
@@ -281,7 +281,7 @@ Karmem uses a custom schema language, which defines structs, enums and types.
 The schema is very simple to understand and define:
 
 ```go
-karmem game @golang.package(`km`) @assemblyscript.import(`../../assemblyscript/karmem`);
+karmem game @packed(true) @golang.package(`km`) @assemblyscript.import(`../../assemblyscript/karmem`);
 
 enum Team uint8 {Humans;Orcs;Zombies;Robots;Aliens;}
 
@@ -314,7 +314,8 @@ struct State table {
 
 ### Header:
 
-Every file must begin with: `karmem {name};`, other optional options can be defined, as shown above.
+Every file must begin with: `karmem {name} [@tag()];`. Other optional tags can be defined, as shown above, it's
+recommended to use the `@packed(true)` option.
 
 ### Types:
 

@@ -1,0 +1,19 @@
+karmem demo @packed();
+
+struct Test inline @total(`5`) @padding(`0`) @content(`5`) {
+    A int32;
+    B int8;
+}
+
+struct TestArray inline @total(`8`) @padding(`0`) @content(`8`) {
+    A []Test;
+}
+
+struct TestOld inline @packed(false) @total(`8`) @padding(`3`) @content(`5`) {
+    A int32;
+    B int8;
+}
+
+struct TestArrayOld inline @packed(false) @total(`16`) @padding(`4`) @content(`12`) {
+    A []Test;
+}

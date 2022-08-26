@@ -121,7 +121,9 @@ public unsafe struct {{$root.Data.Name}} {
                 {{- if (not $field.Data.Type.IsString)}}
         writer.WriteAt(offset+{{$field.Data.Offset}} + 4, (uint)__{{$field.Data.Name}}Size);
                 {{- end}}
+            {{- if not $root.Data.Packed }}
         writer.WriteAt(offset+{{$field.Data.Offset}} + 4 + 4, (uint){{$field.Data.Size.Allocation}});
+            {{- end }}
             {{- end }}
         {{- end }}
         {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
@@ -252,10 +254,10 @@ public unsafe struct {{$root.Data.Name}} {
 {{define "struct_builder"}}
     {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
     {{- range $root := .Structs}}
-[StructLayout(LayoutKind.Sequential, Pack=0, Size={{$root.Data.Size.Total}})]
+[StructLayout(LayoutKind.Sequential, Pack=1, Size={{$root.Data.Size.Total}})]
 public unsafe struct {{$root.Data.Name}}Viewer {
     {{- range $key, $padding := $root.Data.Size.TotalGroup }}
-    private readonly long _{{$key}};
+    private readonly {{ToType $padding.Data}} _{{$key}};
     {{- end}}
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -2,6 +2,7 @@ package kmparser
 
 import (
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"unsafe"
@@ -213,6 +214,44 @@ func TestInvalidTagsStruct(t *testing.T) {
 	}
 }
 
+func TestSize(t *testing.T) {
+	for _, path := range []string{"testdata/size.km", "testdata/packed.km"} {
+		f, err := os.Open(path)
+		if err != nil {
+			t.Error(f)
+			return
+		}
+
+		r := NewReader(path, f)
+		if _, err := r.Parser(); err != nil {
+			t.Error(err)
+		}
+
+		getSizes := func(data *StructData) (total int64, padding int64, content int64) {
+			p, _ := Tags(data.Tags).Get("padding")
+			padding, _ = strconv.ParseInt(p, 10, 64)
+			t, _ := Tags(data.Tags).Get("total")
+			total, _ = strconv.ParseInt(t, 10, 64)
+			c, _ := Tags(data.Tags).Get("content")
+			content, _ = strconv.ParseInt(c, 10, 64)
+			return total, padding, content
+		}
+
+		for _, s := range r.Parsed.Structs {
+			total, padding, content := getSizes(&s.Data)
+			if s.Data.Size.Content != uint32(content) {
+				t.Errorf("invalid content size on %s, expecting %d and got %d", s.Data.Name, content, s.Data.Size.Content)
+			}
+			if s.Data.Size.Padding != uint32(padding) {
+				t.Errorf("invalid padding size on %s, expecting %d and got %d", s.Data.Name, padding, s.Data.Size.Padding)
+			}
+			if s.Data.Size.Total != uint32(total) {
+				t.Errorf("invalid total size on %s, expecting %d and got %d", s.Data.Name, total, s.Data.Size.Total)
+			}
+		}
+	}
+}
+
 func TestInlining(t *testing.T) {
 
 	path := "testdata/inline.km"
@@ -253,7 +292,7 @@ func TestInlining(t *testing.T) {
 					t.Errorf("expect limited at %s", v.Data.Name)
 				}
 				if v.Data.Type.Length == 0 {
-					t.Errorf("unexpected zero lenght at %s", v.Data.Name)
+					t.Errorf("unexpected zero length at %s", v.Data.Name)
 				}
 				fallthrough
 			case strings.Contains(v.Data.Name, "String"):
@@ -279,7 +318,7 @@ func TestInlining(t *testing.T) {
 					t.Errorf("expect array at %s %v", v.Data.Name, v.Data.Type.IsArray())
 				}
 				if v.Data.Type.Length == 0 {
-					t.Errorf("unexpected zero lenght at %s", v.Data.Name)
+					t.Errorf("unexpected zero length at %s", v.Data.Name)
 				}
 			}
 		}

@@ -100,6 +100,9 @@ func NewTemplateFunctions(gen Generator, content *kmparser.Content) TemplateFunc
 			case kmparser.EnumField:
 				name = strings.TrimSpace(val.Data.Name)
 				root := root.(kmparser.Enumeration)
+				if root.Data.IsSequential {
+					return name
+				}
 				for i := range root.Data.Fields {
 					if l := len(root.Data.Fields[i].Data.Name); l > largest {
 						largest = l

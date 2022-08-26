@@ -26,6 +26,3 @@ struct User table {
     Locations  [<32]Point;
     AcceptToS  bool;
 }
-
-
-

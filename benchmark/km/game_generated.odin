@@ -6,7 +6,7 @@ import "core:runtime"
 import "core:mem"
 import "core:reflect"
 
-_Null := [152]byte{}
+_Null := [111]byte{}
 _NullReader := karmem.NewReaderArray(_Null[:])
 
 EnumColor :: enum u8 {
@@ -53,7 +53,7 @@ Vec3WriteAsRoot :: #force_inline proc(x: ^Vec3, writer: ^karmem.Writer) -> (uint
 
 Vec3Write :: proc(x: ^Vec3, writer: ^karmem.Writer, start: uint) -> (uint, karmem.Error) #no_bounds_check {
     offset := start
-    size := u32(16)
+    size := u32(12)
     if offset == 0 {
         off, err := karmem.WriterAlloc(writer, size)
         if err != karmem.Error.ERR_NONE {
@@ -99,7 +99,7 @@ WeaponDataWriteAsRoot :: #force_inline proc(x: ^WeaponData, writer: ^karmem.Writ
 
 WeaponDataWrite :: proc(x: ^WeaponData, writer: ^karmem.Writer, start: uint) -> (uint, karmem.Error) #no_bounds_check {
     offset := start
-    size := u32(16)
+    size := u32(12)
     if offset == 0 {
         off, err := karmem.WriterAlloc(writer, size)
         if err != karmem.Error.ERR_NONE {
@@ -142,7 +142,7 @@ WeaponWriteAsRoot :: #force_inline proc(x: ^Weapon, writer: ^karmem.Writer) -> (
 
 WeaponWrite :: proc(x: ^Weapon, writer: ^karmem.Writer, start: uint) -> (uint, karmem.Error) #no_bounds_check {
     offset := start
-    size := u32(8)
+    size := u32(4)
     if offset == 0 {
         off, err := karmem.WriterAlloc(writer, size)
         if err != karmem.Error.ERR_NONE {
@@ -150,7 +150,7 @@ WeaponWrite :: proc(x: ^Weapon, writer: ^karmem.Writer, start: uint) -> (uint, k
         }
         offset = off
     }
-    __DataSize := u32(16)
+    __DataSize := u32(12)
     __DataOffset, __DataErr := karmem.WriterAlloc(writer, __DataSize)
     if __DataErr != karmem.Error.ERR_NONE {
         return 0, __DataErr
@@ -199,7 +199,7 @@ MonsterDataWriteAsRoot :: #force_inline proc(x: ^MonsterData, writer: ^karmem.Wr
 
 MonsterDataWrite :: proc(x: ^MonsterData, writer: ^karmem.Writer, start: uint) -> (uint, karmem.Error) #no_bounds_check {
     offset := start
-    size := u32(152)
+    size := u32(111)
     if offset == 0 {
         off, err := karmem.WriterAlloc(writer, size)
         if err != karmem.Error.ERR_NONE {
@@ -207,42 +207,40 @@ MonsterDataWrite :: proc(x: ^MonsterData, writer: ^karmem.Writer, start: uint) -
         }
         offset = off
     }
-    karmem.WriterWrite4At(writer, offset, u32(147))
+    karmem.WriterWrite4At(writer, offset, u32(111))
     __PosOffset := offset+4
     if _, err := Vec3Write(&x.Pos, writer, __PosOffset); err != nil {
         return offset, err
     }
-    __ManaOffset := offset+20
+    __ManaOffset := offset+16
     karmem.WriterWrite2At(writer, __ManaOffset, (cast(^u16)&x.Mana)^)
-    __HealthOffset := offset+22
+    __HealthOffset := offset+18
     karmem.WriterWrite2At(writer, __HealthOffset, (cast(^u16)&x.Health)^)
     __NameSize := u32(1 * len(x.Name))
     __NameOffset, __NameErr := karmem.WriterAlloc(writer, __NameSize)
     if __NameErr != karmem.Error.ERR_NONE {
         return 0, __NameErr
     }
-    karmem.WriterWrite4At(writer, offset+24, u32(__NameOffset))
-    karmem.WriterWrite4At(writer, offset+24 + 4, u32(__NameSize))
-    karmem.WriterWrite4At(writer, offset+24 + 4 + 4, 1)
+    karmem.WriterWrite4At(writer, offset+20, u32(__NameOffset))
+    karmem.WriterWrite4At(writer, offset+20 + 4, u32(__NameSize))
     if __NameSize > 0 {
         karmem.WriterWriteAt(writer, __NameOffset, rawptr((cast(^[^]u8)(&x.Name))^), __NameSize)
     }
-    __TeamOffset := offset+36
+    __TeamOffset := offset+28
     karmem.WriterWrite1At(writer, __TeamOffset, (cast(^u8)&x.Team)^)
     __InventorySize := u32(1 * len(x.Inventory))
     __InventoryOffset, __InventoryErr := karmem.WriterAlloc(writer, __InventorySize)
     if __InventoryErr != karmem.Error.ERR_NONE {
         return 0, __InventoryErr
     }
-    karmem.WriterWrite4At(writer, offset+37, u32(__InventoryOffset))
-    karmem.WriterWrite4At(writer, offset+37 + 4, u32(__InventorySize))
-    karmem.WriterWrite4At(writer, offset+37 + 4 + 4, 1)
+    karmem.WriterWrite4At(writer, offset+29, u32(__InventoryOffset))
+    karmem.WriterWrite4At(writer, offset+29 + 4, u32(__InventorySize))
     if __InventorySize > 0 {
         karmem.WriterWriteAt(writer, __InventoryOffset, rawptr(&x.Inventory[0]), __InventorySize)
     }
-    __ColorOffset := offset+49
+    __ColorOffset := offset+37
     karmem.WriterWrite1At(writer, __ColorOffset, (cast(^u8)&x.Color)^)
-    __HitboxOffset := offset+50
+    __HitboxOffset := offset+38
     __HitboxSize := u32(8 * len(x.Hitbox))
     karmem.WriterWriteAt(writer, __HitboxOffset, rawptr(&x.Hitbox), __HitboxSize)
     __StatusSize := u32(4 * len(x.Status))
@@ -250,35 +248,33 @@ MonsterDataWrite :: proc(x: ^MonsterData, writer: ^karmem.Writer, start: uint) -
     if __StatusErr != karmem.Error.ERR_NONE {
         return 0, __StatusErr
     }
-    karmem.WriterWrite4At(writer, offset+90, u32(__StatusOffset))
-    karmem.WriterWrite4At(writer, offset+90 + 4, u32(__StatusSize))
-    karmem.WriterWrite4At(writer, offset+90 + 4 + 4, 4)
+    karmem.WriterWrite4At(writer, offset+78, u32(__StatusOffset))
+    karmem.WriterWrite4At(writer, offset+78 + 4, u32(__StatusSize))
     if __StatusSize > 0 {
         karmem.WriterWriteAt(writer, __StatusOffset, rawptr(&x.Status[0]), __StatusSize)
     }
-    __WeaponsOffset := offset+102
-    __WeaponsSize := u32(8 * len(x.Weapons))
+    __WeaponsOffset := offset+86
+    __WeaponsSize := u32(4 * len(x.Weapons))
     for _, i in x.Weapons {
         if _, err := WeaponWrite(&x.Weapons[i], writer, __WeaponsOffset); err != nil {
             return offset, err
         }
-        __WeaponsOffset += 8
+        __WeaponsOffset += 4
     }
-    __PathSize := u32(16 * len(x.Path))
+    __PathSize := u32(12 * len(x.Path))
     __PathOffset, __PathErr := karmem.WriterAlloc(writer, __PathSize)
     if __PathErr != karmem.Error.ERR_NONE {
         return 0, __PathErr
     }
-    karmem.WriterWrite4At(writer, offset+134, u32(__PathOffset))
-    karmem.WriterWrite4At(writer, offset+134 + 4, u32(__PathSize))
-    karmem.WriterWrite4At(writer, offset+134 + 4 + 4, 16)
+    karmem.WriterWrite4At(writer, offset+102, u32(__PathOffset))
+    karmem.WriterWrite4At(writer, offset+102 + 4, u32(__PathSize))
     for _, i in x.Path {
         if _, err := Vec3Write(&x.Path[i], writer, __PathOffset); err != nil {
             return offset, err
         }
-        __PathOffset += 16
+        __PathOffset += 12
     }
-    __IsAliveOffset := offset+146
+    __IsAliveOffset := offset+110
     karmem.WriterWrite1At(writer, __IsAliveOffset, (cast(^u8)&x.IsAlive)^)
 
     return offset, nil
@@ -369,7 +365,7 @@ MonsterDataRead :: proc(x: ^MonsterData, viewer: ^MonsterDataViewer, reader: ^ka
     }
     __PathSlice := MonsterDataViewerPath(viewer, reader)
     __PathLen := len(__PathSlice)
-    __PathSize := 16 * __PathLen
+    __PathSize := 12 * __PathLen
     if __PathLen > cap(x.Path) {
         __PathRealloc := make([dynamic]Vec3, __PathLen)
         if x.Path != nil {
@@ -406,7 +402,7 @@ MonsterWriteAsRoot :: #force_inline proc(x: ^Monster, writer: ^karmem.Writer) ->
 
 MonsterWrite :: proc(x: ^Monster, writer: ^karmem.Writer, start: uint) -> (uint, karmem.Error) #no_bounds_check {
     offset := start
-    size := u32(8)
+    size := u32(4)
     if offset == 0 {
         off, err := karmem.WriterAlloc(writer, size)
         if err != karmem.Error.ERR_NONE {
@@ -414,7 +410,7 @@ MonsterWrite :: proc(x: ^Monster, writer: ^karmem.Writer, start: uint) -> (uint,
         }
         offset = off
     }
-    __DataSize := u32(152)
+    __DataSize := u32(111)
     __DataOffset, __DataErr := karmem.WriterAlloc(writer, __DataSize)
     if __DataErr != karmem.Error.ERR_NONE {
         return 0, __DataErr
@@ -452,7 +448,7 @@ MonstersWriteAsRoot :: #force_inline proc(x: ^Monsters, writer: ^karmem.Writer) 
 
 MonstersWrite :: proc(x: ^Monsters, writer: ^karmem.Writer, start: uint) -> (uint, karmem.Error) #no_bounds_check {
     offset := start
-    size := u32(24)
+    size := u32(12)
     if offset == 0 {
         off, err := karmem.WriterAlloc(writer, size)
         if err != karmem.Error.ERR_NONE {
@@ -460,20 +456,19 @@ MonstersWrite :: proc(x: ^Monsters, writer: ^karmem.Writer, start: uint) -> (uin
         }
         offset = off
     }
-    karmem.WriterWrite4At(writer, offset, u32(16))
-    __MonstersSize := u32(8 * len(x.Monsters))
+    karmem.WriterWrite4At(writer, offset, u32(12))
+    __MonstersSize := u32(4 * len(x.Monsters))
     __MonstersOffset, __MonstersErr := karmem.WriterAlloc(writer, __MonstersSize)
     if __MonstersErr != karmem.Error.ERR_NONE {
         return 0, __MonstersErr
     }
     karmem.WriterWrite4At(writer, offset+4, u32(__MonstersOffset))
     karmem.WriterWrite4At(writer, offset+4 + 4, u32(__MonstersSize))
-    karmem.WriterWrite4At(writer, offset+4 + 4 + 4, 8)
     for _, i in x.Monsters {
         if _, err := MonsterWrite(&x.Monsters[i], writer, __MonstersOffset); err != nil {
             return offset, err
         }
-        __MonstersOffset += 8
+        __MonstersOffset += 4
     }
 
     return offset, nil
@@ -486,7 +481,7 @@ MonstersReadAsRoot :: #force_inline proc(x: ^Monsters, reader: ^karmem.Reader) #
 MonstersRead :: proc(x: ^Monsters, viewer: ^MonstersViewer, reader: ^karmem.Reader) #no_bounds_check {
     __MonstersSlice := MonstersViewerMonsters(viewer, reader)
     __MonstersLen := len(__MonstersSlice)
-    __MonstersSize := 8 * __MonstersLen
+    __MonstersSize := 4 * __MonstersLen
     if __MonstersLen > cap(x.Monsters) {
         __MonstersRealloc := make([dynamic]Monster, __MonstersLen)
         if x.Monsters != nil {
@@ -506,11 +501,11 @@ MonstersRead :: proc(x: ^Monsters, viewer: ^MonstersViewer, reader: ^karmem.Read
 }
 
 Vec3Viewer :: struct #packed {
-    _data: [16]byte
+    _data: [12]byte
 }
 
 NewVec3Viewer :: #force_inline proc(reader: ^karmem.Reader, offset: u32) -> ^Vec3Viewer  #no_bounds_check {
-    if karmem.ReaderIsValidOffset(reader, offset, 16) == false {
+    if karmem.ReaderIsValidOffset(reader, offset, 12) == false {
         return (^Vec3Viewer)(&_Null)
     }
     v := cast(^Vec3Viewer)(mem.ptr_offset(cast([^]u8)(reader.pointer), offset))
@@ -518,7 +513,7 @@ NewVec3Viewer :: #force_inline proc(reader: ^karmem.Reader, offset: u32) -> ^Vec
 }
 
 Vec3ViewerSize :: #force_inline proc(x: ^Vec3Viewer) -> u32 #no_bounds_check {
-    return 16
+    return 12
 }
 Vec3ViewerX :: #force_inline proc(x: ^Vec3Viewer,) -> f32 #no_bounds_check {
     return ((^f32)(mem.ptr_offset(cast([^]u8)(x), 0)))^
@@ -530,11 +525,11 @@ Vec3ViewerZ :: #force_inline proc(x: ^Vec3Viewer,) -> f32 #no_bounds_check {
     return ((^f32)(mem.ptr_offset(cast([^]u8)(x), 8)))^
 }
 WeaponDataViewer :: struct #packed {
-    _data: [16]byte
+    _data: [12]byte
 }
 
 NewWeaponDataViewer :: #force_inline proc(reader: ^karmem.Reader, offset: u32) -> ^WeaponDataViewer  #no_bounds_check {
-    if karmem.ReaderIsValidOffset(reader, offset, 8) == false {
+    if karmem.ReaderIsValidOffset(reader, offset, 4) == false {
         return (^WeaponDataViewer)(&_Null)
     }
     v := cast(^WeaponDataViewer)(mem.ptr_offset(cast([^]u8)(reader.pointer), offset))
@@ -560,11 +555,11 @@ WeaponDataViewerRange :: #force_inline proc(x: ^WeaponDataViewer,) -> i32 #no_bo
     return ((^i32)(mem.ptr_offset(cast([^]u8)(x), 8)))^
 }
 WeaponViewer :: struct #packed {
-    _data: [8]byte
+    _data: [4]byte
 }
 
 NewWeaponViewer :: #force_inline proc(reader: ^karmem.Reader, offset: u32) -> ^WeaponViewer  #no_bounds_check {
-    if karmem.ReaderIsValidOffset(reader, offset, 8) == false {
+    if karmem.ReaderIsValidOffset(reader, offset, 4) == false {
         return (^WeaponViewer)(&_Null)
     }
     v := cast(^WeaponViewer)(mem.ptr_offset(cast([^]u8)(reader.pointer), offset))
@@ -572,18 +567,18 @@ NewWeaponViewer :: #force_inline proc(reader: ^karmem.Reader, offset: u32) -> ^W
 }
 
 WeaponViewerSize :: #force_inline proc(x: ^WeaponViewer) -> u32 #no_bounds_check {
-    return 8
+    return 4
 }
 WeaponViewerData :: #force_inline proc(x: ^WeaponViewer,reader: ^karmem.Reader) -> ^WeaponDataViewer #no_bounds_check {
     offset := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 0)))^
     return NewWeaponDataViewer(reader, offset)
 }
 MonsterDataViewer :: struct #packed {
-    _data: [152]byte
+    _data: [111]byte
 }
 
 NewMonsterDataViewer :: #force_inline proc(reader: ^karmem.Reader, offset: u32) -> ^MonsterDataViewer  #no_bounds_check {
-    if karmem.ReaderIsValidOffset(reader, offset, 8) == false {
+    if karmem.ReaderIsValidOffset(reader, offset, 4) == false {
         return (^MonsterDataViewer)(&_Null)
     }
     v := cast(^MonsterDataViewer)(mem.ptr_offset(cast([^]u8)(reader.pointer), offset))
@@ -597,29 +592,29 @@ MonsterDataViewerSize :: #force_inline proc(x: ^MonsterDataViewer) -> u32 #no_bo
     return ((^u32)(x))^
 }
 MonsterDataViewerPos :: #force_inline proc(x: ^MonsterDataViewer,) -> ^Vec3Viewer #no_bounds_check {
-    if 4 + 16 > MonsterDataViewerSize(x) {
+    if 4 + 12 > MonsterDataViewerSize(x) {
         return (^Vec3Viewer)(&_Null)
     }
     return ((^Vec3Viewer)(mem.ptr_offset(cast([^]u8)(x), 4)))
 }
 MonsterDataViewerMana :: #force_inline proc(x: ^MonsterDataViewer,) -> i16 #no_bounds_check {
-    if 20 + 2 > MonsterDataViewerSize(x) {
+    if 16 + 2 > MonsterDataViewerSize(x) {
         return 0
     }
-    return ((^i16)(mem.ptr_offset(cast([^]u8)(x), 20)))^
+    return ((^i16)(mem.ptr_offset(cast([^]u8)(x), 16)))^
 }
 MonsterDataViewerHealth :: #force_inline proc(x: ^MonsterDataViewer,) -> i16 #no_bounds_check {
-    if 22 + 2 > MonsterDataViewerSize(x) {
+    if 18 + 2 > MonsterDataViewerSize(x) {
         return 0
     }
-    return ((^i16)(mem.ptr_offset(cast([^]u8)(x), 22)))^
+    return ((^i16)(mem.ptr_offset(cast([^]u8)(x), 18)))^
 }
 MonsterDataViewerName :: #force_inline proc(x: ^MonsterDataViewer,reader: ^karmem.Reader) -> string #no_bounds_check {
-    if 24 + 12 > MonsterDataViewerSize(x) {
+    if 20 + 8 > MonsterDataViewerSize(x) {
         return ""
     }
-    offset := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 24)))^
-    size := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 24 + 4)))^
+    offset := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 20)))^
+    size := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 20 + 4)))^
     if karmem.ReaderIsValidOffset(reader, offset, size) == false {
         return ""
     }
@@ -635,17 +630,17 @@ MonsterDataViewerName :: #force_inline proc(x: ^MonsterDataViewer,reader: ^karme
     return (cast(^string)(&slice))^
 }
 MonsterDataViewerTeam :: #force_inline proc(x: ^MonsterDataViewer,) -> EnumTeam #no_bounds_check {
-    if 36 + 1 > MonsterDataViewerSize(x) {
+    if 28 + 1 > MonsterDataViewerSize(x) {
         return EnumTeam(0)
     }
-    return ((^EnumTeam)(mem.ptr_offset(cast([^]u8)(x), 36)))^
+    return ((^EnumTeam)(mem.ptr_offset(cast([^]u8)(x), 28)))^
 }
 MonsterDataViewerInventory :: #force_inline proc(x: ^MonsterDataViewer,reader: ^karmem.Reader) -> []u8 #no_bounds_check {
-    if 37 + 12 > MonsterDataViewerSize(x) {
+    if 29 + 8 > MonsterDataViewerSize(x) {
         return []u8{}
     }
-    offset := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 37)))^
-    size := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 37 + 4)))^
+    offset := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 29)))^
+    size := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 29 + 4)))^
     if karmem.ReaderIsValidOffset(reader, offset, size) == false {
         return []u8{}
     }
@@ -661,26 +656,26 @@ MonsterDataViewerInventory :: #force_inline proc(x: ^MonsterDataViewer,reader: ^
     return (cast(^[]u8)(&slice))^
 }
 MonsterDataViewerColor :: #force_inline proc(x: ^MonsterDataViewer,) -> EnumColor #no_bounds_check {
-    if 49 + 1 > MonsterDataViewerSize(x) {
+    if 37 + 1 > MonsterDataViewerSize(x) {
         return EnumColor(0)
     }
-    return ((^EnumColor)(mem.ptr_offset(cast([^]u8)(x), 49)))^
+    return ((^EnumColor)(mem.ptr_offset(cast([^]u8)(x), 37)))^
 }
 MonsterDataViewerHitbox :: #force_inline proc(x: ^MonsterDataViewer,) -> []f64 #no_bounds_check {
-    if 50 + 40 > MonsterDataViewerSize(x) {
+    if 38 + 40 > MonsterDataViewerSize(x) {
         return []f64{}
     }
     slice := [2]int{ 0, 5}
-    (cast(^rawptr)(&slice[0]))^ = rawptr(mem.ptr_offset(cast([^]u8)(x), 50))
+    (cast(^rawptr)(&slice[0]))^ = rawptr(mem.ptr_offset(cast([^]u8)(x), 38))
 
     return ((^[]f64)(&slice))^
 }
 MonsterDataViewerStatus :: #force_inline proc(x: ^MonsterDataViewer,reader: ^karmem.Reader) -> []i32 #no_bounds_check {
-    if 90 + 12 > MonsterDataViewerSize(x) {
+    if 78 + 8 > MonsterDataViewerSize(x) {
         return []i32{}
     }
-    offset := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 90)))^
-    size := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 90 + 4)))^
+    offset := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 78)))^
+    size := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 78 + 4)))^
     if karmem.ReaderIsValidOffset(reader, offset, size) == false {
         return []i32{}
     }
@@ -696,24 +691,24 @@ MonsterDataViewerStatus :: #force_inline proc(x: ^MonsterDataViewer,reader: ^kar
     return (cast(^[]i32)(&slice))^
 }
 MonsterDataViewerWeapons :: #force_inline proc(x: ^MonsterDataViewer,) -> []WeaponViewer #no_bounds_check {
-    if 102 + 32 > MonsterDataViewerSize(x) {
+    if 86 + 16 > MonsterDataViewerSize(x) {
         return []WeaponViewer{}
     }
     slice := [2]int{ 0, 4}
-    (cast(^rawptr)(&slice[0]))^ = rawptr(mem.ptr_offset(cast([^]u8)(x), 102))
+    (cast(^rawptr)(&slice[0]))^ = rawptr(mem.ptr_offset(cast([^]u8)(x), 86))
 
     return ((^[]WeaponViewer)(&slice))^
 }
 MonsterDataViewerPath :: #force_inline proc(x: ^MonsterDataViewer,reader: ^karmem.Reader) -> []Vec3Viewer #no_bounds_check {
-    if 134 + 12 > MonsterDataViewerSize(x) {
+    if 102 + 8 > MonsterDataViewerSize(x) {
         return []Vec3Viewer{}
     }
-    offset := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 134)))^
-    size := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 134 + 4)))^
+    offset := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 102)))^
+    size := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 102 + 4)))^
     if karmem.ReaderIsValidOffset(reader, offset, size) == false {
         return []Vec3Viewer{}
     }
-    length := uint(size / 16)
+    length := uint(size / 12)
     if length > 2000 {
         length = 2000
     }
@@ -725,17 +720,17 @@ MonsterDataViewerPath :: #force_inline proc(x: ^MonsterDataViewer,reader: ^karme
     return (cast(^[]Vec3Viewer)(&slice))^
 }
 MonsterDataViewerIsAlive :: #force_inline proc(x: ^MonsterDataViewer,) -> bool #no_bounds_check {
-    if 146 + 1 > MonsterDataViewerSize(x) {
+    if 110 + 1 > MonsterDataViewerSize(x) {
         return false
     }
-    return ((^bool)(mem.ptr_offset(cast([^]u8)(x), 146)))^
+    return ((^bool)(mem.ptr_offset(cast([^]u8)(x), 110)))^
 }
 MonsterViewer :: struct #packed {
-    _data: [8]byte
+    _data: [4]byte
 }
 
 NewMonsterViewer :: #force_inline proc(reader: ^karmem.Reader, offset: u32) -> ^MonsterViewer  #no_bounds_check {
-    if karmem.ReaderIsValidOffset(reader, offset, 8) == false {
+    if karmem.ReaderIsValidOffset(reader, offset, 4) == false {
         return (^MonsterViewer)(&_Null)
     }
     v := cast(^MonsterViewer)(mem.ptr_offset(cast([^]u8)(reader.pointer), offset))
@@ -743,18 +738,18 @@ NewMonsterViewer :: #force_inline proc(reader: ^karmem.Reader, offset: u32) -> ^
 }
 
 MonsterViewerSize :: #force_inline proc(x: ^MonsterViewer) -> u32 #no_bounds_check {
-    return 8
+    return 4
 }
 MonsterViewerData :: #force_inline proc(x: ^MonsterViewer,reader: ^karmem.Reader) -> ^MonsterDataViewer #no_bounds_check {
     offset := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 0)))^
     return NewMonsterDataViewer(reader, offset)
 }
 MonstersViewer :: struct #packed {
-    _data: [24]byte
+    _data: [12]byte
 }
 
 NewMonstersViewer :: #force_inline proc(reader: ^karmem.Reader, offset: u32) -> ^MonstersViewer  #no_bounds_check {
-    if karmem.ReaderIsValidOffset(reader, offset, 8) == false {
+    if karmem.ReaderIsValidOffset(reader, offset, 4) == false {
         return (^MonstersViewer)(&_Null)
     }
     v := cast(^MonstersViewer)(mem.ptr_offset(cast([^]u8)(reader.pointer), offset))
@@ -768,7 +763,7 @@ MonstersViewerSize :: #force_inline proc(x: ^MonstersViewer) -> u32 #no_bounds_c
     return ((^u32)(x))^
 }
 MonstersViewerMonsters :: #force_inline proc(x: ^MonstersViewer,reader: ^karmem.Reader) -> []MonsterViewer #no_bounds_check {
-    if 4 + 12 > MonstersViewerSize(x) {
+    if 4 + 8 > MonstersViewerSize(x) {
         return []MonsterViewer{}
     }
     offset := ((^u32)(mem.ptr_offset(cast([^]u8)(x), 4)))^
@@ -776,7 +771,7 @@ MonstersViewerMonsters :: #force_inline proc(x: ^MonstersViewer,reader: ^karmem.
     if karmem.ReaderIsValidOffset(reader, offset, size) == false {
         return []MonsterViewer{}
     }
-    length := uint(size / 8)
+    length := uint(size / 4)
     if length > 2000 {
         length = 2000
     }

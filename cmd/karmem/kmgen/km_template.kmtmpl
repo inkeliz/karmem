@@ -1,4 +1,4 @@
-{{- define "header"}}karmem {{.Name}} {{- range $tag := .Tags }} @{{$tag.Name}}(`{{$tag.Value}}`){{- end }};
+{{- define "header"}}karmem {{.Name}} {{- range $tag := .Tags }} @{{$tag.Name}}({{- if $tag.Value}}`{{$tag.Value}}`{{- end}}){{- end }};
 {{end}}
 {{- define "enums"}}
 {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
@@ -6,11 +6,11 @@
 enum {{$root.Data.Name}} {{$root.Data.Type.Schema}}{{range $tag := $root.Data.Tags }} @{{$tag.Name}}(`{{$tag.Value}}`){{ end }} {
 {{- if $root.Data.IsSequential}}
     {{- range $field := $root.Data.Fields}}
-    {{$field.Data.Name}} {{- range $tag := $field.Data.Tags }} @{{$tag.Name}}(`{{$tag.Value}}`){{ end }};
+    {{ToNamePadding $field $root}} {{- range $tag := $field.Data.Tags }} @{{$tag.Name}}({{- if $tag.Value}}`{{$tag.Value}}`{{- end}}){{ end }};
     {{- end}}
 {{- else}}
     {{- range $field := $root.Data.Fields}}
-    {{$field.Data.Name}} = {{$field.Data.Value}} {{- range $tag := $field.Data.Tags }} @{{$tag.Name}}(`{{$tag.Value}}`){{ end }};
+    {{ToNamePadding $field $root}} = {{$field.Data.Value}} {{- range $tag := $field.Data.Tags }} @{{$tag.Name}}({{- if $tag.Value}}`{{$tag.Value}}`{{- end}}){{ end }};
     {{- end}}
 {{- end}}
 }
@@ -18,9 +18,9 @@ enum {{$root.Data.Name}} {{$root.Data.Type.Schema}}{{range $tag := $root.Data.Ta
 {{ end }}
 {{- define "struct"}}
 {{- range $root := .Structs}}
-struct {{$root.Data.Name}} {{FromStructClass $root.Data.Class}}{{range $tag := $root.Data.Tags }} @{{$tag.Name}}(`{{$tag.Value}}`){{ end }} {
+struct {{$root.Data.Name}} {{FromStructClass $root.Data.Class}}{{range $tag := $root.Data.Tags }} @{{$tag.Name}}({{- if $tag.Value}}`{{$tag.Value}}`{{- end}}){{ end }} {
     {{- range $field := $root.Data.Fields}}
-    {{ToNamePadding $field $root}} {{$field.Data.Type.Schema}} {{- range $tag := $field.Data.Tags }} @{{$tag.Name}}(`{{$tag.Value}}`){{ end }};
+    {{ToNamePadding $field $root}} {{$field.Data.Type.Schema}} {{- range $tag := $field.Data.Tags }} @{{$tag.Name}}({{- if $tag.Value}}`{{$tag.Value}}`{{- end}}){{ end }};
     {{- end}}
 }
 {{ end }}

@@ -1,7 +1,7 @@
 
 import karmem
 
-var _Null : [UInt8] = Array(repeating: 0, count: 152)
+var _Null : [UInt8] = Array(repeating: 0, count: 111)
 var _NullReader = karmem.NewReader(_Null)
 
 public typealias EnumColor = UInt8
@@ -51,7 +51,7 @@ public struct Vec3 {
 
     public mutating func Write(_ writer: inout karmem.Writer, _ start: UInt32) -> Bool {
         var offset = start
-        let size: UInt32 = 16
+        let size: UInt32 = 12
         if (offset == 0) {
             offset = writer.Alloc(size)
             if (offset == 0xFFFFFFFF) {
@@ -108,7 +108,7 @@ public struct WeaponData {
 
     public mutating func Write(_ writer: inout karmem.Writer, _ start: UInt32) -> Bool {
         var offset = start
-        let size: UInt32 = 16
+        let size: UInt32 = 12
         if (offset == 0) {
             offset = writer.Alloc(size)
             if (offset == 0xFFFFFFFF) {
@@ -161,14 +161,14 @@ public struct Weapon {
 
     public mutating func Write(_ writer: inout karmem.Writer, _ start: UInt32) -> Bool {
         var offset = start
-        let size: UInt32 = 8
+        let size: UInt32 = 4
         if (offset == 0) {
             offset = writer.Alloc(size)
             if (offset == 0xFFFFFFFF) {
                 return false
             }
         }
-        let __DataSize: UInt32 = 16
+        let __DataSize: UInt32 = 12
         let __DataOffset = writer.Alloc(__DataSize)
         if (__DataOffset == 0) {
             return false
@@ -239,30 +239,29 @@ public struct MonsterData {
 
     public mutating func Write(_ writer: inout karmem.Writer, _ start: UInt32) -> Bool {
         var offset = start
-        let size: UInt32 = 152
+        let size: UInt32 = 111
         if (offset == 0) {
             offset = writer.Alloc(size)
             if (offset == 0xFFFFFFFF) {
                 return false
             }
         }
-        writer.memory.storeBytes(of: UInt32(147), toByteOffset: Int(offset), as: UInt32.self)
+        writer.memory.storeBytes(of: UInt32(111), toByteOffset: Int(offset), as: UInt32.self)
         let __PosOffset: UInt32 = offset + 4
         if (!self.Pos.Write(&writer, __PosOffset)) {
             return false
         }
-        let __ManaOffset: UInt32 = offset + 20
+        let __ManaOffset: UInt32 = offset + 16
         writer.memory.storeBytes(of: self.Mana, toByteOffset: Int(__ManaOffset), as:Int16.self)
-        let __HealthOffset: UInt32 = offset + 22
+        let __HealthOffset: UInt32 = offset + 18
         writer.memory.storeBytes(of: self.Health, toByteOffset: Int(__HealthOffset), as:Int16.self)
         let __NameSize: UInt32 = 1 * UInt32(self.Name.count)
         let __NameOffset = writer.Alloc(__NameSize)
         if (__NameOffset == 0) {
             return false
         }
-        writer.memory.storeBytes(of: UInt32(__NameOffset), toByteOffset: Int(offset + 24), as: UInt32.self)
-        writer.memory.storeBytes(of: UInt32(__NameSize), toByteOffset: Int(offset + 24 + 4), as: UInt32.self)
-        writer.memory.storeBytes(of: UInt32(1), toByteOffset: Int(offset + 24 + 4 + 4), as: UInt32.self)
+        writer.memory.storeBytes(of: UInt32(__NameOffset), toByteOffset: Int(offset + 20), as: UInt32.self)
+        writer.memory.storeBytes(of: UInt32(__NameSize), toByteOffset: Int(offset + 20 + 4), as: UInt32.self)
         var __NameIndex = 0
         var __NameCurrentOffset = __NameOffset
         while(__NameIndex < self.Name.count) {
@@ -270,16 +269,15 @@ public struct MonsterData {
             __NameIndex = __NameIndex + 1
             __NameCurrentOffset = __NameCurrentOffset + 1
         }
-        let __TeamOffset: UInt32 = offset + 36
+        let __TeamOffset: UInt32 = offset + 28
         writer.memory.storeBytes(of: self.Team, toByteOffset: Int(__TeamOffset), as:EnumTeam.self)
         let __InventorySize: UInt32 = 1 * UInt32(self.Inventory.count)
         let __InventoryOffset = writer.Alloc(__InventorySize)
         if (__InventoryOffset == 0) {
             return false
         }
-        writer.memory.storeBytes(of: UInt32(__InventoryOffset), toByteOffset: Int(offset + 37), as: UInt32.self)
-        writer.memory.storeBytes(of: UInt32(__InventorySize), toByteOffset: Int(offset + 37 + 4), as: UInt32.self)
-        writer.memory.storeBytes(of: UInt32(1), toByteOffset: Int(offset + 37 + 4 + 4), as: UInt32.self)
+        writer.memory.storeBytes(of: UInt32(__InventoryOffset), toByteOffset: Int(offset + 29), as: UInt32.self)
+        writer.memory.storeBytes(of: UInt32(__InventorySize), toByteOffset: Int(offset + 29 + 4), as: UInt32.self)
         var __InventoryIndex = 0
         var __InventoryCurrentOffset = __InventoryOffset
         while(__InventoryIndex < self.Inventory.count) {
@@ -287,9 +285,9 @@ public struct MonsterData {
             __InventoryIndex = __InventoryIndex + 1
             __InventoryCurrentOffset = __InventoryCurrentOffset + 1
         }
-        let __ColorOffset: UInt32 = offset + 49
+        let __ColorOffset: UInt32 = offset + 37
         writer.memory.storeBytes(of: self.Color, toByteOffset: Int(__ColorOffset), as:EnumColor.self)
-        let __HitboxOffset: UInt32 = offset + 50
+        let __HitboxOffset: UInt32 = offset + 38
         var __HitboxIndex = 0
         var __HitboxCurrentOffset = __HitboxOffset
         while(__HitboxIndex < self.Hitbox.count) {
@@ -302,9 +300,8 @@ public struct MonsterData {
         if (__StatusOffset == 0) {
             return false
         }
-        writer.memory.storeBytes(of: UInt32(__StatusOffset), toByteOffset: Int(offset + 90), as: UInt32.self)
-        writer.memory.storeBytes(of: UInt32(__StatusSize), toByteOffset: Int(offset + 90 + 4), as: UInt32.self)
-        writer.memory.storeBytes(of: UInt32(4), toByteOffset: Int(offset + 90 + 4 + 4), as: UInt32.self)
+        writer.memory.storeBytes(of: UInt32(__StatusOffset), toByteOffset: Int(offset + 78), as: UInt32.self)
+        writer.memory.storeBytes(of: UInt32(__StatusSize), toByteOffset: Int(offset + 78 + 4), as: UInt32.self)
         var __StatusIndex = 0
         var __StatusCurrentOffset = __StatusOffset
         while(__StatusIndex < self.Status.count) {
@@ -312,32 +309,31 @@ public struct MonsterData {
             __StatusIndex = __StatusIndex + 1
             __StatusCurrentOffset = __StatusCurrentOffset + 4
         }
-        let __WeaponsOffset: UInt32 = offset + 102
+        let __WeaponsOffset: UInt32 = offset + 86
         let __WeaponsLen = self.Weapons.count
         var __WeaponsIndex = 0
         while (__WeaponsIndex < __WeaponsLen) {
-            if (!self.Weapons[__WeaponsIndex].Write(&writer, __WeaponsOffset + (UInt32(__WeaponsIndex) * 8))) {
+            if (!self.Weapons[__WeaponsIndex].Write(&writer, __WeaponsOffset + (UInt32(__WeaponsIndex) * 4))) {
                 return false
             }
             __WeaponsIndex = __WeaponsIndex + 1
         }
-        let __PathSize: UInt32 = 16 * UInt32(self.Path.count)
+        let __PathSize: UInt32 = 12 * UInt32(self.Path.count)
         let __PathOffset = writer.Alloc(__PathSize)
         if (__PathOffset == 0) {
             return false
         }
-        writer.memory.storeBytes(of: UInt32(__PathOffset), toByteOffset: Int(offset + 134), as: UInt32.self)
-        writer.memory.storeBytes(of: UInt32(__PathSize), toByteOffset: Int(offset + 134 + 4), as: UInt32.self)
-        writer.memory.storeBytes(of: UInt32(16), toByteOffset: Int(offset + 134 + 4 + 4), as: UInt32.self)
+        writer.memory.storeBytes(of: UInt32(__PathOffset), toByteOffset: Int(offset + 102), as: UInt32.self)
+        writer.memory.storeBytes(of: UInt32(__PathSize), toByteOffset: Int(offset + 102 + 4), as: UInt32.self)
         let __PathLen = self.Path.count
         var __PathIndex = 0
         while (__PathIndex < __PathLen) {
-            if (!self.Path[__PathIndex].Write(&writer, __PathOffset + (UInt32(__PathIndex) * 16))) {
+            if (!self.Path[__PathIndex].Write(&writer, __PathOffset + (UInt32(__PathIndex) * 12))) {
                 return false
             }
             __PathIndex = __PathIndex + 1
         }
-        let __IsAliveOffset: UInt32 = offset + 146
+        let __IsAliveOffset: UInt32 = offset + 110
         writer.memory.storeBytes(of: self.IsAlive, toByteOffset: Int(__IsAliveOffset), as:Bool.self)
 
         return true
@@ -476,14 +472,14 @@ public struct Monster {
 
     public mutating func Write(_ writer: inout karmem.Writer, _ start: UInt32) -> Bool {
         var offset = start
-        let size: UInt32 = 8
+        let size: UInt32 = 4
         if (offset == 0) {
             offset = writer.Alloc(size)
             if (offset == 0xFFFFFFFF) {
                 return false
             }
         }
-        let __DataSize: UInt32 = 152
+        let __DataSize: UInt32 = 111
         let __DataOffset = writer.Alloc(__DataSize)
         if (__DataOffset == 0) {
             return false
@@ -532,26 +528,25 @@ public struct Monsters {
 
     public mutating func Write(_ writer: inout karmem.Writer, _ start: UInt32) -> Bool {
         var offset = start
-        let size: UInt32 = 24
+        let size: UInt32 = 12
         if (offset == 0) {
             offset = writer.Alloc(size)
             if (offset == 0xFFFFFFFF) {
                 return false
             }
         }
-        writer.memory.storeBytes(of: UInt32(16), toByteOffset: Int(offset), as: UInt32.self)
-        let __MonstersSize: UInt32 = 8 * UInt32(self.Monsters.count)
+        writer.memory.storeBytes(of: UInt32(12), toByteOffset: Int(offset), as: UInt32.self)
+        let __MonstersSize: UInt32 = 4 * UInt32(self.Monsters.count)
         let __MonstersOffset = writer.Alloc(__MonstersSize)
         if (__MonstersOffset == 0) {
             return false
         }
         writer.memory.storeBytes(of: UInt32(__MonstersOffset), toByteOffset: Int(offset + 4), as: UInt32.self)
         writer.memory.storeBytes(of: UInt32(__MonstersSize), toByteOffset: Int(offset + 4 + 4), as: UInt32.self)
-        writer.memory.storeBytes(of: UInt32(8), toByteOffset: Int(offset + 4 + 4 + 4), as: UInt32.self)
         let __MonstersLen = self.Monsters.count
         var __MonstersIndex = 0
         while (__MonstersIndex < __MonstersLen) {
-            if (!self.Monsters[__MonstersIndex].Write(&writer, __MonstersOffset + (UInt32(__MonstersIndex) * 8))) {
+            if (!self.Monsters[__MonstersIndex].Write(&writer, __MonstersOffset + (UInt32(__MonstersIndex) * 4))) {
                 return false
             }
             __MonstersIndex = __MonstersIndex + 1
@@ -603,7 +598,7 @@ public struct Vec3Viewer : karmem.StructureViewer {
 
     @inline(__always)
     public func SizeOf() -> UInt32 {
-        return 16
+        return 12
     }
     @inline(__always)
     public func X() -> Float {
@@ -620,7 +615,7 @@ public struct Vec3Viewer : karmem.StructureViewer {
 }
 
 @inline(__always) public func NewVec3Viewer(_ reader: karmem.Reader, _ offset: UInt32) -> Vec3Viewer {
-    if (!reader.IsValidOffset(offset, 16)) {
+    if (!reader.IsValidOffset(offset, 12)) {
         return Vec3Viewer(ptr: _Null.withUnsafeBufferPointer({ return UnsafePointer($0.baseAddress!) }))
     }
 
@@ -658,7 +653,7 @@ public struct WeaponDataViewer : karmem.StructureViewer {
 }
 
 @inline(__always) public func NewWeaponDataViewer(_ reader: karmem.Reader, _ offset: UInt32) -> WeaponDataViewer {
-    if (!reader.IsValidOffset(offset, 8)) {
+    if (!reader.IsValidOffset(offset, 4)) {
         return WeaponDataViewer(ptr: _Null.withUnsafeBufferPointer({ return UnsafePointer($0.baseAddress!) }))
     }
 
@@ -680,7 +675,7 @@ public struct WeaponViewer : karmem.StructureViewer {
 
     @inline(__always)
     public func SizeOf() -> UInt32 {
-        return 8
+        return 4
     }
     @inline(__always)
     public func Data(_ reader: karmem.Reader) -> WeaponDataViewer {
@@ -690,7 +685,7 @@ public struct WeaponViewer : karmem.StructureViewer {
 }
 
 @inline(__always) public func NewWeaponViewer(_ reader: karmem.Reader, _ offset: UInt32) -> WeaponViewer {
-    if (!reader.IsValidOffset(offset, 8)) {
+    if (!reader.IsValidOffset(offset, 4)) {
         return WeaponViewer(ptr: _Null.withUnsafeBufferPointer({ return UnsafePointer($0.baseAddress!) }))
     }
 
@@ -713,32 +708,32 @@ public struct MonsterDataViewer : karmem.StructureViewer {
     }
     @inline(__always)
     public func Pos() -> Vec3Viewer {
-        if ((UInt32(4) + UInt32(16)) > self.SizeOf()) {
+        if ((UInt32(4) + UInt32(12)) > self.SizeOf()) {
             return Vec3Viewer(ptr: _Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }))
         }
         return  Vec3Viewer(ptr: self.karmemPointer + 4)
     }
     @inline(__always)
     public func Mana() -> Int16 {
-        if ((UInt32(20) + UInt32(2)) > self.SizeOf()) {
+        if ((UInt32(16) + UInt32(2)) > self.SizeOf()) {
             return 0
         }
-        return (self.karmemPointer + 20).loadUnaligned(as: Int16.self)
+        return (self.karmemPointer + 16).loadUnaligned(as: Int16.self)
     }
     @inline(__always)
     public func Health() -> Int16 {
-        if ((UInt32(22) + UInt32(2)) > self.SizeOf()) {
+        if ((UInt32(18) + UInt32(2)) > self.SizeOf()) {
             return 0
         }
-        return (self.karmemPointer + 22).loadUnaligned(as: Int16.self)
+        return (self.karmemPointer + 18).loadUnaligned(as: Int16.self)
     }
     @inline(__always)
     public func Name(_ reader: karmem.Reader) -> karmem.Slice<UInt8> {
-        if ((UInt32(24) + UInt32(12)) > self.SizeOf()) {
+        if ((UInt32(20) + UInt32(8)) > self.SizeOf()) {
                 return karmem.NewSliceUnaligned(_Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }), 0, 0, as: UInt8.self)
         }
-        let offset = (self.karmemPointer + 24).loadUnaligned(as: UInt32.self)
-        let size = (self.karmemPointer + 24 + 4).loadUnaligned(as: UInt32.self)
+        let offset = (self.karmemPointer + 20).loadUnaligned(as: UInt32.self)
+        let size = (self.karmemPointer + 20 + 4).loadUnaligned(as: UInt32.self)
         if (!reader.IsValidOffset(offset, size)) {
                 return karmem.NewSliceUnaligned(_Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }), 0, 0, as: UInt8.self)
         }
@@ -751,18 +746,18 @@ public struct MonsterDataViewer : karmem.StructureViewer {
     }
     @inline(__always)
     public func Team() -> EnumTeam {
-        if ((UInt32(36) + UInt32(1)) > self.SizeOf()) {
+        if ((UInt32(28) + UInt32(1)) > self.SizeOf()) {
             return 0
         }
-        return (self.karmemPointer + 36).loadUnaligned(as: EnumTeam.self)
+        return (self.karmemPointer + 28).loadUnaligned(as: EnumTeam.self)
     }
     @inline(__always)
     public func Inventory(_ reader: karmem.Reader) -> karmem.Slice<UInt8> {
-        if ((UInt32(37) + UInt32(12)) > self.SizeOf()) {
+        if ((UInt32(29) + UInt32(8)) > self.SizeOf()) {
                 return karmem.NewSliceUnaligned(_Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }), 0, 0, as: UInt8.self)
         }
-        let offset = (self.karmemPointer + 37).loadUnaligned(as: UInt32.self)
-        let size = (self.karmemPointer + 37 + 4).loadUnaligned(as: UInt32.self)
+        let offset = (self.karmemPointer + 29).loadUnaligned(as: UInt32.self)
+        let size = (self.karmemPointer + 29 + 4).loadUnaligned(as: UInt32.self)
         if (!reader.IsValidOffset(offset, size)) {
                 return karmem.NewSliceUnaligned(_Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }), 0, 0, as: UInt8.self)
         }
@@ -775,25 +770,25 @@ public struct MonsterDataViewer : karmem.StructureViewer {
     }
     @inline(__always)
     public func Color() -> EnumColor {
-        if ((UInt32(49) + UInt32(1)) > self.SizeOf()) {
+        if ((UInt32(37) + UInt32(1)) > self.SizeOf()) {
             return 0
         }
-        return (self.karmemPointer + 49).loadUnaligned(as: EnumColor.self)
+        return (self.karmemPointer + 37).loadUnaligned(as: EnumColor.self)
     }
     @inline(__always)
     public func Hitbox() -> karmem.Slice<Double> {
-        if ((UInt32(50) + UInt32(40)) > self.SizeOf()) {
+        if ((UInt32(38) + UInt32(40)) > self.SizeOf()) {
                 return karmem.NewSliceUnaligned(_Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }), 0, 0, as: Double.self)
         }
-        return karmem.NewSliceUnaligned(UnsafeRawPointer(self.karmemPointer + Int(50)), 5, 8, as: Double.self)
+        return karmem.NewSliceUnaligned(UnsafeRawPointer(self.karmemPointer + Int(38)), 5, 8, as: Double.self)
     }
     @inline(__always)
     public func Status(_ reader: karmem.Reader) -> karmem.Slice<Int32> {
-        if ((UInt32(90) + UInt32(12)) > self.SizeOf()) {
+        if ((UInt32(78) + UInt32(8)) > self.SizeOf()) {
                 return karmem.NewSliceUnaligned(_Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }), 0, 0, as: Int32.self)
         }
-        let offset = (self.karmemPointer + 90).loadUnaligned(as: UInt32.self)
-        let size = (self.karmemPointer + 90 + 4).loadUnaligned(as: UInt32.self)
+        let offset = (self.karmemPointer + 78).loadUnaligned(as: UInt32.self)
+        let size = (self.karmemPointer + 78 + 4).loadUnaligned(as: UInt32.self)
         if (!reader.IsValidOffset(offset, size)) {
                 return karmem.NewSliceUnaligned(_Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }), 0, 0, as: Int32.self)
         }
@@ -806,39 +801,39 @@ public struct MonsterDataViewer : karmem.StructureViewer {
     }
     @inline(__always)
     public func Weapons() -> karmem.SliceStructure<WeaponViewer> {
-        if ((UInt32(102) + UInt32(32)) > self.SizeOf()) {
+        if ((UInt32(86) + UInt32(16)) > self.SizeOf()) {
                 return karmem.NewSliceStructure(_Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }), 0, 0, as:WeaponViewer.self)
         }
-        return karmem.NewSliceStructure(UnsafeRawPointer(self.karmemPointer + Int(102)), 4, 8, as:WeaponViewer.self)
+        return karmem.NewSliceStructure(UnsafeRawPointer(self.karmemPointer + Int(86)), 4, 4, as:WeaponViewer.self)
     }
     @inline(__always)
     public func Path(_ reader: karmem.Reader) -> karmem.SliceStructure<Vec3Viewer> {
-        if ((UInt32(134) + UInt32(12)) > self.SizeOf()) {
+        if ((UInt32(102) + UInt32(8)) > self.SizeOf()) {
                 return karmem.NewSliceStructure(_Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }), 0, 0, as:Vec3Viewer.self)
         }
-        let offset = (self.karmemPointer + 134).loadUnaligned(as: UInt32.self)
-        let size = (self.karmemPointer + 134 + 4).loadUnaligned(as: UInt32.self)
+        let offset = (self.karmemPointer + 102).loadUnaligned(as: UInt32.self)
+        let size = (self.karmemPointer + 102 + 4).loadUnaligned(as: UInt32.self)
         if (!reader.IsValidOffset(offset, size)) {
                 return karmem.NewSliceStructure(_Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }), 0, 0, as:Vec3Viewer.self)
         }
 
-        var length = size / 16
+        var length = size / 12
         if (length > 2000) {
             length = 2000
         }
-        return karmem.NewSliceStructure(UnsafeRawPointer(reader.pointer + Int(offset)), length, 16, as:Vec3Viewer.self)
+        return karmem.NewSliceStructure(UnsafeRawPointer(reader.pointer + Int(offset)), length, 12, as:Vec3Viewer.self)
     }
     @inline(__always)
     public func IsAlive() -> Bool {
-        if ((UInt32(146) + UInt32(1)) > self.SizeOf()) {
+        if ((UInt32(110) + UInt32(1)) > self.SizeOf()) {
             return false
         }
-        return (self.karmemPointer + 146).loadUnaligned(as: Bool.self)
+        return (self.karmemPointer + 110).loadUnaligned(as: Bool.self)
     }
 }
 
 @inline(__always) public func NewMonsterDataViewer(_ reader: karmem.Reader, _ offset: UInt32) -> MonsterDataViewer {
-    if (!reader.IsValidOffset(offset, 8)) {
+    if (!reader.IsValidOffset(offset, 4)) {
         return MonsterDataViewer(ptr: _Null.withUnsafeBufferPointer({ return UnsafePointer($0.baseAddress!) }))
     }
 
@@ -860,7 +855,7 @@ public struct MonsterViewer : karmem.StructureViewer {
 
     @inline(__always)
     public func SizeOf() -> UInt32 {
-        return 8
+        return 4
     }
     @inline(__always)
     public func Data(_ reader: karmem.Reader) -> MonsterDataViewer {
@@ -870,7 +865,7 @@ public struct MonsterViewer : karmem.StructureViewer {
 }
 
 @inline(__always) public func NewMonsterViewer(_ reader: karmem.Reader, _ offset: UInt32) -> MonsterViewer {
-    if (!reader.IsValidOffset(offset, 8)) {
+    if (!reader.IsValidOffset(offset, 4)) {
         return MonsterViewer(ptr: _Null.withUnsafeBufferPointer({ return UnsafePointer($0.baseAddress!) }))
     }
 
@@ -893,7 +888,7 @@ public struct MonstersViewer : karmem.StructureViewer {
     }
     @inline(__always)
     public func Monsters(_ reader: karmem.Reader) -> karmem.SliceStructure<MonsterViewer> {
-        if ((UInt32(4) + UInt32(12)) > self.SizeOf()) {
+        if ((UInt32(4) + UInt32(8)) > self.SizeOf()) {
                 return karmem.NewSliceStructure(_Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }), 0, 0, as:MonsterViewer.self)
         }
         let offset = (self.karmemPointer + 4).loadUnaligned(as: UInt32.self)
@@ -902,16 +897,16 @@ public struct MonstersViewer : karmem.StructureViewer {
                 return karmem.NewSliceStructure(_Null.withUnsafeBufferPointer({ return UnsafeRawPointer($0.baseAddress!) }), 0, 0, as:MonsterViewer.self)
         }
 
-        var length = size / 8
+        var length = size / 4
         if (length > 2000) {
             length = 2000
         }
-        return karmem.NewSliceStructure(UnsafeRawPointer(reader.pointer + Int(offset)), length, 8, as:MonsterViewer.self)
+        return karmem.NewSliceStructure(UnsafeRawPointer(reader.pointer + Int(offset)), length, 4, as:MonsterViewer.self)
     }
 }
 
 @inline(__always) public func NewMonstersViewer(_ reader: karmem.Reader, _ offset: UInt32) -> MonstersViewer {
-    if (!reader.IsValidOffset(offset, 8)) {
+    if (!reader.IsValidOffset(offset, 4)) {
         return MonstersViewer(ptr: _Null.withUnsafeBufferPointer({ return UnsafePointer($0.baseAddress!) }))
     }
 

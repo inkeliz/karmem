@@ -120,7 +120,9 @@ public struct {{$root.Data.Name}} {
         writer.memory.storeBytes(of: UInt32(__{{$field.Data.Name}}Offset), toByteOffset: Int(offset + {{$field.Data.Offset}}), as: UInt32.self)
             {{- if $field.Data.Type.IsSlice }}
         writer.memory.storeBytes(of: UInt32(__{{$field.Data.Name}}Size), toByteOffset: Int(offset + {{$field.Data.Offset}} + 4), as: UInt32.self)
+            {{- if not $root.Data.Packed }}
         writer.memory.storeBytes(of: UInt32({{$field.Data.Size.Allocation}}), toByteOffset: Int(offset + {{$field.Data.Offset}} + 4 + 4), as: UInt32.self)
+            {{- end }}
             {{- end}}
         {{- end }}
         {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}

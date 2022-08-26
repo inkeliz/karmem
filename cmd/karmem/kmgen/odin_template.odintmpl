@@ -90,7 +90,9 @@ New{{$root.Data.Name}} :: #force_inline proc() -> {{$root.Data.Name}} #no_bounds
     karmem.WriterWrite4At(writer, offset+{{$field.Data.Offset}}, u32(__{{$field.Data.Name}}Offset))
         {{- if $field.Data.Type.IsSlice}}
     karmem.WriterWrite4At(writer, offset+{{$field.Data.Offset}} + 4, u32(__{{$field.Data.Name}}Size))
+    {{- if not $root.Data.Packed }}
     karmem.WriterWrite4At(writer, offset+{{$field.Data.Offset}} + 4 + 4, {{$field.Data.Size.Allocation}})
+    {{- end }}
         {{- end }}
         {{- end }}
         {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}

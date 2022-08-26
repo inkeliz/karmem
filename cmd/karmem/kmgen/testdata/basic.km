@@ -1,6 +1,46 @@
 karmem demo @golang.package(demo);
 
-struct SimpleNumbers table {
+enum XA uint8 {
+    AAAAAAAAAA = 0;
+    B;
+}
+
+enum XB uint16 {
+    A;
+    BBBBBBBBBBBBBBBBBBBBBBBB = 100;
+}
+
+enum XC uint32 {
+    AAAAAAAA                            ;
+    BBBBBBBBBBBBBBBBBBBBB =                           10;
+}
+
+enum XD uint64 @tag() @foo() @bar() {
+    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA = 0;
+    BBBBBBBBB = 10000000;
+}
+
+enum IA int8 {
+    A = 0;
+    B = 1;
+}
+
+enum IB int16 @a() @b() {
+A;
+    BBBBBBBBBBBBBBBB = 300;
+}
+
+enum IC int32 {
+    A;
+    B;
+}
+
+enum ID int64 {
+    A;
+    B;
+}
+
+struct SimpleNumbers inline {
     N8 uint8;
     N16 uint16;
     N32 uint32;
@@ -13,4 +53,103 @@ struct SimpleNumbers table {
 
     OF32 float32;
     OF64 float64;
+
+    B1 bool;
+
+    NN8 []uint8;
+    NN16 []uint16;
+    NN32 []uint32;
+    NN64 []uint64;
+
+    NM8 []int8;
+    NM16 []int16;
+    NM32 []int32;
+    NM64 []int64;
+
+    NOF32 []float32;
+    NOF64 []float64;
+}
+
+struct SimpleNumbersPacked inline @packed() {
+    N8 uint8;
+    N16 uint16;
+    N32 uint32;
+    N64 uint64;
+
+    M8 int8;
+    M16 int16;
+    M32 int32;
+    M64 int64;
+
+    OF32 float32;
+    OF64 float64;
+
+    B1 bool;
+
+    NN8 []uint8;
+    NN16 []uint16;
+    NN32 []uint32;
+    NN64 []uint64;
+
+    NM8 []int8;
+    NM16 []int16;
+    NM32 []int32;
+    NM64 []int64;
+
+    NOF32 []float32;
+    NOF64 []float64;
+}
+
+struct ComplexPacked table @packed() {
+           N8 uint8;
+    N16 uint16;
+    N32 uint32;
+           N64 uint64;
+
+    M8 int8;
+    M16 int16;
+           M32 int32;
+    M64 int64;
+
+           OF32 float32;
+    OF64 float64;
+
+    B1 bool;
+
+    NN8 []uint8;
+    NN16 []uint16;
+           NN32 []uint32;
+              NN64 []uint64;
+
+    NM8 []int8;
+    NM16 []int16;
+    NM32 []int32;
+    NM64 []int64;
+
+    NOF32 []float32;
+    NOF64 []float64;
+
+    NB []bool;
+    NC []char;
+             NIL []SimpleNumbers;
+    NIP []SimpleNumbersPacked;
+    
+
+ANN8 [64]uint8;
+ANN16 [64]uint16;
+ANN32 [64]uint32;
+ANN64 [64]uint64;
+
+ANM8 [64]int8;
+ANM16 [64]int16;
+ANM32 [64]int32;
+ANM64 [64]int64;
+
+ANOF32 [64]float32;
+ANOF64 [64]float64;
+
+ANB [64]bool;
+ANC [64]char;
+ANIL [64]SimpleNumbers;
+ANIP [64]SimpleNumbersPacked;
 }

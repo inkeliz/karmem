@@ -89,8 +89,10 @@ pub const {{$root.Data.Name}} = struct {
         karmem.Writer.WriteAt(writer, offset+{{$field.Data.Offset}}, @ptrCast([*]const u8, &__{{$field.Data.Name}}Offset), 4);
         {{- if $field.Data.Type.IsSlice}}
         karmem.Writer.WriteAt(writer, offset+{{$field.Data.Offset}}+4, @ptrCast([*]const u8, &__{{$field.Data.Name}}Size), 4);
+            {{- if not $root.Data.Packed}}
         var __{{$field.Data.Name}}SizeEach: u32 = {{$field.Data.Size.Allocation}};
         karmem.Writer.WriteAt(writer, offset+{{$field.Data.Offset}}+4+4, @ptrCast([*]const u8, &__{{$field.Data.Name}}SizeEach), 4);
+            {{- end}}
         {{- end }}
     {{- end }}
     {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
@@ -228,7 +230,7 @@ pub fn New{{$root.Data.Name}}() {{$root.Data.Name}} {
     {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
     {{- range $root := .Structs}}
 
-pub const {{$root.Data.Name}}Viewer = struct {
+pub const {{$root.Data.Name}}Viewer = extern struct {
     _data: [{{$root.Data.Size.Total}}]u8,
 
     pub fn Size(x: *const {{$root.Data.Name}}Viewer) u32 {

@@ -84,7 +84,9 @@ export class {{$root.Data.Name}} {
         writer.WriteAt<u32>(offset +{{$field.Data.Offset}}, __{{$field.Data.Name}}Offset);
         {{- if $field.Data.Type.IsSlice}}
         writer.WriteAt<u32>(offset +{{$field.Data.Offset}} +4, __{{$field.Data.Name}}Size);
+        {{- if not $root.Data.Packed }}
         writer.WriteAt<u32>(offset + {{$field.Data.Offset}} + 4 + 4, {{$field.Data.Size.Allocation}})
+        {{- end }}
         {{- end}}
         {{- end }}
         {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
@@ -248,7 +250,7 @@ export function New{{$root.Data.Name}}(): {{$root.Data.Name}} {
 @unmanaged
 export class {{$root.Data.Name}}Viewer {
     {{- range $key, $padding := $root.Data.Size.TotalGroup }}
-    private _{{$key}}: u64;
+    private _{{$key}}: {{ToType $padding.Data}};
     {{- end}}
 
     @inline

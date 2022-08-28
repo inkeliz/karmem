@@ -71,7 +71,7 @@ tasks:
       ~/sdk/dotnet workload restore
       cd ~/karmem/benchmark
       ~/sdk/dotnet build -c "Release" -p:IS_WASM=true -p:IS_KARMEM=true -o "testdata/wasi" "dotnet"
-      go test -tags wasi,wazero,km,dotnet,nofuzz,nobench -timeout 30m .
+      go test -tags wasi,wazero,km,dotnet,nofuzz -v -bench=. -timeout 60m .
   - test_golang: |
       cd karmem/benchmark
       go test -tags km -v -bench=. .

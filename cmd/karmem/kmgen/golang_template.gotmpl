@@ -2,14 +2,14 @@
     package {{FromTags "package"}}
 
     import (
-    karmem "{{FromTags "import"}}"
-    "unsafe"
+        karmem "{{FromTags "import"}}"
+        "unsafe"
     )
 
     var _ unsafe.Pointer
 
-    var _Null = make([]byte, {{.Size.Largest}})
-    var _NullReader = karmem.NewReader(_Null)
+    var _Null = [{{.Size.Largest}}]byte{}
+    var _NullReader = karmem.NewReader(_Null[:])
 {{end}}
 
 {{define "enums"}}
@@ -62,7 +62,7 @@
         }
 
         func (x *{{$root.Data.Name}}) Reset() {
-        x.Read((*{{$root.Data.Name}}Viewer)(unsafe.Pointer(&_Null)), _NullReader)
+        x.Read((*{{$root.Data.Name}}Viewer)(unsafe.Pointer(&_Null[0])), _NullReader)
         }
 
         func (x *{{$root.Data.Name}}) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -245,12 +245,12 @@
 
         func New{{$root.Data.Name}}Viewer(reader *karmem.Reader, offset uint32) (v *{{$root.Data.Name}}Viewer) {
         if !reader.IsValidOffset(offset, {{$root.Data.Size.Minimum}}) {
-        return (*{{$root.Data.Name}}Viewer)(unsafe.Pointer(&_Null))
+        return (*{{$root.Data.Name}}Viewer)(unsafe.Pointer(&_Null[0]))
         }
         v = (*{{$root.Data.Name}}Viewer)(unsafe.Add(reader.Pointer, offset))
         {{- if $root.Data.IsTable}}
             if !reader.IsValidOffset(offset, v.size()) {
-            return (*{{$root.Data.Name}}Viewer)(unsafe.Pointer(&_Null))
+            return (*{{$root.Data.Name}}Viewer)(unsafe.Pointer(&_Null[0]))
             }
         {{- end}}
         return v
@@ -274,7 +274,7 @@
                     {{- if or $field.Data.Type.IsSlice $field.Data.Type.IsArray}}
                         return {{ToTypeView $field.Data.Type}}{}
                     {{- else }}
-                        return (*{{ToPlainType $field.Data.Type}}Viewer)(unsafe.Pointer(&_Null))
+                        return (*{{ToPlainType $field.Data.Type}}Viewer)(unsafe.Pointer(&_Null[0]))
                     {{- end }}
                 {{- end}}
                 }

@@ -90,6 +90,9 @@ pub fn NewVec3() Vec3 {
 }
 pub const WeaponData = struct {
     Damage: i32 = 0,
+    Ammo: u16 = 0,
+    ClipSize: u8 = 0,
+    ReloadTime: f32 = 0,
     Range: i32 = 0,
 
     pub fn PacketIdentifier() EnumPacketIdentifier {
@@ -106,15 +109,21 @@ pub const WeaponData = struct {
 
     pub fn Write(x: *WeaponData, writer: *karmem.Writer, start: usize) Allocator.Error!u32 {
         var offset: u32 = @intCast(u32, start);
-        var size: u32 = 12;
+        var size: u32 = 19;
         if (offset == 0) {
             offset = try karmem.Writer.Alloc(writer, size);
         }
-        var sizeData: u32 = 12;
+        var sizeData: u32 = 19;
         karmem.Writer.WriteAt(writer, offset, @ptrCast([*]const u8, &sizeData), 4);
         var __DamageOffset = offset + 4;
         karmem.Writer.WriteAt(writer, __DamageOffset, @ptrCast([*]const u8, &x.Damage), 4);
-        var __RangeOffset = offset + 8;
+        var __AmmoOffset = offset + 8;
+        karmem.Writer.WriteAt(writer, __AmmoOffset, @ptrCast([*]const u8, &x.Ammo), 2);
+        var __ClipSizeOffset = offset + 10;
+        karmem.Writer.WriteAt(writer, __ClipSizeOffset, @ptrCast([*]const u8, &x.ClipSize), 1);
+        var __ReloadTimeOffset = offset + 11;
+        karmem.Writer.WriteAt(writer, __ReloadTimeOffset, @ptrCast([*]const u8, &x.ReloadTime), 4);
+        var __RangeOffset = offset + 15;
         karmem.Writer.WriteAt(writer, __RangeOffset, @ptrCast([*]const u8, &x.Range), 4);
 
         return offset;
@@ -128,6 +137,9 @@ pub const WeaponData = struct {
         _ = x;
         _ = reader;
         x.Damage = WeaponDataViewer.Damage(viewer);
+        x.Ammo = WeaponDataViewer.Ammo(viewer);
+        x.ClipSize = WeaponDataViewer.ClipSize(viewer);
+        x.ReloadTime = WeaponDataViewer.ReloadTime(viewer);
         x.Range = WeaponDataViewer.Range(viewer);
     }
 
@@ -159,7 +171,7 @@ pub const Weapon = struct {
         if (offset == 0) {
             offset = try karmem.Writer.Alloc(writer, size);
         }
-        var __DataSize: usize = 12;
+        var __DataSize: usize = 19;
         var __DataOffset = try karmem.Writer.Alloc(writer, __DataSize);
 
         karmem.Writer.WriteAt(writer, offset+0, @ptrCast([*]const u8, &__DataOffset), 4);
@@ -579,7 +591,7 @@ pub fn NewVec3Viewer(reader: *karmem.Reader, offset: u32) *const Vec3Viewer {
 }
 
 pub const WeaponDataViewer = extern struct {
-    _data: [12]u8,
+    _data: [19]u8,
 
     pub fn Size(x: *const WeaponDataViewer) u32 {
     _ = x;
@@ -591,11 +603,29 @@ pub const WeaponDataViewer = extern struct {
         }
         return @ptrCast(*align(1) const i32, x._data[4..4+@sizeOf(i32)]).*;
     }
-    pub fn Range(x: *const WeaponDataViewer) i32 {
-        if ((8 + 4) > WeaponDataViewer.Size(x)) {
+    pub fn Ammo(x: *const WeaponDataViewer) u16 {
+        if ((8 + 2) > WeaponDataViewer.Size(x)) {
             return 0;
         }
-        return @ptrCast(*align(1) const i32, x._data[8..8+@sizeOf(i32)]).*;
+        return @ptrCast(*align(1) const u16, x._data[8..8+@sizeOf(u16)]).*;
+    }
+    pub fn ClipSize(x: *const WeaponDataViewer) u8 {
+        if ((10 + 1) > WeaponDataViewer.Size(x)) {
+            return 0;
+        }
+        return @ptrCast(*align(1) const u8, x._data[10..10+@sizeOf(u8)]).*;
+    }
+    pub fn ReloadTime(x: *const WeaponDataViewer) f32 {
+        if ((11 + 4) > WeaponDataViewer.Size(x)) {
+            return 0;
+        }
+        return @ptrCast(*align(1) const f32, x._data[11..11+@sizeOf(f32)]).*;
+    }
+    pub fn Range(x: *const WeaponDataViewer) i32 {
+        if ((15 + 4) > WeaponDataViewer.Size(x)) {
+            return 0;
+        }
+        return @ptrCast(*align(1) const i32, x._data[15..15+@sizeOf(i32)]).*;
     }
 
 };

@@ -113,6 +113,9 @@ public unsafe struct Vec3 {
 }
 public unsafe struct WeaponData {
     public int _Damage = 0;
+    public ushort _Ammo = 0;
+    public byte _ClipSize = 0;
+    public float _ReloadTime = 0;
     public int _Range = 0;
 
     public WeaponData() {}
@@ -140,17 +143,23 @@ public unsafe struct WeaponData {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Write(Karmem.Writer writer, uint start) {
         var offset = start;
-        var size = (uint)12;
+        var size = (uint)19;
         if (offset == 0) {
             offset = writer.Alloc(size);
             if (offset == uint.MaxValue) {
                 return false;
             }
         }
-        writer.WriteAt(offset, (uint)12);
+        writer.WriteAt(offset, (uint)19);
         var __DamageOffset = offset+4;
         writer.WriteAt(__DamageOffset, this._Damage);
-        var __RangeOffset = offset+8;
+        var __AmmoOffset = offset+8;
+        writer.WriteAt(__AmmoOffset, this._Ammo);
+        var __ClipSizeOffset = offset+10;
+        writer.WriteAt(__ClipSizeOffset, this._ClipSize);
+        var __ReloadTimeOffset = offset+11;
+        writer.WriteAt(__ReloadTimeOffset, this._ReloadTime);
+        var __RangeOffset = offset+15;
         writer.WriteAt(__RangeOffset, this._Range);
 
         return true;
@@ -164,6 +173,9 @@ public unsafe struct WeaponData {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Read(WeaponDataViewer viewer, Karmem.Reader reader) {
         this._Damage = viewer.Damage();
+        this._Ammo = viewer.Ammo();
+        this._ClipSize = viewer.ClipSize();
+        this._ReloadTime = viewer.ReloadTime();
         this._Range = viewer.Range();
     }
 }
@@ -202,7 +214,7 @@ public unsafe struct Weapon {
                 return false;
             }
         }
-        var __DataSize = (uint)12;
+        var __DataSize = (uint)19;
         var __DataOffset = writer.Alloc(__DataSize);
         if (offset == uint.MaxValue) {
             return false;
@@ -621,10 +633,12 @@ public unsafe struct Vec3Viewer {
     }
 }
     
-[StructLayout(LayoutKind.Sequential, Pack=1, Size=12)]
+[StructLayout(LayoutKind.Sequential, Pack=1, Size=19)]
 public unsafe struct WeaponDataViewer {
     private readonly ulong _0;
-    private readonly uint _1;
+    private readonly ulong _1;
+    private readonly ushort _2;
+    private readonly byte _3;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ref WeaponDataViewer NewWeaponDataViewer(Karmem.Reader reader, uint offset) {
@@ -650,11 +664,32 @@ public unsafe struct WeaponDataViewer {
         return *(int*)((nuint)Unsafe.AsPointer(ref this) + 4);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int Range() {
-        if (8 + 4 > this.KarmemSizeOf()) {
+    public ushort Ammo() {
+        if (8 + 2 > this.KarmemSizeOf()) {
             return 0;
         }
-        return *(int*)((nuint)Unsafe.AsPointer(ref this) + 8);
+        return *(ushort*)((nuint)Unsafe.AsPointer(ref this) + 8);
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public byte ClipSize() {
+        if (10 + 1 > this.KarmemSizeOf()) {
+            return 0;
+        }
+        return *(byte*)((nuint)Unsafe.AsPointer(ref this) + 10);
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float ReloadTime() {
+        if (11 + 4 > this.KarmemSizeOf()) {
+            return 0;
+        }
+        return *(float*)((nuint)Unsafe.AsPointer(ref this) + 11);
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int Range() {
+        if (15 + 4 > this.KarmemSizeOf()) {
+            return 0;
+        }
+        return *(int*)((nuint)Unsafe.AsPointer(ref this) + 15);
     }
 }
     

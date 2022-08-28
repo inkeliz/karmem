@@ -21,6 +21,12 @@ func (f Functions) String() string {
 		return "KBenchmarkDecodeObjectAPI"
 	case FunctionKBenchmarkDecodeSumVec3:
 		return "KBenchmarkDecodeSumVec3"
+	case FunctionKBenchmarkDecodeSumUint8:
+		return "KBenchmarkDecodeSumUint8"
+	case FunctionKBenchmarkDecodeSumStats:
+		return "KBenchmarkDecodeSumStats"
+	case FunctionKNOOP:
+		return "KNOOP"
 	default:
 		panic("invalid function")
 	}
@@ -30,4 +36,7 @@ const (
 	FunctionKBenchmarkDecodeObjectAPI Functions = 1 + iota
 	FunctionKBenchmarkEncodeObjectAPI
 	FunctionKBenchmarkDecodeSumVec3
+	FunctionKBenchmarkDecodeSumUint8
+	FunctionKBenchmarkDecodeSumStats
+	FunctionKNOOP
 )

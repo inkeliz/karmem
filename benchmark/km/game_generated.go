@@ -97,8 +97,11 @@ func (x *Vec3) Read(viewer *Vec3Viewer, reader *karmem.Reader) {
 }
 
 type WeaponData struct {
-	Damage int32
-	Range  int32
+	Damage     int32
+	Ammo       uint16
+	ClipSize   uint8
+	ReloadTime float32
+	Range      int32
 }
 
 func NewWeaponData() WeaponData {
@@ -119,17 +122,23 @@ func (x *WeaponData) WriteAsRoot(writer *karmem.Writer) (offset uint, err error)
 
 func (x *WeaponData) Write(writer *karmem.Writer, start uint) (offset uint, err error) {
 	offset = start
-	size := uint(12)
+	size := uint(19)
 	if offset == 0 {
 		offset, err = writer.Alloc(size)
 		if err != nil {
 			return 0, err
 		}
 	}
-	writer.Write4At(offset, uint32(12))
+	writer.Write4At(offset, uint32(19))
 	__DamageOffset := offset + 4
 	writer.Write4At(__DamageOffset, *(*uint32)(unsafe.Pointer(&x.Damage)))
-	__RangeOffset := offset + 8
+	__AmmoOffset := offset + 8
+	writer.Write2At(__AmmoOffset, *(*uint16)(unsafe.Pointer(&x.Ammo)))
+	__ClipSizeOffset := offset + 10
+	writer.Write1At(__ClipSizeOffset, *(*uint8)(unsafe.Pointer(&x.ClipSize)))
+	__ReloadTimeOffset := offset + 11
+	writer.Write4At(__ReloadTimeOffset, *(*uint32)(unsafe.Pointer(&x.ReloadTime)))
+	__RangeOffset := offset + 15
 	writer.Write4At(__RangeOffset, *(*uint32)(unsafe.Pointer(&x.Range)))
 
 	return offset, nil
@@ -141,6 +150,9 @@ func (x *WeaponData) ReadAsRoot(reader *karmem.Reader) {
 
 func (x *WeaponData) Read(viewer *WeaponDataViewer, reader *karmem.Reader) {
 	x.Damage = viewer.Damage()
+	x.Ammo = viewer.Ammo()
+	x.ClipSize = viewer.ClipSize()
+	x.ReloadTime = viewer.ReloadTime()
 	x.Range = viewer.Range()
 }
 
@@ -173,7 +185,7 @@ func (x *Weapon) Write(writer *karmem.Writer, start uint) (offset uint, err erro
 			return 0, err
 		}
 	}
-	__DataSize := uint(12)
+	__DataSize := uint(19)
 	__DataOffset, err := writer.Alloc(__DataSize)
 	if err != nil {
 		return 0, err
@@ -516,7 +528,7 @@ func (x *Vec3Viewer) Z() (v float32) {
 	return *(*float32)(unsafe.Add(unsafe.Pointer(x), 8))
 }
 
-type WeaponDataViewer [12]byte
+type WeaponDataViewer [19]byte
 
 func NewWeaponDataViewer(reader *karmem.Reader, offset uint32) (v *WeaponDataViewer) {
 	if !reader.IsValidOffset(offset, 4) {
@@ -538,11 +550,29 @@ func (x *WeaponDataViewer) Damage() (v int32) {
 	}
 	return *(*int32)(unsafe.Add(unsafe.Pointer(x), 4))
 }
-func (x *WeaponDataViewer) Range() (v int32) {
-	if 8+4 > x.size() {
+func (x *WeaponDataViewer) Ammo() (v uint16) {
+	if 8+2 > x.size() {
 		return v
 	}
-	return *(*int32)(unsafe.Add(unsafe.Pointer(x), 8))
+	return *(*uint16)(unsafe.Add(unsafe.Pointer(x), 8))
+}
+func (x *WeaponDataViewer) ClipSize() (v uint8) {
+	if 10+1 > x.size() {
+		return v
+	}
+	return *(*uint8)(unsafe.Add(unsafe.Pointer(x), 10))
+}
+func (x *WeaponDataViewer) ReloadTime() (v float32) {
+	if 11+4 > x.size() {
+		return v
+	}
+	return *(*float32)(unsafe.Add(unsafe.Pointer(x), 11))
+}
+func (x *WeaponDataViewer) Range() (v int32) {
+	if 15+4 > x.size() {
+		return v
+	}
+	return *(*int32)(unsafe.Add(unsafe.Pointer(x), 15))
 }
 
 type WeaponViewer [4]byte

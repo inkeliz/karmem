@@ -3,6 +3,8 @@
 package main
 
 import (
+	"math/rand"
+
 	"benchmark.karmem.org/fbs"
 	flatbuffers "github.com/google/flatbuffers/go"
 )
@@ -27,7 +29,6 @@ func initEncode() {
 	KStruct = &fbs.MonstersT{
 		Monsters: make([]*fbs.MonsterT, 1000),
 	}
-	var sum fbs.Vec3T
 	for i := range KStruct.Monsters {
 		KStruct.Monsters[i] = &fbs.MonsterT{
 			Pos:       &fbs.Vec3T{X: 1, Y: 2, Z: 3},
@@ -54,17 +55,14 @@ func initEncode() {
 		}
 		for j := range KStruct.Monsters[i].Path {
 			v := &fbs.Vec3T{
-				X: float32(1),
+				X: float32(1) * rand.Float32(),
 				Y: float32(i),
-				Z: float32(1),
+				Z: float32(i*j) * 0.33,
 			}
-			sum.X += v.X
-			sum.Y += v.Y
-			sum.Z += v.Z
+			KSumExpected += v.X + v.Y + v.Z
 			KStruct.Monsters[i].Path[j] = v
 		}
 	}
-	KSumExpected += sum.X + sum.Y + sum.Z
 }
 
 func encode() []byte {

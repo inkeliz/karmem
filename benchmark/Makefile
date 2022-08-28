@@ -39,12 +39,12 @@ zig: karmem
 	go test -tags wasi,wazero,km,zig -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-zig-km.out
 
 c: karmem
-	emcc c/main.c -o testdata/wasi/c.wasm -s "EXPORTED_FUNCTIONS=_InputMemoryPointer,_OutputMemoryPointer,__start,_KBenchmarkDecodeSumVec3,_KBenchmarkDecodeObjectAPI,_KBenchmarkEncodeObjectAPI, _KBenchmarkDecodeSumVec3" --no-entry -sALLOW_MEMORY_GROWTH -O3 -flto
+	emcc c/main.c -o testdata/wasi/c.wasm --no-entry -sALLOW_MEMORY_GROWTH -O3 -flto
 	go test -tags wasi,wazero,km,c -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-c-km.out
 
 swiftwasm: karmem
 	xcrun --toolchain swiftwasm swift build --triple wasm32-unknown-wasi -v -c release
-	xcrun --toolchain swiftwasm swiftc -L ".build/wasm32-unknown-wasi/release" -o "testdata/wasi/swift.wasi" -module-name benchmark -emit-executable @.build/wasm32-unknown-wasi/release/benchmark.product/Objects.LinkFileList -target wasm32-unknown-wasi -sdk /Library/Developer/Toolchains/swift-wasm-5.6.0-RELEASE.xctoolchain/usr/share/wasi-sysroot -L /Library/Developer/Toolchains/swift-wasm-5.6.0-RELEASE.xctoolchain/usr/lib -O -Xlinker "--export=_start" -Xlinker "--export=InputMemoryPointer" -Xlinker "--export=OutputMemoryPointer" -Xlinker "--export=KBenchmarkEncodeObjectAPI"  -Xlinker "--export=KBenchmarkDecodeObjectAPI" -Xlinker "--export=KBenchmarkDecodeSumVec3"
+	xcrun --toolchain swiftwasm swiftc -L ".build/wasm32-unknown-wasi/release" -o "testdata/wasi/swift.wasi" -module-name benchmark -emit-executable @.build/wasm32-unknown-wasi/release/benchmark.product/Objects.LinkFileList -target wasm32-unknown-wasi -sdk /Library/Developer/Toolchains/swift-wasm-5.7-SNAPSHOT-2022-07-27-a.xctoolchain/usr/share/wasi-sysroot -L /Library/Developer/Toolchains/swift-wasm-5.7-SNAPSHOT-2022-07-27-a.xctoolchain/usr/lib -O -Xlinker "--export=_start" -Xlinker "--export=InputMemoryPointer" -Xlinker "--export=OutputMemoryPointer" -Xlinker "--export=KBenchmarkEncodeObjectAPI"  -Xlinker "--export=KBenchmarkDecodeObjectAPI" -Xlinker "--export=KBenchmarkDecodeSumVec3" -Xlinker "--export=KBenchmarkDecodeSumUint8" -Xlinker "--export=KBenchmarkDecodeSumStats" -Xlinker "--export=KNOOP"
 	go test -tags wasi,wazero,km,swift -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-swift-km.out
 
 odin: karmem
@@ -53,7 +53,7 @@ odin: karmem
 	go test -tags wasi,wazero,odin,km -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-odin-km.out
 
 dotnet: karmem
-	dotnet build -p:IS_WASM=true -p:IS_KARMEM=true -o "testdata/wasi" "dotnet"
+	# dotnet build -p:IS_WASM=true -p:IS_KARMEM=true -o "testdata/wasi" "dotnet"
 	go test -tags wasi,wazero,km,dotnet,nofuzz -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 30m . > result/wasi-dotnet-km.out
 
 	# dotnet build -p:IS_WASM=false -p:IS_KARMEM=true -o "testdata/wasi" "dotnet"

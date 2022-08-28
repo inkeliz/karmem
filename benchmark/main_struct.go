@@ -26,16 +26,14 @@ func KBenchmarkDecodeObjectAPI() {
 
 //export KBenchmarkDecodeSumVec3
 func KBenchmarkDecodeSumVec3(_ uint32) float32 {
-	var sum km.Vec3
+	var sum float32
 	monsters := _Struct.Monsters
 	for i := range monsters {
 		path := monsters[i].Data.Path
 		for i := range path {
-			sum.X += path[i].X
-			sum.Y += path[i].Y
-			sum.Z += path[i].Z
+			sum += path[i].X + path[i].Y + path[i].Z
 		}
 	}
 
-	return sum.X + sum.Y + sum.Z
+	return sum
 }

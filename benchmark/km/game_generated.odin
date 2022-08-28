@@ -82,6 +82,9 @@ Vec3Read :: proc(x: ^Vec3, viewer: ^Vec3Viewer, reader: ^karmem.Reader) #no_boun
 }
 WeaponData :: struct #packed {
     Damage: i32,
+    Ammo: u16,
+    ClipSize: u8,
+    ReloadTime: f32,
     Range: i32,
 }
 
@@ -99,7 +102,7 @@ WeaponDataWriteAsRoot :: #force_inline proc(x: ^WeaponData, writer: ^karmem.Writ
 
 WeaponDataWrite :: proc(x: ^WeaponData, writer: ^karmem.Writer, start: uint) -> (uint, karmem.Error) #no_bounds_check {
     offset := start
-    size := u32(12)
+    size := u32(19)
     if offset == 0 {
         off, err := karmem.WriterAlloc(writer, size)
         if err != karmem.Error.ERR_NONE {
@@ -107,10 +110,16 @@ WeaponDataWrite :: proc(x: ^WeaponData, writer: ^karmem.Writer, start: uint) -> 
         }
         offset = off
     }
-    karmem.WriterWrite4At(writer, offset, u32(12))
+    karmem.WriterWrite4At(writer, offset, u32(19))
     __DamageOffset := offset+4
     karmem.WriterWrite4At(writer, __DamageOffset, (cast(^u32)&x.Damage)^)
-    __RangeOffset := offset+8
+    __AmmoOffset := offset+8
+    karmem.WriterWrite2At(writer, __AmmoOffset, (cast(^u16)&x.Ammo)^)
+    __ClipSizeOffset := offset+10
+    karmem.WriterWrite1At(writer, __ClipSizeOffset, (cast(^u8)&x.ClipSize)^)
+    __ReloadTimeOffset := offset+11
+    karmem.WriterWrite4At(writer, __ReloadTimeOffset, (cast(^u32)&x.ReloadTime)^)
+    __RangeOffset := offset+15
     karmem.WriterWrite4At(writer, __RangeOffset, (cast(^u32)&x.Range)^)
 
     return offset, nil
@@ -122,6 +131,9 @@ WeaponDataReadAsRoot :: #force_inline proc(x: ^WeaponData, reader: ^karmem.Reade
 
 WeaponDataRead :: proc(x: ^WeaponData, viewer: ^WeaponDataViewer, reader: ^karmem.Reader) #no_bounds_check {
     x.Damage = WeaponDataViewerDamage(viewer)
+    x.Ammo = WeaponDataViewerAmmo(viewer)
+    x.ClipSize = WeaponDataViewerClipSize(viewer)
+    x.ReloadTime = WeaponDataViewerReloadTime(viewer)
     x.Range = WeaponDataViewerRange(viewer)
 }
 Weapon :: struct #packed {
@@ -150,7 +162,7 @@ WeaponWrite :: proc(x: ^Weapon, writer: ^karmem.Writer, start: uint) -> (uint, k
         }
         offset = off
     }
-    __DataSize := u32(12)
+    __DataSize := u32(19)
     __DataOffset, __DataErr := karmem.WriterAlloc(writer, __DataSize)
     if __DataErr != karmem.Error.ERR_NONE {
         return 0, __DataErr
@@ -525,7 +537,7 @@ Vec3ViewerZ :: #force_inline proc(x: ^Vec3Viewer,) -> f32 #no_bounds_check {
     return ((^f32)(mem.ptr_offset(cast([^]u8)(x), 8)))^
 }
 WeaponDataViewer :: struct #packed {
-    _data: [12]byte
+    _data: [19]byte
 }
 
 NewWeaponDataViewer :: #force_inline proc(reader: ^karmem.Reader, offset: u32) -> ^WeaponDataViewer  #no_bounds_check {
@@ -548,11 +560,29 @@ WeaponDataViewerDamage :: #force_inline proc(x: ^WeaponDataViewer,) -> i32 #no_b
     }
     return ((^i32)(mem.ptr_offset(cast([^]u8)(x), 4)))^
 }
-WeaponDataViewerRange :: #force_inline proc(x: ^WeaponDataViewer,) -> i32 #no_bounds_check {
-    if 8 + 4 > WeaponDataViewerSize(x) {
+WeaponDataViewerAmmo :: #force_inline proc(x: ^WeaponDataViewer,) -> u16 #no_bounds_check {
+    if 8 + 2 > WeaponDataViewerSize(x) {
         return 0
     }
-    return ((^i32)(mem.ptr_offset(cast([^]u8)(x), 8)))^
+    return ((^u16)(mem.ptr_offset(cast([^]u8)(x), 8)))^
+}
+WeaponDataViewerClipSize :: #force_inline proc(x: ^WeaponDataViewer,) -> u8 #no_bounds_check {
+    if 10 + 1 > WeaponDataViewerSize(x) {
+        return 0
+    }
+    return ((^u8)(mem.ptr_offset(cast([^]u8)(x), 10)))^
+}
+WeaponDataViewerReloadTime :: #force_inline proc(x: ^WeaponDataViewer,) -> f32 #no_bounds_check {
+    if 11 + 4 > WeaponDataViewerSize(x) {
+        return 0
+    }
+    return ((^f32)(mem.ptr_offset(cast([^]u8)(x), 11)))^
+}
+WeaponDataViewerRange :: #force_inline proc(x: ^WeaponDataViewer,) -> i32 #no_bounds_check {
+    if 15 + 4 > WeaponDataViewerSize(x) {
+        return 0
+    }
+    return ((^i32)(mem.ptr_offset(cast([^]u8)(x), 15)))^
 }
 WeaponViewer :: struct #packed {
     _data: [4]byte

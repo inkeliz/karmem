@@ -59,7 +59,7 @@ float Vec3Viewer_Z(Vec3Viewer * x) {
 
 #pragma pack(1)
 typedef struct __attribute__((packed)) {
-    uint8_t _data[12];
+    uint8_t _data[19];
 } WeaponDataViewer;
 #pragma options align=reset
 
@@ -89,12 +89,39 @@ int32_t WeaponDataViewer_Damage(WeaponDataViewer * x) {
     return r;
 }
 
+uint16_t WeaponDataViewer_Ammo(WeaponDataViewer * x) {
+    if ((8 + 2) > WeaponDataViewerSize(x)) {
+        return 0;
+    }
+    uint16_t r;
+    memcpy(&r, &x->_data[8], 2);
+    return r;
+}
+
+uint8_t WeaponDataViewer_ClipSize(WeaponDataViewer * x) {
+    if ((10 + 1) > WeaponDataViewerSize(x)) {
+        return 0;
+    }
+    uint8_t r;
+    memcpy(&r, &x->_data[10], 1);
+    return r;
+}
+
+float WeaponDataViewer_ReloadTime(WeaponDataViewer * x) {
+    if ((11 + 4) > WeaponDataViewerSize(x)) {
+        return 0;
+    }
+    float r;
+    memcpy(&r, &x->_data[11], 4);
+    return r;
+}
+
 int32_t WeaponDataViewer_Range(WeaponDataViewer * x) {
-    if ((8 + 4) > WeaponDataViewerSize(x)) {
+    if ((15 + 4) > WeaponDataViewerSize(x)) {
         return 0;
     }
     int32_t r;
-    memcpy(&r, &x->_data[8], 4);
+    memcpy(&r, &x->_data[15], 4);
     return r;
 }
 
@@ -490,6 +517,9 @@ Vec3 NewVec3() {
 }
 typedef struct {
     int32_t Damage;
+    uint16_t Ammo;
+    uint8_t ClipSize;
+    float ReloadTime;
     int32_t Range;
 } WeaponData;
 
@@ -499,18 +529,24 @@ EnumPacketIdentifier WeaponDataPacketIdentifier(WeaponData * x) {
 
 uint32_t WeaponDataWrite(WeaponData * x, KarmemWriter * writer, uint32_t start) {
     uint32_t offset = start;
-    uint32_t size = 12;
+    uint32_t size = 19;
     if (offset == 0) {
         offset = KarmemWriterAlloc(writer, size);
         if (offset == 0xFFFFFFFF) {
             return 0;
         }
     }
-    uint32_t sizeData = 12;
+    uint32_t sizeData = 19;
     KarmemWriterWriteAt(writer, offset, (void *)&sizeData, 4);
     uint32_t __DamageOffset = offset + 4;
     KarmemWriterWriteAt(writer, __DamageOffset, (void *) &x->Damage, 4);
-    uint32_t __RangeOffset = offset + 8;
+    uint32_t __AmmoOffset = offset + 8;
+    KarmemWriterWriteAt(writer, __AmmoOffset, (void *) &x->Ammo, 2);
+    uint32_t __ClipSizeOffset = offset + 10;
+    KarmemWriterWriteAt(writer, __ClipSizeOffset, (void *) &x->ClipSize, 1);
+    uint32_t __ReloadTimeOffset = offset + 11;
+    KarmemWriterWriteAt(writer, __ReloadTimeOffset, (void *) &x->ReloadTime, 4);
+    uint32_t __RangeOffset = offset + 15;
     KarmemWriterWriteAt(writer, __RangeOffset, (void *) &x->Range, 4);
 
     return offset;
@@ -522,6 +558,9 @@ uint32_t WeaponDataWriteAsRoot(WeaponData * x, KarmemWriter * writer) {
 
 void WeaponDataRead(WeaponData * x, WeaponDataViewer * viewer, KarmemReader * reader) {
     x->Damage = WeaponDataViewer_Damage(viewer);
+    x->Ammo = WeaponDataViewer_Ammo(viewer);
+    x->ClipSize = WeaponDataViewer_ClipSize(viewer);
+    x->ReloadTime = WeaponDataViewer_ReloadTime(viewer);
     x->Range = WeaponDataViewer_Range(viewer);
 }
 
@@ -556,7 +595,7 @@ uint32_t WeaponWrite(Weapon * x, KarmemWriter * writer, uint32_t start) {
             return 0;
         }
     }
-    uint32_t __DataSize = 12;
+    uint32_t __DataSize = 19;
     uint32_t __DataOffset = KarmemWriterAlloc(writer, __DataSize);
 
     KarmemWriterWriteAt(writer, offset+0, (void *) &__DataOffset, 4);

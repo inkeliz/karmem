@@ -15,6 +15,26 @@ MonoMethod* _ID_OutputMemoryPointer;
 MonoMethod* _ID_KBenchmarkEncodeObjectAPI;
 MonoMethod* _ID_KBenchmarkDecodeObjectAPI;
 MonoMethod* _ID_KBenchmarkDecodeSumVec3;
+MonoMethod* _ID_KBenchmarkDecodeSumUint8;
+MonoMethod* _ID_KBenchmarkDecodeSumStats;
+MonoMethod* _ID_KNOOP;
+
+void ready_benchmark(MonoObject* cls) {
+    _CLASS_Benchmark = cls;
+
+    _ID_InputMemoryPointer = lookup_dotnet_method("dotnet.dll", "dotnet", "Benchmark", "InputMemoryPointer", -1);
+    _ID_OutputMemoryPointer = lookup_dotnet_method("dotnet.dll", "dotnet", "Benchmark", "OutputMemoryPointer", -1);
+    _ID_KBenchmarkEncodeObjectAPI = lookup_dotnet_method("dotnet.dll", "dotnet", "Benchmark", "KBenchmarkEncodeObjectAPI", -1);
+    _ID_KBenchmarkDecodeObjectAPI = lookup_dotnet_method("dotnet.dll", "dotnet", "Benchmark", "KBenchmarkDecodeObjectAPI", -1);
+    _ID_KBenchmarkDecodeSumVec3 = lookup_dotnet_method("dotnet.dll", "dotnet", "Benchmark", "KBenchmarkDecodeSumVec3", -1);
+    _ID_KBenchmarkDecodeSumUint8 = lookup_dotnet_method("dotnet.dll", "dotnet", "Benchmark", "KBenchmarkDecodeSumUint8", -1);
+    _ID_KBenchmarkDecodeSumStats = lookup_dotnet_method("dotnet.dll", "dotnet", "Benchmark", "KBenchmarkDecodeSumStats", -1);
+    _ID_KNOOP = lookup_dotnet_method("dotnet.dll", "dotnet", "Benchmark", "KNOOP", -1);
+}
+
+void dotnet_benchmark_init() {
+    mono_add_internal_call ("dotnet.Benchmark::Ready", ready_benchmark);
+}
 
 __attribute__((export_name("InputMemoryPointer")))
 uint32_t InputMemoryPointer() {
@@ -67,17 +87,37 @@ float KBenchmarkDecodeSumVec3(uint32_t size) {
     return *(float*)mono_object_unbox(res);
 }
 
-
-void ready_benchmark(MonoObject* cls) {
-    _CLASS_Benchmark = cls;
-
-    _ID_InputMemoryPointer = lookup_dotnet_method("dotnet.dll", "dotnet", "Benchmark", "InputMemoryPointer", -1);
-    _ID_OutputMemoryPointer = lookup_dotnet_method("dotnet.dll", "dotnet", "Benchmark", "OutputMemoryPointer", -1);
-    _ID_KBenchmarkEncodeObjectAPI = lookup_dotnet_method("dotnet.dll", "dotnet", "Benchmark", "KBenchmarkEncodeObjectAPI", -1);
-    _ID_KBenchmarkDecodeObjectAPI = lookup_dotnet_method("dotnet.dll", "dotnet", "Benchmark", "KBenchmarkDecodeObjectAPI", -1);
-    _ID_KBenchmarkDecodeSumVec3 = lookup_dotnet_method("dotnet.dll", "dotnet", "Benchmark", "KBenchmarkDecodeSumVec3", -1);
+__attribute__((export_name("KBenchmarkDecodeSumUint8")))
+uint32_t KBenchmarkDecodeSumUint8(uint32_t size) {
+    void* params[] = { &size };
+    MonoObject* err;
+    MonoObject* res = mono_wasm_invoke_method (_ID_KBenchmarkDecodeSumUint8, _CLASS_Benchmark, params, &err);
+    if (err != NULL)
+    {
+        assert(err);
+    }
+    return *(uint32_t*)mono_object_unbox(res);
 }
 
-void dotnet_benchmark_init() {
-    mono_add_internal_call ("dotnet.Benchmark::Ready", ready_benchmark);
+__attribute__((export_name("KBenchmarkDecodeSumStats")))
+uint32_t KBenchmarkDecodeSumStats(uint32_t size) {
+    void* params[] = { &size };
+    MonoObject* err;
+    MonoObject* res = mono_wasm_invoke_method (_ID_KBenchmarkDecodeSumStats, _CLASS_Benchmark, params, &err);
+    if (err != NULL)
+    {
+        assert(err);
+    }
+    return *(uint32_t*)mono_object_unbox(res);
+}
+
+__attribute__((export_name("KNOOP")))
+uint32_t KNOOP(uint32_t size) {
+    MonoObject* err;
+    MonoObject* res = mono_wasm_invoke_method (_ID_KNOOP, _CLASS_Benchmark, NULL, &err);
+    if (err != NULL)
+    {
+        assert(err);
+    }
+    return *(uint32_t*)mono_object_unbox(res);
 }

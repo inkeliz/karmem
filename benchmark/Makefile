@@ -12,49 +12,49 @@ karmem:
 	go run karmem.org/cmd/karmem build --odin -o "km" testdata/game.km
 
 native: karmem
-	go test -tags fbs -v -bench=. -benchmem -benchtime=5s -count 5 . > result/fbs.out
-	go test -tags km -v -bench=. -benchmem -benchtime=5s -count 5 . > result/km.out
-	go test -tags struct -v -bench=. -benchmem -benchtime=5s -count 5 . > result/struct.out
+	go test -tags fbs -v -bench=. -benchmem -benchtime=5s -count 5 . -timeout 60m > result/fbs.out
+	go test -tags km -v -bench=. -benchmem -benchtime=5s -count 5 . -timeout 60m > result/km.out
+	go test -tags struct -v -bench=. -benchmem -benchtime=5s -count 5 . -timeout 60m > result/struct.out
 
 tinygo: karmem
 	tinygo build -target "wasi" -tags "fbs" -o "testdata/wasi/go.wasi" -gc conservative --no-debug -opt 2 -scheduler none -wasm-abi generic .
-	go test -tags wasi,wazero,fbs,golang -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-go-fbs.out
+	go test -tags wasi,wazero,fbs,golang -v -bench=. -benchmem -benchtime=5s -count 5 . -timeout 60m > result/wasi-go-fbs.out
 
 	tinygo build -target "wasi" -tags "fbs" -o "testdata/wasi/go.wasi" -gc leaking --no-debug -opt 2 -scheduler none -wasm-abi generic .
-	go test -tags wasi,wazero,fbs,golang -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-go-leaking-fbs.out
+	go test -tags wasi,wazero,fbs,golang -v -bench=. -benchmem -benchtime=5s -count 5 . -timeout 60m > result/wasi-go-leaking-fbs.out
 
 	tinygo build -target "wasi" -tags "km" -o "testdata/wasi/go.wasi" -gc leaking --no-debug -opt 2 -scheduler none -wasm-abi generic .
-	go test -tags wasi,wazero,km,golang -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-go-leaking-km.out
+	go test -tags wasi,wazero,km,golang -v -bench=. -benchmem -benchtime=5s -count 5 . -timeout 60m > result/wasi-go-leaking-km.out
 
 	tinygo build -target "wasi" -tags "km" -o "testdata/wasi/go.wasi" -gc conservative --no-debug -opt 2 -scheduler none -wasm-abi generic .
-	go test -tags wasi,wazero,km,golang -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-go-km.out
+	go test -tags wasi,wazero,km,golang -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 60m . > result/wasi-go-km.out
 
 assemblyscript: karmem
 	npm install
 	../node_modules/.bin/asc main.ts -Ospeed --optimizeLevel 3 --target release --zeroFilledMemory --exportStart "_start" --outFile "./testdata/wasi/as.wasi"
-	go test -tags wasi,wazero,km,assemblyscript -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-as-km.out
+	go test -tags wasi,wazero,km,assemblyscript -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 60m . > result/wasi-as-km.out
 
 zig: karmem
 	zig build install -Dtarget="wasm32-wasi" -Drelease-fast
-	go test -tags wasi,wazero,km,zig -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-zig-km.out
+	go test -tags wasi,wazero,km,zig -v -bench=. -benchmem -benchtime=5s -count 5  -timeout 60m . > result/wasi-zig-km.out
 
 c: karmem
 	emcc c/main.c -o testdata/wasi/c.wasm --no-entry -sALLOW_MEMORY_GROWTH -O3 -flto
-	go test -tags wasi,wazero,km,c -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-c-km.out
+	go test -tags wasi,wazero,km,c -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 60m . > result/wasi-c-km.out
 
 swiftwasm: karmem
 	xcrun --toolchain swiftwasm swift build --triple wasm32-unknown-wasi -v -c release
 	xcrun --toolchain swiftwasm swiftc -L ".build/wasm32-unknown-wasi/release" -o "testdata/wasi/swift.wasi" -module-name benchmark -emit-executable @.build/wasm32-unknown-wasi/release/benchmark.product/Objects.LinkFileList -target wasm32-unknown-wasi -sdk /Library/Developer/Toolchains/swift-wasm-5.7-SNAPSHOT-2022-07-27-a.xctoolchain/usr/share/wasi-sysroot -L /Library/Developer/Toolchains/swift-wasm-5.7-SNAPSHOT-2022-07-27-a.xctoolchain/usr/lib -O -Xlinker "--export=_start" -Xlinker "--export=InputMemoryPointer" -Xlinker "--export=OutputMemoryPointer" -Xlinker "--export=KBenchmarkEncodeObjectAPI"  -Xlinker "--export=KBenchmarkDecodeObjectAPI" -Xlinker "--export=KBenchmarkDecodeSumVec3" -Xlinker "--export=KBenchmarkDecodeSumUint8" -Xlinker "--export=KBenchmarkDecodeSumStats" -Xlinker "--export=KNOOP"
-	go test -tags wasi,wazero,km,swift -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-swift-km.out
+	go test -tags wasi,wazero,km,swift -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 60m . > result/wasi-swift-km.out
 
 odin: karmem
-	odin build . -target:wasi_wasm32 -extra-linker-flags:"--lto-O3 --gc-sections"
-	wasm-ld "benchmark.wasm.o" -o "testdata/wasi/odin.wasi" --lto-O3 --gc-sections
-	go test -tags wasi,wazero,odin,km -v -bench=. -benchmem -benchtime=5s -count 5 . > result/wasi-odin-km.out
+	# odin build . -target:wasi_wasm32 -extra-linker-flags:"--lto-O3 --gc-sections"
+	# wasm-ld "benchmark.wasm.o" -o "testdata/wasi/odin.wasi" --lto-O3 --gc-sections
+	go test -tags wasi,wazero,odin,km -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 60m . > result/wasi-odin-km.out
 
 dotnet: karmem
 	# dotnet build -p:IS_WASM=true -p:IS_KARMEM=true -o "testdata/wasi" "dotnet"
-	go test -tags wasi,wazero,km,dotnet,nofuzz -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 30m . > result/wasi-dotnet-km.out
+	go test -tags wasi,wazero,km,dotnet,nofuzz -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 60m . > result/wasi-dotnet-km.out
 
 	# dotnet build -p:IS_WASM=false -p:IS_KARMEM=true -o "testdata/wasi" "dotnet"
 	# go test -tags tcp,km,dotnet -v -bench=. -benchmem -benchtime=5s -count 5 -timeout 30m . > result/tcp-dotnet-km.out

@@ -102,7 +102,7 @@ func KBenchmarkDecodeSumStats(_ size: UInt32) -> UInt32 {
 
 	_Writer.Reset()
 	_ = sum.WriteAsRoot(&_Writer)
-	return 8_000_000
+	return _Writer.Length()
 }
 
 @_cdecl("KNOOP")

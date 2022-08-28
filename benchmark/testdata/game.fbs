@@ -12,9 +12,9 @@ struct Vec3 {
 
 table Weapon {
     damage: int;
-    ammo uint16;
-    clip_size uint8;
-    reload_time float32;
+    ammo: uint16;
+    clip_size: uint8;
+    reload_time: float32;
     range:  int;
 }
 

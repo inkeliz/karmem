@@ -112,7 +112,7 @@ uint32_t KBenchmarkDecodeSumStats(uint32_t size) {
 }
 
 __attribute__((export_name("KNOOP")))
-uint32_t KNOOP(uint32_t size) {
+uint32_t KNOOP() {
     MonoObject* err;
     MonoObject* res = mono_wasm_invoke_method (_ID_KNOOP, _CLASS_Benchmark, NULL, &err);
     if (err != NULL)

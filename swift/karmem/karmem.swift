@@ -96,6 +96,16 @@ public struct Writer {
     public mutating func Reset() {
         self.length = 0
     }
+
+    @inline(__always)
+    public func Length() -> UInt32 {
+        return self.length
+    }
+
+    @inline(__always)
+    public func Capacity() -> UInt32 {
+        return self.capacity
+    }
 }
 
 @inline(__always) public func NewWriter(_ cap: UInt32) -> Writer {

@@ -5,7 +5,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/r3labs/diff/v3"
@@ -51,8 +50,6 @@ func TestEncodeObjectAPI(t *testing.T) {
 
 	if len(changes) > 0 {
 		for _, x := range changes {
-			fmt.Println(result.Monsters[0].Data.Path)
-			fmt.Println(expected.Monsters[0].Data.Path)
 			t.Error(x.Type, x.Path)
 		}
 		t.Fatal("changes detected")

@@ -3,6 +3,8 @@
 package main
 
 import (
+	"math/rand"
+
 	"benchmark.karmem.org/km"
 	karmem "karmem.org/golang"
 )
@@ -12,6 +14,8 @@ var KStruct km.Monsters
 var KBuilder = karmem.NewWriter(1000)
 var KStarted = false
 var KSumExpected = float32(0.0)
+var KSumInventoryExpected = uint32(0)
+var KSumWeaponStatus = km.WeaponData{}
 
 func init() {
 	initEncode()
@@ -27,7 +31,6 @@ func initEncode() {
 	KStruct = km.Monsters{
 		Monsters: make([]km.Monster, 1000),
 	}
-	var sum km.Vec3
 	for i := range KStruct.Monsters {
 		KStruct.Monsters[i] = km.Monster{
 			Data: km.MonsterData{
@@ -60,17 +63,33 @@ func initEncode() {
 		}
 		for j := range KStruct.Monsters[i].Data.Path {
 			v := km.Vec3{
-				X: float32(1),
+				X: float32(1) * rand.Float32(),
 				Y: float32(i),
-				Z: float32(1),
+				Z: float32(i*j) * 0.33,
 			}
-			sum.X += v.X
-			sum.Y += v.Y
-			sum.Z += v.Z
+			KSumExpected += v.X + v.Y + v.Z
 			KStruct.Monsters[i].Data.Path[j] = v
+
+		}
+		for j := range KStruct.Monsters[i].Data.Inventory {
+			KStruct.Monsters[i].Data.Inventory[j] = byte(i)
+			KSumInventoryExpected += uint32(byte(i))
+		}
+		for j := range KStruct.Monsters[i].Data.Weapons {
+			KStruct.Monsters[i].Data.Weapons[j].Data = km.WeaponData{
+				Damage:     100 + int32(i),
+				Ammo:       uint16(j),
+				ClipSize:   uint8(i),
+				ReloadTime: 1.4232242,
+				Range:      int32(i),
+			}
+			KSumWeaponStatus.Damage += KStruct.Monsters[i].Data.Weapons[j].Data.Damage
+			KSumWeaponStatus.Ammo += KStruct.Monsters[i].Data.Weapons[j].Data.Ammo
+			KSumWeaponStatus.ClipSize += KStruct.Monsters[i].Data.Weapons[j].Data.ClipSize
+			KSumWeaponStatus.ReloadTime += KStruct.Monsters[i].Data.Weapons[j].Data.ReloadTime
+			KSumWeaponStatus.Range += KStruct.Monsters[i].Data.Weapons[j].Data.Range
 		}
 	}
-	KSumExpected += sum.X + sum.Y + sum.Z
 }
 
 func encode() []byte {

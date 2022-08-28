@@ -14,7 +14,7 @@ var (
 )
 
 func init() {
-    _Writer = &flatbuffers.Builder{Bytes: OutputMemory[:]}
+	_Writer = &flatbuffers.Builder{Bytes: OutputMemory[:]}
 }
 
 //export KBenchmarkEncodeObjectAPI
@@ -34,7 +34,7 @@ func KBenchmarkDecodeSumVec3(_ uint32) float32 {
 
 	var monster fbs.Monster
 	var path fbs.Vec3
-	var sum fbs.Vec3T
+	var sum float32
 
 	l := _Reader.MonstersLength()
 	for i := 0; i < l; i++ {
@@ -43,10 +43,8 @@ func KBenchmarkDecodeSumVec3(_ uint32) float32 {
 		l := monster.PathLength()
 		for p := 0; p < l; p++ {
 			monster.Path(&path, p)
-			sum.X += path.X()
-			sum.Y += path.Y()
-			sum.Z += path.Z()
+			sum += path.X() + path.Y() + path.Z()
 		}
 	}
-	return sum.X + sum.Y + sum.Z
+	return sum
 }

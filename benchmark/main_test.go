@@ -4,7 +4,6 @@
 package main
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -21,7 +20,6 @@ func TestDecodeObjectAPI(t *testing.T) {
 	_Struct = KStruct
 	decoded := decode(encode())
 	if !reflect.DeepEqual(decoded, KStruct) {
-		fmt.Println(decoded)
 		t.Error("not match")
 	}
 }

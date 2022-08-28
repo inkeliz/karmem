@@ -185,7 +185,7 @@ namespace dotnet
         #if IS_KARMEM
             this.Reader.SetSize(size);
 
-            var sum = new Vec3();
+            float sum = 0.0F;
             var monsters = MonstersViewer.NewMonstersViewer(this.Reader, 0);
             var monstersList = monsters.Monsters(this.Reader);
 
@@ -195,15 +195,13 @@ namespace dotnet
                 for (var p = 0; p < paths.Length; p++)
                 {
                     var path = paths[p];
-                    sum._X += path.X();
-                    sum._Y += path.Y();
-                    sum._Z += path.Z();
+                    sum += path.X() + path.Y() + path.Z();
                 }
             }
-            return sum._X + sum._Y + sum._Z;
+            return sum;
         #endif
         #if IS_FLATBUFFERS
-            var sum = new game.Vec3T();
+            float sum = 0.0;
             var monsters = game.Monsters.GetRootAsMonsters(Reader);
 
             for (var i = 0; i < monsters.MonstersLength; i++)
@@ -212,14 +210,71 @@ namespace dotnet
                 for (var p = 0; p < monster.PathLength; p++)
                 {
                     var path = monster.Path(p).Value;
-                    sum.X += path.X;
-                    sum.Y += path.Y;
-                    sum.Z += path.Z;
+                    sum += path.X + path.Y + path.Z;
                 }
             }
-            return sum.X + sum.Y + sum.Z;
+            return sum.;
         #endif
         }
+        #if IS_KARMEM
 
+        // Must be exported to WASM.
+        public uint KBenchmarkDecodeSumUint8(uint size)
+        {
+            this.Reader.SetSize(size);
+
+            var monsters = MonstersViewer.NewMonstersViewer(this.Reader, 0);
+            var monstersList = monsters.Monsters(this.Reader);
+
+            uint sum = 0;
+            for (var i = 0; i < monstersList.Length; i++)
+            {
+                var inv = monstersList[i].Data(this.Reader).Inventory(this.Reader);
+                for (var j = 0; j < inv.Length; j++)
+                {
+                    sum += Convert.ToUInt32(inv[j]);
+                }
+            }
+            return sum;
+        }
+
+        // Must be exported to WASM.
+        public uint KBenchmarkDecodeSumStats(uint size)
+        {
+            this.Reader.SetSize(size);
+
+            var monsters = MonstersViewer.NewMonstersViewer(this.Reader, 0);
+            var monstersList = monsters.Monsters(this.Reader);
+
+            var sum = new km.WeaponData();
+            for (var i = 0; i < monstersList.Length; i++)
+            {
+                var weapons = monstersList[i].Data(this.Reader).Weapons();
+
+                for (var j = 0; j < weapons.Length; j++)
+                {
+                    var data = weapons[j].Data(this.Reader);
+                    sum._Ammo += data.Ammo();
+                    sum._Damage += data.Damage();
+                    sum._ClipSize += data.ClipSize();
+                    sum._ReloadTime += data.ReloadTime();
+                    sum._Range += data.Range();
+                }
+            }
+
+            this.Writer.Reset();
+            if (!sum.WriteAsRoot(this.Writer))
+            {
+                throw new System.Exception("Failed to write object");
+            }
+
+            return (uint)this.Writer.Size;
+        }
+
+        // Must be exported to WASM.
+        public uint KNOOP() {
+            return 42;
+        }
+        #endif
     }
 }

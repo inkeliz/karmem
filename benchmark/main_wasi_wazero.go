@@ -128,7 +128,10 @@ func (w *WasmWazero) Write(b []byte) bool {
 }
 
 func (w *WasmWazero) Reader(l uint32) []byte {
-	out, _ := w.mainModule.Memory().Read(context.Background(), uint32(w.output), l)
+	out, ok := w.mainModule.Memory().Read(context.Background(), uint32(w.output), l)
+	if !ok {
+		return nil
+	}
 	return out
 }
 
@@ -145,5 +148,10 @@ func (w *WasmWazero) Run(s Functions, v ...uint64) ([]uint64, error) {
 }
 
 func (w *WasmWazero) Close() error {
-	return w.runtime.Close(context.Background())
+	err := w.runtime.Close(context.Background())
+	if err != nil {
+		return err
+	}
+	*w = WasmWazero{}
+	return nil
 }

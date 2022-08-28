@@ -87,6 +87,9 @@ export function NewVec3(): Vec3 {
 
 export class WeaponData {
     Damage: i32;
+    Ammo: u16;
+    ClipSize: u8;
+    ReloadTime: f32;
     Range: i32;
 
     static PacketIdentifier() : PacketIdentifier {
@@ -104,17 +107,23 @@ export class WeaponData {
 
     static Write(x: WeaponData, writer: karmem.Writer, start: u32): boolean {
         let offset = start;
-        const size: u32 = 12;
+        const size: u32 = 19;
         if (offset == 0) {
             offset = writer.Alloc(size);
             if (offset == 0xFFFFFFFF) {
                 return false;
             }
         }
-        writer.WriteAt<u32>(offset, 12);
+        writer.WriteAt<u32>(offset, 19);
         let __DamageOffset: u32 = offset + 4;
         writer.WriteAt<i32>(__DamageOffset, x.Damage);
-        let __RangeOffset: u32 = offset + 8;
+        let __AmmoOffset: u32 = offset + 8;
+        writer.WriteAt<u16>(__AmmoOffset, x.Ammo);
+        let __ClipSizeOffset: u32 = offset + 10;
+        writer.WriteAt<u8>(__ClipSizeOffset, x.ClipSize);
+        let __ReloadTimeOffset: u32 = offset + 11;
+        writer.WriteAt<f32>(__ReloadTimeOffset, x.ReloadTime);
+        let __RangeOffset: u32 = offset + 15;
         writer.WriteAt<i32>(__RangeOffset, x.Range);
 
         return true
@@ -128,6 +137,9 @@ export class WeaponData {
     @inline
     static Read(x: WeaponData, viewer: WeaponDataViewer, reader: karmem.Reader) : void {
     x.Damage = viewer.Damage();
+    x.Ammo = viewer.Ammo();
+    x.ClipSize = viewer.ClipSize();
+    x.ReloadTime = viewer.ReloadTime();
     x.Range = viewer.Range();
     }
 
@@ -136,6 +148,9 @@ export class WeaponData {
 export function NewWeaponData(): WeaponData {
     let x: WeaponData = {
     Damage: 0,
+    Ammo: 0,
+    ClipSize: 0,
+    ReloadTime: 0,
     Range: 0,
     }
     return x;
@@ -166,7 +181,7 @@ export class Weapon {
                 return false;
             }
         }
-        const __DataSize: u32 = 12;
+        const __DataSize: u32 = 19;
         let __DataOffset = writer.Alloc(__DataSize);
         if (__DataOffset == 0) {
             return false;
@@ -571,7 +586,9 @@ export class Vec3Viewer {
 @unmanaged
 export class WeaponDataViewer {
     private _0: u64;
-    private _1: u32;
+    private _1: u64;
+    private _2: u16;
+    private _3: u8;
 
     @inline
     SizeOf(): u32 {
@@ -585,11 +602,32 @@ export class WeaponDataViewer {
         return load<i32>(changetype<usize>(this) + 4);
     }
     @inline
-    Range(): i32 {
-        if ((<u32>8 + <u32>4) > this.SizeOf()) {
+    Ammo(): u16 {
+        if ((<u32>8 + <u32>2) > this.SizeOf()) {
             return 0
         }
-        return load<i32>(changetype<usize>(this) + 8);
+        return load<u16>(changetype<usize>(this) + 8);
+    }
+    @inline
+    ClipSize(): u8 {
+        if ((<u32>10 + <u32>1) > this.SizeOf()) {
+            return 0
+        }
+        return load<u8>(changetype<usize>(this) + 10);
+    }
+    @inline
+    ReloadTime(): f32 {
+        if ((<u32>11 + <u32>4) > this.SizeOf()) {
+            return 0
+        }
+        return load<f32>(changetype<usize>(this) + 11);
+    }
+    @inline
+    Range(): i32 {
+        if ((<u32>15 + <u32>4) > this.SizeOf()) {
+            return 0
+        }
+        return load<i32>(changetype<usize>(this) + 15);
     }
 }
 

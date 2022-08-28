@@ -88,6 +88,9 @@ public func NewVec3() -> Vec3 {
 
 public struct WeaponData {
     public var Damage: Int32 = 0
+    public var Ammo: UInt16 = 0
+    public var ClipSize: UInt8 = 0
+    public var ReloadTime: Float = 0
     public var Range: Int32 = 0
 
     public init() {}
@@ -98,6 +101,9 @@ public struct WeaponData {
 
     public mutating func Reset() -> () {
         self.Damage = 0
+        self.Ammo = 0
+        self.ClipSize = 0
+        self.ReloadTime = 0
         self.Range = 0
     }
 
@@ -108,17 +114,23 @@ public struct WeaponData {
 
     public mutating func Write(_ writer: inout karmem.Writer, _ start: UInt32) -> Bool {
         var offset = start
-        let size: UInt32 = 12
+        let size: UInt32 = 19
         if (offset == 0) {
             offset = writer.Alloc(size)
             if (offset == 0xFFFFFFFF) {
                 return false
             }
         }
-        writer.memory.storeBytes(of: UInt32(12), toByteOffset: Int(offset), as: UInt32.self)
+        writer.memory.storeBytes(of: UInt32(19), toByteOffset: Int(offset), as: UInt32.self)
         let __DamageOffset: UInt32 = offset + 4
         writer.memory.storeBytes(of: self.Damage, toByteOffset: Int(__DamageOffset), as:Int32.self)
-        let __RangeOffset: UInt32 = offset + 8
+        let __AmmoOffset: UInt32 = offset + 8
+        writer.memory.storeBytes(of: self.Ammo, toByteOffset: Int(__AmmoOffset), as:UInt16.self)
+        let __ClipSizeOffset: UInt32 = offset + 10
+        writer.memory.storeBytes(of: self.ClipSize, toByteOffset: Int(__ClipSizeOffset), as:UInt8.self)
+        let __ReloadTimeOffset: UInt32 = offset + 11
+        writer.memory.storeBytes(of: self.ReloadTime, toByteOffset: Int(__ReloadTimeOffset), as:Float.self)
+        let __RangeOffset: UInt32 = offset + 15
         writer.memory.storeBytes(of: self.Range, toByteOffset: Int(__RangeOffset), as:Int32.self)
 
         return true
@@ -132,6 +144,9 @@ public struct WeaponData {
     @inline(__always)
     public mutating func Read(_ viewer: WeaponDataViewer, _ reader: karmem.Reader) -> () {
     self.Damage = viewer.Damage()
+    self.Ammo = viewer.Ammo()
+    self.ClipSize = viewer.ClipSize()
+    self.ReloadTime = viewer.ReloadTime()
     self.Range = viewer.Range()
     }
 
@@ -168,7 +183,7 @@ public struct Weapon {
                 return false
             }
         }
-        let __DataSize: UInt32 = 12
+        let __DataSize: UInt32 = 19
         let __DataOffset = writer.Alloc(__DataSize)
         if (__DataOffset == 0) {
             return false
@@ -644,11 +659,32 @@ public struct WeaponDataViewer : karmem.StructureViewer {
         return (self.karmemPointer + 4).loadUnaligned(as: Int32.self)
     }
     @inline(__always)
-    public func Range() -> Int32 {
-        if ((UInt32(8) + UInt32(4)) > self.SizeOf()) {
+    public func Ammo() -> UInt16 {
+        if ((UInt32(8) + UInt32(2)) > self.SizeOf()) {
             return 0
         }
-        return (self.karmemPointer + 8).loadUnaligned(as: Int32.self)
+        return (self.karmemPointer + 8).loadUnaligned(as: UInt16.self)
+    }
+    @inline(__always)
+    public func ClipSize() -> UInt8 {
+        if ((UInt32(10) + UInt32(1)) > self.SizeOf()) {
+            return 0
+        }
+        return (self.karmemPointer + 10).loadUnaligned(as: UInt8.self)
+    }
+    @inline(__always)
+    public func ReloadTime() -> Float {
+        if ((UInt32(11) + UInt32(4)) > self.SizeOf()) {
+            return 0
+        }
+        return (self.karmemPointer + 11).loadUnaligned(as: Float.self)
+    }
+    @inline(__always)
+    public func Range() -> Int32 {
+        if ((UInt32(15) + UInt32(4)) > self.SizeOf()) {
+            return 0
+        }
+        return (self.karmemPointer + 15).loadUnaligned(as: Int32.self)
     }
 }
 

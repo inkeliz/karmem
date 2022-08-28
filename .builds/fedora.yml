@@ -94,7 +94,7 @@ tasks:
   - test_swift: |
       cd karmem/benchmark
       ~/swift-wasm-5.7-SNAPSHOT-2022-07-29-a/usr/bin/swift build --triple wasm32-unknown-wasi -v -c release
-      ~/swift-wasm-5.7-SNAPSHOT-2022-07-29-a/usr/bin/swiftc -L ".build/wasm32-unknown-wasi/release" -o "testdata/wasi/swift.wasi" -module-name benchmark -emit-executable @.build/wasm32-unknown-wasi/release/benchmark.product/Objects.LinkFileList -target wasm32-unknown-wasi -sdk ~/swift-wasm-5.7-SNAPSHOT-2022-07-29-a/usr/share/wasi-sysroot -L ~/swift-wasm-5.7-SNAPSHOT-2022-07-29-a/usr/lib -O -Xlinker "--export=_start" -Xlinker "--export=InputMemoryPointer" -Xlinker "--export=OutputMemoryPointer" -Xlinker "--export=KBenchmarkEncodeObjectAPI"  -Xlinker "--export=KBenchmarkDecodeObjectAPI" -Xlinker "--export=KBenchmarkDecodeSumVec3"
+      ~/swift-wasm-5.7-SNAPSHOT-2022-07-29-a/usr/bin/swiftc -L ".build/wasm32-unknown-wasi/release" -o "testdata/wasi/swift.wasi" -module-name benchmark -emit-executable @.build/wasm32-unknown-wasi/release/benchmark.product/Objects.LinkFileList -target wasm32-unknown-wasi -sdk ~/swift-wasm-5.7-SNAPSHOT-2022-07-29-a/usr/share/wasi-sysroot -L ~/swift-wasm-5.7-SNAPSHOT-2022-07-29-a/usr/lib -O -Xlinker "--export=_start" -Xlinker "--export=InputMemoryPointer" -Xlinker "--export=OutputMemoryPointer" -Xlinker "--export=KBenchmarkEncodeObjectAPI" -Xlinker "--export=KBenchmarkDecodeObjectAPI" -Xlinker "--export=KBenchmarkDecodeSumVec3" -Xlinker "--export=KBenchmarkDecodeSumStats" -Xlinker "--export=KBenchmarkDecodeSumUint8" -Xlinker "--export=KNOOP"
       go test -tags wasi,wazero,km,swift -v -bench=. .
   - exit: |
       exit

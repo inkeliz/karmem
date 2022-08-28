@@ -12,7 +12,8 @@ struct Vec3 inline {
 
 struct WeaponData table {
     Damage int32;
-    ClipSize int16;
+    Ammo uint16;
+    ClipSize uint8;
     ReloadTime float32;
     Range  int32;
 }

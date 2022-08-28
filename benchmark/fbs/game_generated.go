@@ -134,6 +134,9 @@ func CreateVec3(builder *flatbuffers.Builder, x float32, y float32, z float32) f
 }
 type WeaponT struct {
 	Damage int32
+	Ammo uint16
+	ClipSize byte
+	ReloadTime float32
 	Range int32
 }
 
@@ -141,12 +144,18 @@ func (t *WeaponT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
 	WeaponStart(builder)
 	WeaponAddDamage(builder, t.Damage)
+	WeaponAddAmmo(builder, t.Ammo)
+	WeaponAddClipSize(builder, t.ClipSize)
+	WeaponAddReloadTime(builder, t.ReloadTime)
 	WeaponAddRange(builder, t.Range)
 	return WeaponEnd(builder)
 }
 
 func (rcv *Weapon) UnPackTo(t *WeaponT) {
 	t.Damage = rcv.Damage()
+	t.Ammo = rcv.Ammo()
+	t.ClipSize = rcv.ClipSize()
+	t.ReloadTime = rcv.ReloadTime()
 	t.Range = rcv.Range()
 }
 
@@ -196,8 +205,44 @@ func (rcv *Weapon) MutateDamage(n int32) bool {
 	return rcv._tab.MutateInt32Slot(4, n)
 }
 
-func (rcv *Weapon) Range() int32 {
+func (rcv *Weapon) Ammo() uint16 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
+	if o != 0 {
+		return rcv._tab.GetUint16(o + rcv._tab.Pos)
+	}
+	return 0
+}
+
+func (rcv *Weapon) MutateAmmo(n uint16) bool {
+	return rcv._tab.MutateUint16Slot(6, n)
+}
+
+func (rcv *Weapon) ClipSize() byte {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
+	if o != 0 {
+		return rcv._tab.GetByte(o + rcv._tab.Pos)
+	}
+	return 0
+}
+
+func (rcv *Weapon) MutateClipSize(n byte) bool {
+	return rcv._tab.MutateByteSlot(8, n)
+}
+
+func (rcv *Weapon) ReloadTime() float32 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
+	if o != 0 {
+		return rcv._tab.GetFloat32(o + rcv._tab.Pos)
+	}
+	return 0.0
+}
+
+func (rcv *Weapon) MutateReloadTime(n float32) bool {
+	return rcv._tab.MutateFloat32Slot(10, n)
+}
+
+func (rcv *Weapon) Range() int32 {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(12))
 	if o != 0 {
 		return rcv._tab.GetInt32(o + rcv._tab.Pos)
 	}
@@ -205,17 +250,26 @@ func (rcv *Weapon) Range() int32 {
 }
 
 func (rcv *Weapon) MutateRange(n int32) bool {
-	return rcv._tab.MutateInt32Slot(6, n)
+	return rcv._tab.MutateInt32Slot(12, n)
 }
 
 func WeaponStart(builder *flatbuffers.Builder) {
-	builder.StartObject(2)
+	builder.StartObject(5)
 }
 func WeaponAddDamage(builder *flatbuffers.Builder, damage int32) {
 	builder.PrependInt32Slot(0, damage, 0)
 }
+func WeaponAddAmmo(builder *flatbuffers.Builder, ammo uint16) {
+	builder.PrependUint16Slot(1, ammo, 0)
+}
+func WeaponAddClipSize(builder *flatbuffers.Builder, clipSize byte) {
+	builder.PrependByteSlot(2, clipSize, 0)
+}
+func WeaponAddReloadTime(builder *flatbuffers.Builder, reloadTime float32) {
+	builder.PrependFloat32Slot(3, reloadTime, 0.0)
+}
 func WeaponAddRange(builder *flatbuffers.Builder, range_ int32) {
-	builder.PrependInt32Slot(1, range_, 0)
+	builder.PrependInt32Slot(4, range_, 0)
 }
 func WeaponEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()

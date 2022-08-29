@@ -48,5 +48,56 @@ struct Main table {
     SliceLimitedCustomInline [<600]CustomTypeInline;
 }
 
+struct TableTypeTablePacked table @packed(true) {
+    Basic uint64;
+}
+
+struct SliceInsideSliceInlinePacked inline @packed(true) {
+    SliceN8 []uint8;
+    BasicPtr TableTypeTable;
+}
+
+struct CustomTypeInlinePacked inline @packed(true) {
+    TableSliceTest []SliceInsideSliceInline;
+}
+
+struct MainPacked table @packed(true) {
+    String            []char;
+    LimitedString     [<128]char;
+    ArrayN8  [100]int8;
+    ArrayN16 [200]int16;
+    ArrayN32 [300]int32;
+    ArrayN64 [400]int64;
+    ArrayUN8  [1001]uint8;
+    ArrayUN16 [2001]uint16;
+    ArrayUN32 [3001]uint32;
+    ArrayUN64 [4001]uint64;
+    SliceN8  []int8;
+    SliceN16 []int16;
+    SliceN32 []int32;
+    SliceN64 []int64;
+    SliceUN8  []uint8;
+    SliceUN16 []uint16;
+    SliceUN32 []uint32;
+    SliceUN64 []uint64;
+    SliceLimitedN8  [<10]int8;
+    SliceLimitedN16 [<20]int16;
+    SliceLimitedN32 [<30]int32;
+    SliceLimitedN64 [<40]int64;
+    SliceLimitedUN8  [<11]uint8;
+    SliceLimitedUN16 [<12]uint16;
+    SliceLimitedUN32 [<13]uint32;
+    SliceLimitedUN64 [<14]uint64;
+    ArrayBytes         [256]byte;
+    SliceBytes         []byte;
+    SliceLimitedBytes  [<300]byte;
+    ArrayCustomInline [900]CustomTypeInline;
+    SliceCustomInline []CustomTypeInline;
+    SliceLimitedCustomInline [<600]CustomTypeInline;
+}
+
+
+
+
 
 

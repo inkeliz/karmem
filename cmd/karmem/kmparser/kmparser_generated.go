@@ -1,14 +1,15 @@
 package kmparser
 
 import (
-	karmem "karmem.org/golang"
 	"unsafe"
+
+	karmem "karmem.org/golang"
 )
 
 var _ unsafe.Pointer
 
-var _Null = make([]byte, 42)
-var _NullReader = karmem.NewReader(_Null)
+var _Null = [42]byte{}
+var _NullReader = karmem.NewReader(_Null[:])
 
 type (
 	StructClass uint8
@@ -63,7 +64,6 @@ const (
 	PacketIdentifierStructData      = 8290009745541165076
 	PacketIdentifierStructure       = 18088017590773436939
 	PacketIdentifierContentSize     = 8764462619562198222
-	PacketIdentifierContentOptions  = 12347233001904861813
 	PacketIdentifierContent         = 6792576797909524956
 )
 
@@ -84,7 +84,7 @@ func (x *Type) PacketIdentifier() PacketIdentifier {
 }
 
 func (x *Type) Reset() {
-	x.Read((*TypeViewer)(unsafe.Pointer(&_Null)), _NullReader)
+	x.Read((*TypeViewer)(unsafe.Pointer(&_Null[0])), _NullReader)
 }
 
 func (x *Type) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -164,7 +164,7 @@ func (x *PaddingType) PacketIdentifier() PacketIdentifier {
 }
 
 func (x *PaddingType) Reset() {
-	x.Read((*PaddingTypeViewer)(unsafe.Pointer(&_Null)), _NullReader)
+	x.Read((*PaddingTypeViewer)(unsafe.Pointer(&_Null[0])), _NullReader)
 }
 
 func (x *PaddingType) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -215,7 +215,7 @@ func (x *Tag) PacketIdentifier() PacketIdentifier {
 }
 
 func (x *Tag) Reset() {
-	x.Read((*TagViewer)(unsafe.Pointer(&_Null)), _NullReader)
+	x.Read((*TagViewer)(unsafe.Pointer(&_Null[0])), _NullReader)
 }
 
 func (x *Tag) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -289,7 +289,7 @@ func (x *StructSize) PacketIdentifier() PacketIdentifier {
 }
 
 func (x *StructSize) Reset() {
-	x.Read((*StructSizeViewer)(unsafe.Pointer(&_Null)), _NullReader)
+	x.Read((*StructSizeViewer)(unsafe.Pointer(&_Null[0])), _NullReader)
 }
 
 func (x *StructSize) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -369,7 +369,7 @@ func (x *StructFieldSize) PacketIdentifier() PacketIdentifier {
 }
 
 func (x *StructFieldSize) Reset() {
-	x.Read((*StructFieldSizeViewer)(unsafe.Pointer(&_Null)), _NullReader)
+	x.Read((*StructFieldSizeViewer)(unsafe.Pointer(&_Null[0])), _NullReader)
 }
 
 func (x *StructFieldSize) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -421,7 +421,7 @@ func (x *EnumFieldData) PacketIdentifier() PacketIdentifier {
 }
 
 func (x *EnumFieldData) Reset() {
-	x.Read((*EnumFieldDataViewer)(unsafe.Pointer(&_Null)), _NullReader)
+	x.Read((*EnumFieldDataViewer)(unsafe.Pointer(&_Null[0])), _NullReader)
 }
 
 func (x *EnumFieldData) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -517,7 +517,7 @@ func (x *EnumField) PacketIdentifier() PacketIdentifier {
 }
 
 func (x *EnumField) Reset() {
-	x.Read((*EnumFieldViewer)(unsafe.Pointer(&_Null)), _NullReader)
+	x.Read((*EnumFieldViewer)(unsafe.Pointer(&_Null[0])), _NullReader)
 }
 
 func (x *EnumField) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -571,7 +571,7 @@ func (x *EnumData) PacketIdentifier() PacketIdentifier {
 }
 
 func (x *EnumData) Reset() {
-	x.Read((*EnumDataViewer)(unsafe.Pointer(&_Null)), _NullReader)
+	x.Read((*EnumDataViewer)(unsafe.Pointer(&_Null[0])), _NullReader)
 }
 
 func (x *EnumData) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -690,7 +690,7 @@ func (x *Enumeration) PacketIdentifier() PacketIdentifier {
 }
 
 func (x *Enumeration) Reset() {
-	x.Read((*EnumerationViewer)(unsafe.Pointer(&_Null)), _NullReader)
+	x.Read((*EnumerationViewer)(unsafe.Pointer(&_Null[0])), _NullReader)
 }
 
 func (x *Enumeration) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -744,7 +744,7 @@ func (x *StructFieldData) PacketIdentifier() PacketIdentifier {
 }
 
 func (x *StructFieldData) Reset() {
-	x.Read((*StructFieldDataViewer)(unsafe.Pointer(&_Null)), _NullReader)
+	x.Read((*StructFieldDataViewer)(unsafe.Pointer(&_Null[0])), _NullReader)
 }
 
 func (x *StructFieldData) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -848,7 +848,7 @@ func (x *StructField) PacketIdentifier() PacketIdentifier {
 }
 
 func (x *StructField) Reset() {
-	x.Read((*StructFieldViewer)(unsafe.Pointer(&_Null)), _NullReader)
+	x.Read((*StructFieldViewer)(unsafe.Pointer(&_Null[0])), _NullReader)
 }
 
 func (x *StructField) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -904,7 +904,7 @@ func (x *StructData) PacketIdentifier() PacketIdentifier {
 }
 
 func (x *StructData) Reset() {
-	x.Read((*StructDataViewer)(unsafe.Pointer(&_Null)), _NullReader)
+	x.Read((*StructDataViewer)(unsafe.Pointer(&_Null[0])), _NullReader)
 }
 
 func (x *StructData) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -1029,7 +1029,7 @@ func (x *Structure) PacketIdentifier() PacketIdentifier {
 }
 
 func (x *Structure) Reset() {
-	x.Read((*StructureViewer)(unsafe.Pointer(&_Null)), _NullReader)
+	x.Read((*StructureViewer)(unsafe.Pointer(&_Null[0])), _NullReader)
 }
 
 func (x *Structure) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -1079,7 +1079,7 @@ func (x *ContentSize) PacketIdentifier() PacketIdentifier {
 }
 
 func (x *ContentSize) Reset() {
-	x.Read((*ContentSizeViewer)(unsafe.Pointer(&_Null)), _NullReader)
+	x.Read((*ContentSizeViewer)(unsafe.Pointer(&_Null[0])), _NullReader)
 }
 
 func (x *ContentSize) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -1110,94 +1110,6 @@ func (x *ContentSize) Read(viewer *ContentSizeViewer, reader *karmem.Reader) {
 	x.Largest = viewer.Largest()
 }
 
-type ContentOptions struct {
-	Module string
-	Import string
-	Prefix string
-}
-
-func NewContentOptions() ContentOptions {
-	return ContentOptions{}
-}
-
-func (x *ContentOptions) PacketIdentifier() PacketIdentifier {
-	return PacketIdentifierContentOptions
-}
-
-func (x *ContentOptions) Reset() {
-	x.Read((*ContentOptionsViewer)(unsafe.Pointer(&_Null)), _NullReader)
-}
-
-func (x *ContentOptions) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
-	return x.Write(writer, 0)
-}
-
-func (x *ContentOptions) Write(writer *karmem.Writer, start uint) (offset uint, err error) {
-	offset = start
-	size := uint(28)
-	if offset == 0 {
-		offset, err = writer.Alloc(size)
-		if err != nil {
-			return 0, err
-		}
-	}
-	writer.Write4At(offset, uint32(28))
-	__ModuleSize := uint(1 * len(x.Module))
-	__ModuleOffset, err := writer.Alloc(__ModuleSize)
-	if err != nil {
-		return 0, err
-	}
-	writer.Write4At(offset+4, uint32(__ModuleOffset))
-	writer.Write4At(offset+4+4, uint32(__ModuleSize))
-	__ModuleSlice := [3]uint{*(*uint)(unsafe.Pointer(&x.Module)), __ModuleSize, __ModuleSize}
-	writer.WriteAt(__ModuleOffset, *(*[]byte)(unsafe.Pointer(&__ModuleSlice)))
-	__ImportSize := uint(1 * len(x.Import))
-	__ImportOffset, err := writer.Alloc(__ImportSize)
-	if err != nil {
-		return 0, err
-	}
-	writer.Write4At(offset+12, uint32(__ImportOffset))
-	writer.Write4At(offset+12+4, uint32(__ImportSize))
-	__ImportSlice := [3]uint{*(*uint)(unsafe.Pointer(&x.Import)), __ImportSize, __ImportSize}
-	writer.WriteAt(__ImportOffset, *(*[]byte)(unsafe.Pointer(&__ImportSlice)))
-	__PrefixSize := uint(1 * len(x.Prefix))
-	__PrefixOffset, err := writer.Alloc(__PrefixSize)
-	if err != nil {
-		return 0, err
-	}
-	writer.Write4At(offset+20, uint32(__PrefixOffset))
-	writer.Write4At(offset+20+4, uint32(__PrefixSize))
-	__PrefixSlice := [3]uint{*(*uint)(unsafe.Pointer(&x.Prefix)), __PrefixSize, __PrefixSize}
-	writer.WriteAt(__PrefixOffset, *(*[]byte)(unsafe.Pointer(&__PrefixSlice)))
-
-	return offset, nil
-}
-
-func (x *ContentOptions) ReadAsRoot(reader *karmem.Reader) {
-	x.Read(NewContentOptionsViewer(reader, 0), reader)
-}
-
-func (x *ContentOptions) Read(viewer *ContentOptionsViewer, reader *karmem.Reader) {
-	__ModuleString := viewer.Module(reader)
-	if x.Module != __ModuleString {
-		__ModuleStringCopy := make([]byte, len(__ModuleString))
-		copy(__ModuleStringCopy, __ModuleString)
-		x.Module = *(*string)(unsafe.Pointer(&__ModuleStringCopy))
-	}
-	__ImportString := viewer.Import(reader)
-	if x.Import != __ImportString {
-		__ImportStringCopy := make([]byte, len(__ImportString))
-		copy(__ImportStringCopy, __ImportString)
-		x.Import = *(*string)(unsafe.Pointer(&__ImportStringCopy))
-	}
-	__PrefixString := viewer.Prefix(reader)
-	if x.Prefix != __PrefixString {
-		__PrefixStringCopy := make([]byte, len(__PrefixString))
-		copy(__PrefixStringCopy, __PrefixString)
-		x.Prefix = *(*string)(unsafe.Pointer(&__PrefixStringCopy))
-	}
-}
-
 type Content struct {
 	Tags    []Tag
 	Structs []Structure
@@ -1216,7 +1128,7 @@ func (x *Content) PacketIdentifier() PacketIdentifier {
 }
 
 func (x *Content) Reset() {
-	x.Read((*ContentViewer)(unsafe.Pointer(&_Null)), _NullReader)
+	x.Read((*ContentViewer)(unsafe.Pointer(&_Null[0])), _NullReader)
 }
 
 func (x *Content) WriteAsRoot(writer *karmem.Writer) (offset uint, err error) {
@@ -1351,11 +1263,11 @@ type TypeViewer [26]byte
 
 func NewTypeViewer(reader *karmem.Reader, offset uint32) (v *TypeViewer) {
 	if !reader.IsValidOffset(offset, 4) {
-		return (*TypeViewer)(unsafe.Pointer(&_Null))
+		return (*TypeViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	v = (*TypeViewer)(unsafe.Add(reader.Pointer, offset))
 	if !reader.IsValidOffset(offset, v.size()) {
-		return (*TypeViewer)(unsafe.Pointer(&_Null))
+		return (*TypeViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	return v
 }
@@ -1416,7 +1328,7 @@ type PaddingTypeViewer [4]byte
 
 func NewPaddingTypeViewer(reader *karmem.Reader, offset uint32) (v *PaddingTypeViewer) {
 	if !reader.IsValidOffset(offset, 4) {
-		return (*PaddingTypeViewer)(unsafe.Pointer(&_Null))
+		return (*PaddingTypeViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	v = (*PaddingTypeViewer)(unsafe.Add(reader.Pointer, offset))
 	return v
@@ -1434,7 +1346,7 @@ type TagViewer [16]byte
 
 func NewTagViewer(reader *karmem.Reader, offset uint32) (v *TagViewer) {
 	if !reader.IsValidOffset(offset, 16) {
-		return (*TagViewer)(unsafe.Pointer(&_Null))
+		return (*TagViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	v = (*TagViewer)(unsafe.Add(reader.Pointer, offset))
 	return v
@@ -1472,11 +1384,11 @@ type StructSizeViewer [28]byte
 
 func NewStructSizeViewer(reader *karmem.Reader, offset uint32) (v *StructSizeViewer) {
 	if !reader.IsValidOffset(offset, 4) {
-		return (*StructSizeViewer)(unsafe.Pointer(&_Null))
+		return (*StructSizeViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	v = (*StructSizeViewer)(unsafe.Add(reader.Pointer, offset))
 	if !reader.IsValidOffset(offset, v.size()) {
-		return (*StructSizeViewer)(unsafe.Pointer(&_Null))
+		return (*StructSizeViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	return v
 }
@@ -1528,11 +1440,11 @@ type StructFieldSizeViewer [16]byte
 
 func NewStructFieldSizeViewer(reader *karmem.Reader, offset uint32) (v *StructFieldSizeViewer) {
 	if !reader.IsValidOffset(offset, 4) {
-		return (*StructFieldSizeViewer)(unsafe.Pointer(&_Null))
+		return (*StructFieldSizeViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	v = (*StructFieldSizeViewer)(unsafe.Add(reader.Pointer, offset))
 	if !reader.IsValidOffset(offset, v.size()) {
-		return (*StructFieldSizeViewer)(unsafe.Pointer(&_Null))
+		return (*StructFieldSizeViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	return v
 }
@@ -1563,11 +1475,11 @@ type EnumFieldDataViewer [28]byte
 
 func NewEnumFieldDataViewer(reader *karmem.Reader, offset uint32) (v *EnumFieldDataViewer) {
 	if !reader.IsValidOffset(offset, 4) {
-		return (*EnumFieldDataViewer)(unsafe.Pointer(&_Null))
+		return (*EnumFieldDataViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	v = (*EnumFieldDataViewer)(unsafe.Add(reader.Pointer, offset))
 	if !reader.IsValidOffset(offset, v.size()) {
-		return (*EnumFieldDataViewer)(unsafe.Pointer(&_Null))
+		return (*EnumFieldDataViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	return v
 }
@@ -1625,7 +1537,7 @@ type EnumFieldViewer [4]byte
 
 func NewEnumFieldViewer(reader *karmem.Reader, offset uint32) (v *EnumFieldViewer) {
 	if !reader.IsValidOffset(offset, 4) {
-		return (*EnumFieldViewer)(unsafe.Pointer(&_Null))
+		return (*EnumFieldViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	v = (*EnumFieldViewer)(unsafe.Add(reader.Pointer, offset))
 	return v
@@ -1643,11 +1555,11 @@ type EnumDataViewer [33]byte
 
 func NewEnumDataViewer(reader *karmem.Reader, offset uint32) (v *EnumDataViewer) {
 	if !reader.IsValidOffset(offset, 4) {
-		return (*EnumDataViewer)(unsafe.Pointer(&_Null))
+		return (*EnumDataViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	v = (*EnumDataViewer)(unsafe.Add(reader.Pointer, offset))
 	if !reader.IsValidOffset(offset, v.size()) {
-		return (*EnumDataViewer)(unsafe.Pointer(&_Null))
+		return (*EnumDataViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	return v
 }
@@ -1672,7 +1584,7 @@ func (x *EnumDataViewer) Name(reader *karmem.Reader) (v string) {
 }
 func (x *EnumDataViewer) Type(reader *karmem.Reader) (v *TypeViewer) {
 	if 12+4 > x.size() {
-		return (*TypeViewer)(unsafe.Pointer(&_Null))
+		return (*TypeViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 12))
 	return NewTypeViewer(reader, offset)
@@ -1718,7 +1630,7 @@ type EnumerationViewer [4]byte
 
 func NewEnumerationViewer(reader *karmem.Reader, offset uint32) (v *EnumerationViewer) {
 	if !reader.IsValidOffset(offset, 4) {
-		return (*EnumerationViewer)(unsafe.Pointer(&_Null))
+		return (*EnumerationViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	v = (*EnumerationViewer)(unsafe.Add(reader.Pointer, offset))
 	return v
@@ -1736,11 +1648,11 @@ type StructFieldDataViewer [32]byte
 
 func NewStructFieldDataViewer(reader *karmem.Reader, offset uint32) (v *StructFieldDataViewer) {
 	if !reader.IsValidOffset(offset, 4) {
-		return (*StructFieldDataViewer)(unsafe.Pointer(&_Null))
+		return (*StructFieldDataViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	v = (*StructFieldDataViewer)(unsafe.Add(reader.Pointer, offset))
 	if !reader.IsValidOffset(offset, v.size()) {
-		return (*StructFieldDataViewer)(unsafe.Pointer(&_Null))
+		return (*StructFieldDataViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	return v
 }
@@ -1765,7 +1677,7 @@ func (x *StructFieldDataViewer) Name(reader *karmem.Reader) (v string) {
 }
 func (x *StructFieldDataViewer) Type(reader *karmem.Reader) (v *TypeViewer) {
 	if 12+4 > x.size() {
-		return (*TypeViewer)(unsafe.Pointer(&_Null))
+		return (*TypeViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 12))
 	return NewTypeViewer(reader, offset)
@@ -1793,7 +1705,7 @@ func (x *StructFieldDataViewer) Tags(reader *karmem.Reader) (v []TagViewer) {
 }
 func (x *StructFieldDataViewer) Size(reader *karmem.Reader) (v *StructFieldSizeViewer) {
 	if 28+4 > x.size() {
-		return (*StructFieldSizeViewer)(unsafe.Pointer(&_Null))
+		return (*StructFieldSizeViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 28))
 	return NewStructFieldSizeViewer(reader, offset)
@@ -1803,7 +1715,7 @@ type StructFieldViewer [4]byte
 
 func NewStructFieldViewer(reader *karmem.Reader, offset uint32) (v *StructFieldViewer) {
 	if !reader.IsValidOffset(offset, 4) {
-		return (*StructFieldViewer)(unsafe.Pointer(&_Null))
+		return (*StructFieldViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	v = (*StructFieldViewer)(unsafe.Add(reader.Pointer, offset))
 	return v
@@ -1821,11 +1733,11 @@ type StructDataViewer [42]byte
 
 func NewStructDataViewer(reader *karmem.Reader, offset uint32) (v *StructDataViewer) {
 	if !reader.IsValidOffset(offset, 4) {
-		return (*StructDataViewer)(unsafe.Pointer(&_Null))
+		return (*StructDataViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	v = (*StructDataViewer)(unsafe.Add(reader.Pointer, offset))
 	if !reader.IsValidOffset(offset, v.size()) {
-		return (*StructDataViewer)(unsafe.Pointer(&_Null))
+		return (*StructDataViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	return v
 }
@@ -1856,7 +1768,7 @@ func (x *StructDataViewer) Name(reader *karmem.Reader) (v string) {
 }
 func (x *StructDataViewer) Size(reader *karmem.Reader) (v *StructSizeViewer) {
 	if 20+4 > x.size() {
-		return (*StructSizeViewer)(unsafe.Pointer(&_Null))
+		return (*StructSizeViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 20))
 	return NewStructSizeViewer(reader, offset)
@@ -1908,7 +1820,7 @@ type StructureViewer [4]byte
 
 func NewStructureViewer(reader *karmem.Reader, offset uint32) (v *StructureViewer) {
 	if !reader.IsValidOffset(offset, 4) {
-		return (*StructureViewer)(unsafe.Pointer(&_Null))
+		return (*StructureViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	v = (*StructureViewer)(unsafe.Add(reader.Pointer, offset))
 	return v
@@ -1926,11 +1838,11 @@ type ContentSizeViewer [8]byte
 
 func NewContentSizeViewer(reader *karmem.Reader, offset uint32) (v *ContentSizeViewer) {
 	if !reader.IsValidOffset(offset, 4) {
-		return (*ContentSizeViewer)(unsafe.Pointer(&_Null))
+		return (*ContentSizeViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	v = (*ContentSizeViewer)(unsafe.Add(reader.Pointer, offset))
 	if !reader.IsValidOffset(offset, v.size()) {
-		return (*ContentSizeViewer)(unsafe.Pointer(&_Null))
+		return (*ContentSizeViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	return v
 }
@@ -1945,77 +1857,15 @@ func (x *ContentSizeViewer) Largest() (v uint32) {
 	return *(*uint32)(unsafe.Add(unsafe.Pointer(x), 4))
 }
 
-type ContentOptionsViewer [28]byte
-
-func NewContentOptionsViewer(reader *karmem.Reader, offset uint32) (v *ContentOptionsViewer) {
-	if !reader.IsValidOffset(offset, 4) {
-		return (*ContentOptionsViewer)(unsafe.Pointer(&_Null))
-	}
-	v = (*ContentOptionsViewer)(unsafe.Add(reader.Pointer, offset))
-	if !reader.IsValidOffset(offset, v.size()) {
-		return (*ContentOptionsViewer)(unsafe.Pointer(&_Null))
-	}
-	return v
-}
-
-func (x *ContentOptionsViewer) size() uint32 {
-	return *(*uint32)(unsafe.Pointer(x))
-}
-func (x *ContentOptionsViewer) Module(reader *karmem.Reader) (v string) {
-	if 4+8 > x.size() {
-		return v
-	}
-	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 4))
-	size := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 4+4))
-	if !reader.IsValidOffset(offset, size) {
-		return ""
-	}
-	length := uintptr(size / 1)
-	slice := [3]uintptr{
-		uintptr(unsafe.Add(reader.Pointer, offset)), length, length,
-	}
-	return *(*string)(unsafe.Pointer(&slice))
-}
-func (x *ContentOptionsViewer) Import(reader *karmem.Reader) (v string) {
-	if 12+8 > x.size() {
-		return v
-	}
-	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 12))
-	size := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 12+4))
-	if !reader.IsValidOffset(offset, size) {
-		return ""
-	}
-	length := uintptr(size / 1)
-	slice := [3]uintptr{
-		uintptr(unsafe.Add(reader.Pointer, offset)), length, length,
-	}
-	return *(*string)(unsafe.Pointer(&slice))
-}
-func (x *ContentOptionsViewer) Prefix(reader *karmem.Reader) (v string) {
-	if 20+8 > x.size() {
-		return v
-	}
-	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 20))
-	size := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 20+4))
-	if !reader.IsValidOffset(offset, size) {
-		return ""
-	}
-	length := uintptr(size / 1)
-	slice := [3]uintptr{
-		uintptr(unsafe.Add(reader.Pointer, offset)), length, length,
-	}
-	return *(*string)(unsafe.Pointer(&slice))
-}
-
 type ContentViewer [41]byte
 
 func NewContentViewer(reader *karmem.Reader, offset uint32) (v *ContentViewer) {
 	if !reader.IsValidOffset(offset, 4) {
-		return (*ContentViewer)(unsafe.Pointer(&_Null))
+		return (*ContentViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	v = (*ContentViewer)(unsafe.Add(reader.Pointer, offset))
 	if !reader.IsValidOffset(offset, v.size()) {
-		return (*ContentViewer)(unsafe.Pointer(&_Null))
+		return (*ContentViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	return v
 }
@@ -2070,7 +1920,7 @@ func (x *ContentViewer) Enums(reader *karmem.Reader) (v []EnumerationViewer) {
 }
 func (x *ContentViewer) Size(reader *karmem.Reader) (v *ContentSizeViewer) {
 	if 28+4 > x.size() {
-		return (*ContentSizeViewer)(unsafe.Pointer(&_Null))
+		return (*ContentSizeViewer)(unsafe.Pointer(&_Null[0]))
 	}
 	offset := *(*uint32)(unsafe.Add(unsafe.Pointer(x), 28))
 	return NewContentSizeViewer(reader, offset)

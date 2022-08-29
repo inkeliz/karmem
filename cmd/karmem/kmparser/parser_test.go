@@ -2,12 +2,15 @@ package kmparser
 
 import (
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
 	"unsafe"
 
+	"github.com/google/go-cmp/cmp"
 	"golang.org/x/crypto/blake2b"
+	karmem "karmem.org/golang"
 )
 
 func TestNewReader(t *testing.T) {
@@ -267,15 +270,21 @@ func TestInlining(t *testing.T) {
 		t.Error(err)
 	}
 
-	for _, v := range k.Structs {
-		if v.Data.ID == 0 {
+	for _, s := range k.Structs {
+		if s.Data.ID == 0 {
 			t.Errorf("invalid id")
 		}
-		for _, v := range v.Data.Fields {
+		for _, v := range s.Data.Fields {
 			switch {
 			case strings.Contains(v.Data.Name, "BasicPtr"):
 				if v.Data.Type.IsInline() {
 					t.Errorf("expect inline at %s %v", v.Data.Name, v.Data.Type.IsInline())
+				}
+				if v.Data.Type.IsNative() {
+					t.Errorf("expect inline at %s %v", v.Data.Name, v.Data.Type.IsArray())
+				}
+				if v.Data.Type.IsInteger() {
+					t.Errorf("expect inline at %s %v", v.Data.Name, v.Data.Type.IsArray())
 				}
 				if !v.Data.Type.IsBasic() {
 					t.Errorf("expect array at %s %v", v.Data.Name, v.Data.Type.IsInline())
@@ -294,8 +303,25 @@ func TestInlining(t *testing.T) {
 				if v.Data.Type.Length == 0 {
 					t.Errorf("unexpected zero length at %s", v.Data.Name)
 				}
-				fallthrough
+				if v.Data.Type.IsInline() {
+					t.Errorf("expect inline at %s %v", v.Data.Name, v.Data.Type.IsInline())
+				}
+				if !v.Data.Type.IsSlice() {
+					t.Errorf("expect slice at %s %v", v.Data.Name, v.Data.Type.IsInline())
+				}
+				if _, packed := Tags(s.Data.Tags).Get("packed"); packed {
+					if v.Data.Size.Field != 8 {
+						t.Errorf("wrong size at %s with size %d", v.Data.Name, v.Data.Size.Field)
+					}
+				} else {
+					if v.Data.Size.Field != 12 {
+						t.Errorf("wrong size at %s with size %d", v.Data.Name, v.Data.Size.Field)
+					}
+				}
 			case strings.Contains(v.Data.Name, "String"):
+				if !v.Data.Type.IsString() {
+					t.Errorf("expect string at %s %v", v.Data.Name, v.Data.Type.IsString())
+				}
 				fallthrough
 			case strings.Contains(v.Data.Name, "Slice"):
 				if v.Data.Type.IsInline() {
@@ -304,8 +330,14 @@ func TestInlining(t *testing.T) {
 				if !v.Data.Type.IsSlice() {
 					t.Errorf("expect slice at %s %v", v.Data.Name, v.Data.Type.IsInline())
 				}
-				if v.Data.Size.Field != 12 {
-					t.Errorf("wrong size at %s with size %d", v.Data.Name, v.Data.Size.Field)
+				if _, packed := Tags(s.Data.Tags).Get("packed"); packed {
+					if v.Data.Size.Field != 8 {
+						t.Errorf("wrong size at %s with size %d", v.Data.Name, v.Data.Size.Field)
+					}
+				} else {
+					if v.Data.Size.Field != 12 {
+						t.Errorf("wrong size at %s with size %d", v.Data.Name, v.Data.Size.Field)
+					}
 				}
 			default:
 				if v.Data.Type.IsLimited() {
@@ -360,5 +392,52 @@ func TestEntropyIdentifier(t *testing.T) {
 	if *(*uint64)(unsafe.Pointer(&h.Sum(nil)[0])) != parsed.Structs[1].Data.ID {
 		t.Error("invalid id")
 	}
+}
 
+func TestCachedResult(t *testing.T) {
+	files, err := filepath.Glob("testdata/*.km")
+	if err != nil {
+		t.Error(err)
+	}
+
+	writer := karmem.NewWriter(0)
+	for _, path := range files {
+		f, err := os.Open(path)
+		if err != nil {
+			t.Error(f)
+			return
+		}
+
+		r := NewReader(path, f)
+		parsed, err := r.Parser()
+		if err != nil {
+			continue
+		}
+
+		writer.Reset()
+		if _, err := parsed.WriteAsRoot(writer); err != nil {
+			t.Error(err)
+		}
+
+		var result Content
+		result.ReadAsRoot(karmem.NewReader(writer.Bytes()))
+
+		if !cmp.Equal(parsed, &result) {
+			t.Error("not equal")
+		}
+	}
+}
+
+func TestCorruptedCachedResult(t *testing.T) {
+	mem := make([]byte, 1024)
+	for i := 0; i < len(mem); i++ {
+		mem[i] = 0xFF
+	}
+
+	var result Content
+	result.ReadAsRoot(karmem.NewReader(mem))
+
+	if !cmp.Equal(Content{}, result) {
+		t.Error("not equal")
+	}
 }

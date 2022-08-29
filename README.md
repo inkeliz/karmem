@@ -52,9 +52,9 @@ karmem app @packed(true) @golang.package(`app`);
 enum SocialNetwork uint8 { Unknown; Facebook; Instagram; Twitter; TikTok; }  
   
 struct ProfileData table {  
-    Network SocialNetwork;  
+    Network  SocialNetwork;  
     Username []char;  
-    ID uint64;  
+    ID       uint64;  
 }  
   
 struct Profile inline {  
@@ -62,8 +62,8 @@ struct Profile inline {
 }  
   
 struct AccountData table {  
-    ID uint64;  
-    Email []char;  
+    ID       uint64;  
+    Email    []char;  
     Profiles []Profile;  
 }
 ```
@@ -78,7 +78,7 @@ In order to encode, use should create an native struct and then encode it.
 var writerPool = sync.Pool{New: func() any { return karmem.NewWriter(1024) }}
 
 func main() {
-	var writer = writerPool.Get().(*karmem.Writer)
+	writer := writerPool.Get().(*karmem.Writer)
 
 	content := app.AccountData{
 		ID:    42,
@@ -126,12 +126,14 @@ func decodes(encoded []byte) {
 
 	profiles := account.Profiles(reader)
 	for i := range profiles {
-		fmt.Println(string(profiles[i].Data(reader).Username(reader)))
+		fmt.Println(profiles[i].Data(reader).Username(reader))
 	}
 }
 ```
 
-Notice: we use `NewAccountDataViewer`, any `Viewer` is just a Viewer, and doesn't copy the backend data.
+Notice: we use `NewAccountDataViewer`, any `Viewer` is just a Viewer, and doesn't copy the backend data. Some 
+languages (C#, AssemblyScript) uses UTF-16, while Karmem uses UTF-8, in those cases you have some performance 
+penalty.
 
 ### Decoding
 
@@ -251,8 +253,8 @@ Currently, we have focus on WebAssembly, and because of that those are the langu
 - Swift 5.7/SwiftWasm 5.7
 - Zig 0.10
 
-Some languages still under development, and doesn't have any backward compatibility promise. We weill try 
-to keep up with the latest version. As such, the API generated and the libraries should not consider stable.
+Some languages still under development, and doesn't have any backward compatibility promise. We will try 
+to keep up with the latest version. Currently, the API generated and the libraries should not consider stable.
 
 ### Features
 
@@ -292,15 +294,15 @@ struct Vec3 inline {
 }
 
 struct MonsterData table {
-    Pos Vec3;
-    Mana int16;
-    Health int16;
-    Name []char;
-    Team Team;
+    Pos       Vec3;
+    Mana      int16;
+    Health    int16;
+    Name      []char;
+    Team      Team;
     Inventory [<128]byte;
-    Hitbox [4]float64;
-    Status []int32;
-    Path [<128]Vec3;
+    Hitbox    [4]float64;
+    Status    []int32;
+    Path      [<128]Vec3;
 }
 
 struct Monster inline {
@@ -357,9 +359,9 @@ without breaking compatibility.
 
 ```go
 struct Vec3 inline {
-X float32;
-Y float32;
-Z float32;
+    X float32;
+    Y float32;
+    Z float32;
 }
 ```
 
@@ -372,9 +374,9 @@ without breaking compatibility.
 
 ```go
 struct User table {
-Name []char;
-Email []char;
-Password []char;
+    Name     []char;
+    Email    []char;
+    Password []char;
 }
 ```
 
@@ -382,25 +384,27 @@ Let's consider that you need another field... For tables, it's not an issue:
 
 ```go
 struct User table {
-Name []char;
-Email []char;
-Password []char;
-Telephone []char;
+    Name      []char;
+    Email     []char;
+    Password  []char;
+    Telephone []char;
 }
 ```
 
-Since it's a table, you can add new fields at the bottom of the struct, and both versions are compatible between them.
+Since it's a table, you can add new fields at the bottom of the struct, and both versions are compatible between them. If
+the message is sent to a client that doesn't understand the new field, it will be ignored. If one outdated client sends a
+message to a newer client, the new field will have the default value (0, false, empty string, etc).
 
 ### Enums:
 
 Enums can be used as an alias to Integers type, such as `uint8`.
 
-```
+```go
 enum Team uint8 {
-Unknown;
-Humans;
-Orcs;
-Zombies = 255;
+    Unknown;
+    Humans;
+    Orcs;
+    Zombies = 255;
 }
 ```
 
@@ -449,6 +453,32 @@ Karmem allows one pointer/offset can be re-used multiple times in the same messa
 it possible for a short message to generate more extensive arrays than the message size. Currently, the only mitigation
 for that issue is using Limited-Arrays instead of Arrays and avoiding Object-API decode.
 
+**Data Leak**
 
+Karmem doesn't clear the memory before encoding, that may leak information from the previous message or from system
+memory itself. That can be solved using `@packed(true)` tag, as previously described. The `packed` tag will remove
+padding from the message, which will prevent the leak. Alternatively, you can clear the memory before encoding,
+manually.
 
+# Limitations
+
+Karmem have some limitations compared to other serialization libraries, such as:
+
+**Maximum Size**
+
+Similar to Google Protobuf and Google Flatbuffers, Karmem has a maximum size of 2GB. That is the maximum size of the entire
+message, not the maximum size of each array. This limitation is due to the fact that WASM is designed to be 32-bit,
+and the maximum size of 2GB seems adequate for the current needs. The current Writer doesn't enforce this limitation,
+but reading a message that is bigger than 2GB will cause undefined behaviour.
+
+**Arrays of Arrays/Tables**
+
+Karmem doesn't support arrays of arrays or arrays of tables. However, it's possible to wrap those types inside one
+inline-struct, as mentioned above. That limitation was imposed to take advantage of native arrays/slice from the
+language. Most languages encapsulates the pointer and the size of the array inside a struct-like, that requires 
+the size of each element to be known, consequently preventing arrays of items with variable size/strides.
+
+**UTF-8**
+
+Karmem only supports UTF-8 and doesn't support other encodings.
 

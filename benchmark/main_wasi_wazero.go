@@ -12,7 +12,7 @@ import (
 
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
-	"github.com/tetratelabs/wazero/wasi_snapshot_preview1"
+	"github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
 	"golang.org/x/text/encoding/unicode"
 )
 
@@ -22,7 +22,7 @@ func initBridge(b interface {
 }, fn ...string) Bridge {
 	w := &WasmWazero{}
 	var err error
-	w.runtime = wazero.NewRuntimeWithConfig(wazero.NewRuntimeConfigCompiler().WithWasmCore2())
+	w.runtime = wazero.NewRuntimeWithConfig(context.Background(), wazero.NewRuntimeConfigCompiler().WithWasmCore2())
 
 	_, err = wasi_snapshot_preview1.Instantiate(context.Background(), w.runtime)
 	if err != nil {

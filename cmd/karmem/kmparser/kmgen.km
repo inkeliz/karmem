@@ -22,6 +22,42 @@ enum TypeFormat uint8 {
     Table;
 }
 
+enum RuleType uint16 {
+    None;
+    ReservedName;
+    ReservedType;
+    DuplicateName;
+    DuplicateType;
+    CollisionName;
+    CollisionType;
+}
+
+enum Language uint64 {
+    None           = 0;
+    AssemblyScript = 1;
+    Zig            = 2;
+    C              = 4;
+    Swift          = 8;
+    Dotnet         = 16;
+    Odin           = 32;
+    Golang         = 64;
+    Rust           = 128;
+    Nim            = 256;
+    Kotlin         = 512;
+    D              = 1024;
+    Haskell        = 2048;
+    Crystal        = 4096;
+    Typescript     = 8192;
+    PHP            = 16384;
+    Python         = 32768;
+}
+
+
+struct SchemaPosition table @id(`8944966152016866568`) {
+    File   []char;
+    Line   uint32;
+    Column uint32;
+}
 
 struct Type table @id(`2206764383142231373`) {
     Schema      []char;
@@ -29,6 +65,17 @@ struct Type table @id(`2206764383142231373`) {
     Length      uint32;
     Format      TypeFormat;
     Model       TypeModel;
+}
+
+struct WarningData table @id(`9648278712160971894`) {
+    Message   []char;
+    Rule      []char;
+    Type      RuleType;
+    Languages Language;
+}
+
+struct Warning inline @id(`5319256325625522744`) {
+    Data WarningData;
 }
 
 struct PaddingType inline @id(`6449815373135188035`) {
@@ -55,9 +102,11 @@ struct StructFieldSize table @id(`3117293985139574571`) {
 }
 
 struct EnumFieldData table @id(`6917629752752470509`) {
-    Name  []char;
-    Value []char;
-    Tags  []Tag;
+    Name     []char;
+    Value    []char;
+    Tags     []Tag;
+    Position SchemaPosition;
+    Warnings []Warning;
 }
 
 struct EnumField inline @id(`18350873289003309128`) {
@@ -70,6 +119,8 @@ struct EnumData table @id(`18057555498029063613`) {
     Fields       []EnumField;
     Tags         []Tag;
     IsSequential bool;
+    Position     SchemaPosition;
+    Warnings     []Warning;
 }
 
 struct Enumeration inline @id(`1253319329451847685`) {
@@ -77,11 +128,13 @@ struct Enumeration inline @id(`1253319329451847685`) {
 }
 
 struct StructFieldData table @id(`17962757807284521522`) {
-    Name   []char;
-    Type   Type;
-    Offset uint32;
-    Tags   []Tag;
-    Size   StructFieldSize;
+    Name     []char;
+    Type     Type;
+    Offset   uint32;
+    Tags     []Tag;
+    Size     StructFieldSize;
+    Position SchemaPosition;
+    Warnings []Warning;
 }
 
 struct StructField inline @id(`12155838558451759529`) {
@@ -89,13 +142,15 @@ struct StructField inline @id(`12155838558451759529`) {
 }
 
 struct StructData table @id(`8290009745541165076`) {
-    ID     uint64;
-    Name   []char;
-    Size   StructSize;
-    Fields []StructField;
-    Class  StructClass;
-    Tags   []Tag;
-    Packed bool;
+    ID       uint64;
+    Name     []char;
+    Size     StructSize;
+    Fields   []StructField;
+    Class    StructClass;
+    Tags     []Tag;
+    Packed   bool;
+    Position SchemaPosition;
+    Warnings []Warning;
 }
 
 struct Structure inline @id(`18088017590773436939`) {
@@ -104,12 +159,6 @@ struct Structure inline @id(`18088017590773436939`) {
 
 struct ContentSize table @id(`8764462619562198222`) {
     Largest uint32;
-}
-
-struct ContentOptions table @id(`12347233001904861813`) {
-    Module []char;
-    Import []char;
-    Prefix []char;
 }
 
 struct Content table @id(`6792576797909524956`) {

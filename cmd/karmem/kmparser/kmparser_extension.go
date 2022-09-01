@@ -83,6 +83,6 @@ func (x *Type) IsEnum() bool {
 	return x.Format == TypeFormatEnum
 }
 
-func (x StructData) IsTable() bool {
+func (x *StructData) IsTable() bool {
 	return x.Class == StructClassTable
 }

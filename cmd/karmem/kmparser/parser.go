@@ -15,11 +15,13 @@ import (
 )
 
 //go:generate go run ../main.go build -golang kmgen.km
-//go:generate go run ../main.go fmt -s kmgen.km
+//go:generate go run ../main.go fmt -w kmgen.km
 
 // Reader reads and decodes Karmem files.
 type Reader struct {
-	Parsed     Content
+	Parsed           Content
+	WarningsDisabled bool
+
 	hasher     func(s string) uint64
 	hasherHash hash.Hash
 	hasherKey  []byte
@@ -225,6 +227,10 @@ func unicodeSpaceTab(r rune) bool {
 func (r *Reader) enumName() parserFunc {
 	b := r.nextRune()
 	t := &r.Parsed.Enums[len(r.Parsed.Enums)-1].Data
+	t.Position.File = r.path
+	t.Position.Line = uint32(r.line)
+	t.Position.Column = uint32(r.column)
+
 	switch {
 	case unicodeSpaceTab(b) && len(t.Name) > 0:
 		return r.skipSpace(r.enumType)
@@ -277,6 +283,10 @@ func (r *Reader) enumFieldName() parserFunc {
 	b := r.nextRune()
 	t := &r.Parsed.Enums[len(r.Parsed.Enums)-1].Data
 	f := &t.Fields[len(t.Fields)-1].Data
+	f.Position.File = r.path
+	f.Position.Line = uint32(r.line)
+	f.Position.Column = uint32(r.column)
+
 	switch {
 	case b == ';':
 		r.prevRune()
@@ -452,6 +462,9 @@ func (r *Reader) structInit() parserFunc {
 func (r *Reader) structName() parserFunc {
 	b := r.nextRune()
 	t := &r.Parsed.Structs[len(r.Parsed.Structs)-1].Data
+	t.Position.File = r.path
+	t.Position.Line = uint32(r.line)
+	t.Position.Column = uint32(r.column)
 
 	switch {
 	case unicodeSpaceTab(b) && len(t.Name) > 0:
@@ -547,6 +560,9 @@ func (r *Reader) structFieldName() parserFunc {
 	b := r.nextRune()
 	t := &r.Parsed.Structs[len(r.Parsed.Structs)-1].Data
 	f := &t.Fields[len(t.Fields)-1].Data
+	f.Position.File = r.path
+	f.Position.Line = uint32(r.line)
+	f.Position.Column = uint32(r.column)
 
 	switch {
 	case unicode.IsSpace(b) && len(f.Name) == 0:

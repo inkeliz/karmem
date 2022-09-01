@@ -1,4 +1,5 @@
-# KARMEM
+# KARMEM 
+[![builds.sr.ht status](https://builds.sr.ht/~inkeliz/karmem/commits.svg)](https://builds.sr.ht/~inkeliz/karmem/commits?)  [![Coverage Status](https://coveralls.io/repos/github/inkeliz/karmem/badge.svg?branch=master)](https://coveralls.io/github/inkeliz/karmem?branch=master) [![Go Report Card](https://goreportcard.com/badge/karmem.org)](https://goreportcard.com/report/karmem.org) ![GitHub license](https://badgen.net/github/license/inkeliz/karmem)
 
 Karmem is a fast binary serialization format. The priority of Karmem is to be
 easy to use while been fast as possible. It's optimized to take Golang and

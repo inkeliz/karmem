@@ -43,6 +43,22 @@ public enum Team : byte {
     Aliens = 4,
 }
     
+internal static unsafe class _GlobalsReflect
+{
+    public static System.Reflection.FieldInfo _Size_12254962724431809041_29 = typeof(List<byte>).GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
+    public static System.Reflection.FieldInfo _Items_12254962724431809041_29 = typeof(List<byte>).GetField("_items", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
+    public static System.Reflection.FieldInfo _Size_12254962724431809041_38 = typeof(List<double>).GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
+    public static System.Reflection.FieldInfo _Items_12254962724431809041_38 = typeof(List<double>).GetField("_items", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
+    public static System.Reflection.FieldInfo _Size_12254962724431809041_78 = typeof(List<int>).GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
+    public static System.Reflection.FieldInfo _Items_12254962724431809041_78 = typeof(List<int>).GetField("_items", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
+    public static System.Reflection.FieldInfo _Size_12254962724431809041_86 = typeof(List<Weapon>).GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
+    public static System.Reflection.FieldInfo _Items_12254962724431809041_86 = typeof(List<Weapon>).GetField("_items", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
+    public static System.Reflection.FieldInfo _Size_12254962724431809041_102 = typeof(List<Vec3>).GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
+    public static System.Reflection.FieldInfo _Items_12254962724431809041_102 = typeof(List<Vec3>).GetField("_items", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
+    public static System.Reflection.FieldInfo _Size_14096677544474027661_4 = typeof(List<Monster>).GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
+    public static System.Reflection.FieldInfo _Items_14096677544474027661_4 = typeof(List<Monster>).GetField("_items", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
+}
+
 public enum PacketIdentifier : ulong {
     Vec3 = 10268726485798425099,
     WeaponData = 15342010214468761012,
@@ -316,13 +332,11 @@ public unsafe struct MonsterData {
         var __ColorOffset = offset+37;
         writer.WriteAt(__ColorOffset, (long)this._Color);
         var __HitboxOffset = offset+38;
-        for (var i = 0; i < 5; i++) {
-            if (i < this._Hitbox.Count) {
-                writer.WriteAt(__HitboxOffset, this._Hitbox[i]);
-            } else {
-                writer.WriteAt(__HitboxOffset, 0);
+        if (this._Hitbox.Count > 0) {
+            var array = (double[])_GlobalsReflect._Items_12254962724431809041_38.GetValue(this._Hitbox);
+            fixed (void* first = &array[0]) {
+                Buffer.MemoryCopy(first, (writer.Memory + new IntPtr(__HitboxOffset)).ToPointer(), this._Hitbox.Count * 8, this._Hitbox.Count * 8);
             }
-            __HitboxOffset += 8;
         }
         var __StatusSize = (uint)(4 * this._Status.Count);
         var __StatusOffset = writer.Alloc(__StatusSize);
@@ -382,11 +396,10 @@ public unsafe struct MonsterData {
                     this._Inventory.Add(0);
                 }
             }
-            this._Inventory.GetType().GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField).SetValue(this._Inventory, __InventoryLen);
+            _GlobalsReflect._Size_12254962724431809041_29.SetValue(this._Inventory, __InventoryLen);
         }
-        for (var i = 0; i < __InventoryLen; i++) {
-            this._Inventory[i] = __InventorySlice[i];
-        }
+        var __InventorySpan = CollectionsMarshal.AsSpan(this._Inventory);
+        __InventorySlice.TryCopyTo(__InventorySpan);
         this._Color = (Color)(viewer.Color());
         var __HitboxSlice = viewer.Hitbox();
         var __HitboxLen = __HitboxSlice.Length;
@@ -400,11 +413,10 @@ public unsafe struct MonsterData {
                     this._Hitbox.Add(0);
                 }
             }
-            this._Hitbox.GetType().GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField).SetValue(this._Hitbox, __HitboxLen);
+            _GlobalsReflect._Size_12254962724431809041_38.SetValue(this._Hitbox, __HitboxLen);
         }
-        for (var i = 0; i < __HitboxLen; i++) {
-            this._Hitbox[i] = __HitboxSlice[i];
-        }
+        var __HitboxSpan = CollectionsMarshal.AsSpan(this._Hitbox);
+        __HitboxSlice.TryCopyTo(__HitboxSpan);
         for (var i = __HitboxLen; i < this._Hitbox.Count; i++) {
             this._Hitbox[i] = 0;
         }
@@ -417,11 +429,10 @@ public unsafe struct MonsterData {
                     this._Status.Add(0);
                 }
             }
-            this._Status.GetType().GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField).SetValue(this._Status, __StatusLen);
+            _GlobalsReflect._Size_12254962724431809041_78.SetValue(this._Status, __StatusLen);
         }
-        for (var i = 0; i < __StatusLen; i++) {
-            this._Status[i] = __StatusSlice[i];
-        }
+        var __StatusSpan = CollectionsMarshal.AsSpan(this._Status);
+        __StatusSlice.TryCopyTo(__StatusSpan);
         var __WeaponsSlice = viewer.Weapons();
         var __WeaponsLen = __WeaponsSlice.Length;
         if (__WeaponsLen > 4) {
@@ -434,7 +445,7 @@ public unsafe struct MonsterData {
                     this._Weapons.Add(new Weapon());
                 }
             }
-            this._Weapons.GetType().GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField).SetValue(this._Weapons, __WeaponsLen);
+            _GlobalsReflect._Size_12254962724431809041_86.SetValue(this._Weapons, __WeaponsLen);
         }
         var __WeaponsSpan = CollectionsMarshal.AsSpan(this._Weapons);
         for (var i = 0; i < __WeaponsLen; i++) {
@@ -454,7 +465,7 @@ public unsafe struct MonsterData {
                     this._Path.Add(new Vec3());
                 }
             }
-            this._Path.GetType().GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField).SetValue(this._Path, __PathLen);
+            _GlobalsReflect._Size_12254962724431809041_102.SetValue(this._Path, __PathLen);
         }
         var __PathSpan = CollectionsMarshal.AsSpan(this._Path);
         for (var i = 0; i < __PathLen; i++) {
@@ -591,7 +602,7 @@ public unsafe struct Monsters {
                     this._Monsters.Add(new Monster());
                 }
             }
-            this._Monsters.GetType().GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField).SetValue(this._Monsters, __MonstersLen);
+            _GlobalsReflect._Size_14096677544474027661_4.SetValue(this._Monsters, __MonstersLen);
         }
         var __MonstersSpan = CollectionsMarshal.AsSpan(this._Monsters);
         for (var i = 0; i < __MonstersLen; i++) {
@@ -611,7 +622,7 @@ public unsafe struct Vec3Viewer {
         if (!reader.IsValidOffset(offset, 12)) {
             return ref *(Vec3Viewer*)(nuint)_Globals.Null();
         }
-        ref Vec3Viewer v = ref *(Vec3Viewer*)(reader.MemoryPointer + offset);
+        ref Vec3Viewer v = ref Unsafe.AsRef<Vec3Viewer>((void*)(reader.MemoryPointer + offset));
         return ref v;
     }
 
@@ -645,7 +656,7 @@ public unsafe struct WeaponDataViewer {
         if (!reader.IsValidOffset(offset, 4)) {
             return ref *(WeaponDataViewer*)(nuint)_Globals.Null();
         }
-        ref WeaponDataViewer v = ref *(WeaponDataViewer*)(reader.MemoryPointer + offset);
+        ref WeaponDataViewer v = ref Unsafe.AsRef<WeaponDataViewer>((void*)(reader.MemoryPointer + offset));
         if (!reader.IsValidOffset(offset, v.KarmemSizeOf())) {
             return ref *(WeaponDataViewer*)(nuint)_Globals.Null();
         }
@@ -702,7 +713,7 @@ public unsafe struct WeaponViewer {
         if (!reader.IsValidOffset(offset, 4)) {
             return ref *(WeaponViewer*)(nuint)_Globals.Null();
         }
-        ref WeaponViewer v = ref *(WeaponViewer*)(reader.MemoryPointer + offset);
+        ref WeaponViewer v = ref Unsafe.AsRef<WeaponViewer>((void*)(reader.MemoryPointer + offset));
         return ref v;
     }
 
@@ -741,7 +752,7 @@ public unsafe struct MonsterDataViewer {
         if (!reader.IsValidOffset(offset, 4)) {
             return ref *(MonsterDataViewer*)(nuint)_Globals.Null();
         }
-        ref MonsterDataViewer v = ref *(MonsterDataViewer*)(reader.MemoryPointer + offset);
+        ref MonsterDataViewer v = ref Unsafe.AsRef<MonsterDataViewer>((void*)(reader.MemoryPointer + offset));
         if (!reader.IsValidOffset(offset, v.KarmemSizeOf())) {
             return ref *(MonsterDataViewer*)(nuint)_Globals.Null();
         }
@@ -757,7 +768,7 @@ public unsafe struct MonsterDataViewer {
         if (4 + 12 > this.KarmemSizeOf()) {
             return ref *(Vec3Viewer*)((nuint)_Globals.Null());
         }
-        return ref *(Vec3Viewer*)((nuint)Unsafe.AsPointer(ref this) + 4);
+        return ref Unsafe.AsRef<Vec3Viewer>((void*)((nuint)Unsafe.AsPointer(ref this) + 4));
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public short Mana() {
@@ -883,7 +894,7 @@ public unsafe struct MonsterViewer {
         if (!reader.IsValidOffset(offset, 4)) {
             return ref *(MonsterViewer*)(nuint)_Globals.Null();
         }
-        ref MonsterViewer v = ref *(MonsterViewer*)(reader.MemoryPointer + offset);
+        ref MonsterViewer v = ref Unsafe.AsRef<MonsterViewer>((void*)(reader.MemoryPointer + offset));
         return ref v;
     }
 
@@ -908,7 +919,7 @@ public unsafe struct MonstersViewer {
         if (!reader.IsValidOffset(offset, 4)) {
             return ref *(MonstersViewer*)(nuint)_Globals.Null();
         }
-        ref MonstersViewer v = ref *(MonstersViewer*)(reader.MemoryPointer + offset);
+        ref MonstersViewer v = ref Unsafe.AsRef<MonstersViewer>((void*)(reader.MemoryPointer + offset));
         if (!reader.IsValidOffset(offset, v.KarmemSizeOf())) {
             return ref *(MonstersViewer*)(nuint)_Globals.Null();
         }

@@ -49,6 +49,20 @@ public enum {{$root.Data.Name}} : {{ToType $root.Data.Type}} {
 {{define "struct"}}
 {{- /*gotype: karmem.org/cmd/karmem/kmparser.File*/ -}}
 
+internal static unsafe class _GlobalsReflect
+{
+{{- range $root := .Structs }}
+    {{- range $field := $root.Data.Fields }}
+    {{- if or $field.Data.Type.IsSlice $field.Data.Type.IsArray }}
+    {{- if not $field.Data.Type.IsString }}
+    public static System.Reflection.FieldInfo _Size_{{$root.Data.ID}}_{{$field.Data.Offset}} = typeof({{ToType $field.Data.Type}}).GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
+    public static System.Reflection.FieldInfo _Items_{{$root.Data.ID}}_{{$field.Data.Offset}} = typeof({{ToType $field.Data.Type}}).GetField("_items", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
+    {{- end }}
+    {{- end }}
+    {{- end }}
+{{- end }}
+}
+
 public enum PacketIdentifier : ulong {
 {{- range $root := .Structs}}
     {{$root.Data.Name}} = {{$root.Data.ID}},
@@ -129,13 +143,11 @@ public unsafe struct {{$root.Data.Name}} {
         {{- if or $field.Data.Type.IsNative $field.Data.Type.IsEnum }}
             {{- if $field.Data.Type.IsInline}}
                 {{- if $field.Data.Type.IsArray }}
-        for (var i = 0; i < {{$field.Data.Type.Length}}; i++) {
-            if (i < this._{{$field.Data.Name}}.Count) {
-                writer.WriteAt(__{{$field.Data.Name}}Offset, this._{{$field.Data.Name}}[i]);
-            } else {
-                writer.WriteAt(__{{$field.Data.Name}}Offset, {{ToPlainDefault $field.Data.Type}});
+        if (this._{{$field.Data.Name}}.Count > 0) {
+            var array = ({{ToPlainType $field.Data.Type}}[])_GlobalsReflect._Items_{{$root.Data.ID}}_{{$field.Data.Offset}}.GetValue(this._{{$field.Data.Name}});
+            fixed (void* first = &array[0]) {
+                Buffer.MemoryCopy(first, (writer.Memory + new IntPtr(__{{$field.Data.Name}}Offset)).ToPointer(), this._{{$field.Data.Name}}.Count * {{$field.Data.Size.Allocation}}, this._{{$field.Data.Name}}.Count * {{$field.Data.Size.Allocation}});
             }
-            __{{$field.Data.Name}}Offset += {{$field.Data.Size.Allocation}};
         }
                 {{- else }}
             {{- if $field.Data.Type.IsEnum }}
@@ -217,12 +229,11 @@ public unsafe struct {{$root.Data.Name}} {
                     this._{{$field.Data.Name}}.Add({{ToPlainDefault $field.Data.Type}});
                 }
             }
-            this._{{$field.Data.Name}}.GetType().GetField("_size", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField).SetValue(this._{{$field.Data.Name}}, __{{$field.Data.Name}}Len);
+            _GlobalsReflect._Size_{{$root.Data.ID}}_{{$field.Data.Offset}}.SetValue(this._{{$field.Data.Name}}, __{{$field.Data.Name}}Len);
         }
         {{- if $field.Data.Type.IsNative}}
-        for (var i = 0; i < __{{$field.Data.Name}}Len; i++) {
-            this._{{$field.Data.Name}}[i] = __{{$field.Data.Name}}Slice[i];
-        }
+        var __{{$field.Data.Name}}Span = CollectionsMarshal.AsSpan(this._{{$field.Data.Name}});
+        __{{$field.Data.Name}}Slice.TryCopyTo(__{{$field.Data.Name}}Span);
         {{- if $field.Data.Type.IsArray }}
         for (var i = __{{$field.Data.Name}}Len; i < this._{{$field.Data.Name}}.Count; i++) {
             this._{{$field.Data.Name}}[i] = {{ToPlainDefault $field.Data.Type}};

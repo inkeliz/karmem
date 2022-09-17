@@ -58,8 +58,12 @@ func (r *Reader) Parser() (d *Content, err error) {
 }
 
 func (r *Reader) headerInit() parserFunc {
+	if r.Parsed.Name == "" && r.peekEqual(string([]byte{0xEF, 0xBB, 0xBF})) {
+		r.skip(3)
+	}
 	if !r.peekEqual("karmem") {
 		r.error = errors.New(`invalid header, expecting "karmem [package name] [@tag(value)];"`)
+		return nil
 	}
 	r.skip(len("karmem "))
 	return r.headerPackage

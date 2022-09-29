@@ -22,7 +22,7 @@ func initBridge(b interface {
 }, fn ...string) Bridge {
 	w := &WasmWazero{}
 	var err error
-	w.runtime = wazero.NewRuntimeWithConfig(context.Background(), wazero.NewRuntimeConfigCompiler().WithWasmCore2())
+	w.runtime = wazero.NewRuntime(context.Background())
 
 	_, err = wasi_snapshot_preview1.Instantiate(context.Background(), w.runtime)
 	if err != nil {
@@ -46,7 +46,7 @@ func initBridge(b interface {
 		return getStringImpl(ptr)
 	}
 
-	_, err = w.runtime.NewModuleBuilder("env").
+	_, err = w.runtime.NewHostModuleBuilder("env").
 		ExportFunction("abort", func(msg, file, line, column int32) {
 			var m string
 			m += fmt.Sprint(`msg:`, __getString(msg))
@@ -67,7 +67,7 @@ func initBridge(b interface {
 		b.Fatal(err)
 	}
 
-	compiledWasi, err := w.runtime.CompileModule(context.Background(), wasifile, wazero.NewCompileConfig())
+	compiledWasi, err := w.runtime.CompileModule(context.Background(), wasifile)
 	if err != nil {
 		b.Fatal(err)
 	}

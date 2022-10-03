@@ -445,7 +445,7 @@ Karmem is fast and is also aimed to be secure and stable for general usage.
 **Out Of Bounds**
 
 Karmem includes bounds-checking to prevent out-of-bounds reading and avoid crashes and panics. That is something that
-Google Protobuf doesn't have, and malformed content will cause panic. However, it doesn't fix all possible
+Google Flatbuffers doesn't have, and malformed content will cause panic. However, it doesn't fix all possible
 vulnerabilities.
 
 **Resource Exhaustion**

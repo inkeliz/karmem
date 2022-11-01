@@ -6,10 +6,11 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/tetratelabs/wazero/imports/assemblyscript"
-	"github.com/tetratelabs/wazero/imports/emscripten"
 	"os"
 	"path/filepath"
+
+	"github.com/tetratelabs/wazero/imports/assemblyscript"
+	"github.com/tetratelabs/wazero/imports/emscripten"
 
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
@@ -19,7 +20,8 @@ import (
 func initBridge(b interface {
 	Error(...any)
 	Fatal(...any)
-}, fn ...string) Bridge {
+}, fn ...string,
+) Bridge {
 	w := &WasmWazero{}
 	var err error
 	w.runtime = wazero.NewRuntime(context.Background())

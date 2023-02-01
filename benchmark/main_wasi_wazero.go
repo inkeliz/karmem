@@ -36,7 +36,7 @@ func initBridge(b interface {
 	envBuilder := w.runtime.NewHostModuleBuilder("env")
 	emscripten.NewFunctionExporter().ExportFunctions(envBuilder)
 	assemblyscript.NewFunctionExporter().ExportFunctions(envBuilder)
-	_, err = envBuilder.Instantiate(context.Background(), w.runtime)
+	_, err = envBuilder.Instantiate(context.Background())
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -61,22 +61,22 @@ func initBridge(b interface {
 		b.Fatal(err)
 	}
 
-	if _, ok := w.mainModule.Memory().Read(nil, uint32(input[0]), uint32(len(InputMemory))); !ok {
+	if _, ok := w.mainModule.Memory().Read(uint32(input[0]), uint32(len(InputMemory))); !ok {
 		b.Fatal("invalid ptr", input)
 	}
 
-	w.mainModule.Memory().Write(context.Background(), uint32(input[0]), make([]byte, len(InputMemory)))
+	w.mainModule.Memory().Write(uint32(input[0]), make([]byte, len(InputMemory)))
 
 	output, err := w.mainModule.ExportedFunction("OutputMemoryPointer").Call(context.Background())
 	if err != nil {
 		b.Fatal(err)
 	}
 
-	if _, ok := w.mainModule.Memory().Read(nil, uint32(output[0]), uint32(len(InputMemory))); !ok {
+	if _, ok := w.mainModule.Memory().Read(uint32(output[0]), uint32(len(InputMemory))); !ok {
 		b.Fatal("invalid ptr", output)
 	}
 
-	w.mainModule.Memory().Write(context.Background(), uint32(output[0]), make([]byte, len(InputMemory)))
+	w.mainModule.Memory().Write(uint32(output[0]), make([]byte, len(InputMemory)))
 
 	if len(input) == 0 || len(output) == 0 || input[0] == 0 || output[0] == 0 {
 		b.Fatal("invalid ptr", input, output)
@@ -103,11 +103,11 @@ type WasmWazero struct {
 }
 
 func (w *WasmWazero) Write(b []byte) bool {
-	return w.mainModule.Memory().Write(context.Background(), uint32(w.input), b)
+	return w.mainModule.Memory().Write(uint32(w.input), b)
 }
 
 func (w *WasmWazero) Reader(l uint32) []byte {
-	out, ok := w.mainModule.Memory().Read(context.Background(), uint32(w.output), l)
+	out, ok := w.mainModule.Memory().Read(uint32(w.output), l)
 	if !ok {
 		return nil
 	}
@@ -115,7 +115,7 @@ func (w *WasmWazero) Reader(l uint32) []byte {
 }
 
 func (w *WasmWazero) ReaderReset(b []byte) {
-	w.mainModule.Memory().Write(context.Background(), uint32(w.output), b)
+	w.mainModule.Memory().Write(uint32(w.output), b)
 }
 
 func (w *WasmWazero) Run(s Functions, v ...uint64) ([]uint64, error) {

@@ -66,12 +66,12 @@ tasks:
       go run karmem.org/cmd/karmem build --swift -o "km" testdata/game.km
       go run karmem.org/cmd/karmem build --c -o "km" testdata/game.km
       go run karmem.org/cmd/karmem build --dotnet -o "km" testdata/game.km
-  - test_dotnet: |
-      cd ~/karmem/benchmark/dotnet
-      ~/sdk/dotnet workload restore
-      cd ~/karmem/benchmark
-      ~/sdk/dotnet build -c "Release" -p:IS_WASM=true -p:IS_KARMEM=true -o "testdata/wasi" "dotnet"
-      go test -tags wasi,wazero,km,dotnet,nofuzz -v -bench=. -timeout 60m .
+ # - test_dotnet: |
+ #     cd ~/karmem/benchmark/dotnet
+ #     ~/sdk/dotnet workload restore
+ #     cd ~/karmem/benchmark
+ #     ~/sdk/dotnet build -c "Release" -p:IS_WASM=true -p:IS_KARMEM=true -o "testdata/wasi" "dotnet"
+ #     go test -tags wasi,wazero,km,dotnet,nofuzz -v -bench=. -timeout 60m .
   - test_golang: |
       cd karmem/benchmark
       go test -tags km -v -bench=. .

@@ -622,7 +622,7 @@ public unsafe struct Vec3Viewer {
         if (!reader.IsValidOffset(offset, 12)) {
             return ref *(Vec3Viewer*)(nuint)_Globals.Null();
         }
-        ref Vec3Viewer v = ref Unsafe.AsRef<Vec3Viewer>((void*)(reader.MemoryPointer + offset));
+        ref Vec3Viewer v = ref *(Vec3Viewer*)(reader.MemoryPointer + offset);
         return ref v;
     }
 
@@ -656,7 +656,7 @@ public unsafe struct WeaponDataViewer {
         if (!reader.IsValidOffset(offset, 4)) {
             return ref *(WeaponDataViewer*)(nuint)_Globals.Null();
         }
-        ref WeaponDataViewer v = ref Unsafe.AsRef<WeaponDataViewer>((void*)(reader.MemoryPointer + offset));
+        ref WeaponDataViewer v = ref *(WeaponDataViewer*)(reader.MemoryPointer + offset);
         if (!reader.IsValidOffset(offset, v.KarmemSizeOf())) {
             return ref *(WeaponDataViewer*)(nuint)_Globals.Null();
         }
@@ -713,7 +713,7 @@ public unsafe struct WeaponViewer {
         if (!reader.IsValidOffset(offset, 4)) {
             return ref *(WeaponViewer*)(nuint)_Globals.Null();
         }
-        ref WeaponViewer v = ref Unsafe.AsRef<WeaponViewer>((void*)(reader.MemoryPointer + offset));
+        ref WeaponViewer v = ref *(WeaponViewer*)(reader.MemoryPointer + offset);
         return ref v;
     }
 
@@ -752,7 +752,7 @@ public unsafe struct MonsterDataViewer {
         if (!reader.IsValidOffset(offset, 4)) {
             return ref *(MonsterDataViewer*)(nuint)_Globals.Null();
         }
-        ref MonsterDataViewer v = ref Unsafe.AsRef<MonsterDataViewer>((void*)(reader.MemoryPointer + offset));
+        ref MonsterDataViewer v = ref *(MonsterDataViewer*)(reader.MemoryPointer + offset);
         if (!reader.IsValidOffset(offset, v.KarmemSizeOf())) {
             return ref *(MonsterDataViewer*)(nuint)_Globals.Null();
         }
@@ -768,7 +768,7 @@ public unsafe struct MonsterDataViewer {
         if (4 + 12 > this.KarmemSizeOf()) {
             return ref *(Vec3Viewer*)((nuint)_Globals.Null());
         }
-        return ref Unsafe.AsRef<Vec3Viewer>((void*)((nuint)Unsafe.AsPointer(ref this) + 4));
+        return ref *(Vec3Viewer*)((nuint)Unsafe.AsPointer(ref this) + 4);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public short Mana() {
@@ -894,7 +894,7 @@ public unsafe struct MonsterViewer {
         if (!reader.IsValidOffset(offset, 4)) {
             return ref *(MonsterViewer*)(nuint)_Globals.Null();
         }
-        ref MonsterViewer v = ref Unsafe.AsRef<MonsterViewer>((void*)(reader.MemoryPointer + offset));
+        ref MonsterViewer v = ref *(MonsterViewer*)(reader.MemoryPointer + offset);
         return ref v;
     }
 
@@ -919,7 +919,7 @@ public unsafe struct MonstersViewer {
         if (!reader.IsValidOffset(offset, 4)) {
             return ref *(MonstersViewer*)(nuint)_Globals.Null();
         }
-        ref MonstersViewer v = ref Unsafe.AsRef<MonstersViewer>((void*)(reader.MemoryPointer + offset));
+        ref MonstersViewer v = ref *(MonstersViewer*)(reader.MemoryPointer + offset);
         if (!reader.IsValidOffset(offset, v.KarmemSizeOf())) {
             return ref *(MonstersViewer*)(nuint)_Globals.Null();
         }

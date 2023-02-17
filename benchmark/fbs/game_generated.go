@@ -4,7 +4,6 @@ package fbs
 
 import (
 	"strconv"
-
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
@@ -69,9 +68,9 @@ func (v Team) String() string {
 }
 
 type Vec3T struct {
-	X float32
-	Y float32
-	Z float32
+	X float32 `json:"x"`
+	Y float32 `json:"y"`
+	Z float32 `json:"z"`
 }
 
 func (t *Vec3T) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -133,11 +132,11 @@ func CreateVec3(builder *flatbuffers.Builder, x float32, y float32, z float32) f
 	return builder.Offset()
 }
 type WeaponT struct {
-	Damage int32
-	Ammo uint16
-	ClipSize byte
-	ReloadTime float32
-	Range int32
+	Damage int32 `json:"damage"`
+	Ammo uint16 `json:"ammo"`
+	ClipSize byte `json:"clip_size"`
+	ReloadTime float32 `json:"reload_time"`
+	Range int32 `json:"range"`
 }
 
 func (t *WeaponT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -275,7 +274,7 @@ func WeaponEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
 type MonstersT struct {
-	Monsters []*MonsterT
+	Monsters []*MonsterT `json:"monsters"`
 }
 
 func (t *MonstersT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -375,23 +374,26 @@ func MonstersEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
 type MonsterT struct {
-	Pos *Vec3T
-	Mana int16
-	Health int16
-	Name string
-	Team Team
-	Inventory []byte
-	Color Color
-	Hitbox []float64
-	Status []int32
-	Weapons []*WeaponT
-	Path []*Vec3T
-	IsAlive bool
+	Pos *Vec3T `json:"pos"`
+	Mana int16 `json:"mana"`
+	Health int16 `json:"health"`
+	Name string `json:"name"`
+	Team Team `json:"team"`
+	Inventory []byte `json:"inventory"`
+	Color Color `json:"color"`
+	Hitbox []float64 `json:"hitbox"`
+	Status []int32 `json:"status"`
+	Weapons []*WeaponT `json:"weapons"`
+	Path []*Vec3T `json:"path"`
+	IsAlive bool `json:"is_alive"`
 }
 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil { return 0 }
-	nameOffset := builder.CreateString(t.Name)
+	nameOffset := flatbuffers.UOffsetT(0)
+	if t.Name != "" {
+		nameOffset = builder.CreateString(t.Name)
+	}
 	inventoryOffset := flatbuffers.UOffsetT(0)
 	if t.Inventory != nil {
 		inventoryOffset = builder.CreateByteString(t.Inventory)

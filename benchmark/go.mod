@@ -8,7 +8,7 @@ require (
 	github.com/google/flatbuffers v2.0.6+incompatible
 	github.com/google/gofuzz v1.2.0
 	github.com/r3labs/diff/v3 v3.0.0
-	github.com/tetratelabs/wazero v1.0.0-pre.8
+	github.com/tetratelabs/wazero v1.0.0-rc.1
 	golang.org/x/crypto v0.0.0-20220513210258-46612604a0f9
 	karmem.org v1.0.0
 )

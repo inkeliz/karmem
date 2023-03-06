@@ -414,6 +414,26 @@ func TestCachedResult(t *testing.T) {
 			continue
 		}
 
+		tag := []Tag{{Name: "key", Value: "test"}}
+		warnings := []Warning{{Data: WarningData{Message: "test"}}}
+		for _, s := range parsed.Structs {
+			s.Data.Tags = tag
+			s.Data.Warnings = warnings
+			for _, v := range s.Data.Fields {
+				v.Data.Tags = tag
+				v.Data.Warnings = warnings
+			}
+		}
+
+		for _, e := range parsed.Enums {
+			e.Data.Tags = tag
+			e.Data.Warnings = warnings
+			for _, v := range e.Data.Fields {
+				v.Data.Tags = tag
+				v.Data.Warnings = warnings
+			}
+		}
+
 		writer.Reset()
 		if _, err := parsed.WriteAsRoot(writer); err != nil {
 			t.Error(err)

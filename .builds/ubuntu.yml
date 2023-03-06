@@ -36,6 +36,10 @@ tasks:
       chmod -R 0777 .
   - clear: |
       rm -r ~/karmem/benchmark/testdata/wasi/*
+      rm -r ~/karmem/benchmark/km/*
+  - test_generate: |
+      cd karmem/benchmark
+      go run karmem.org/cmd/karmem build --odin -o "km" testdata/game.km
   - test_odin: |
       cd karmem/benchmark
       ~/odin build . -target:wasi_wasm32 -extra-linker-flags:"--lto-O3 --gc-sections -o "testdata/wasi/odin.wasi""

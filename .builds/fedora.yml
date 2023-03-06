@@ -53,6 +53,7 @@ tasks:
       tar -xzf swift-wasm-5.7-SNAPSHOT-2022-07-29-a-amazonlinux2_x86_64.tar.gz
   - clear: |
       rm -r ~/karmem/benchmark/testdata/wasi/*
+      rm -r ~/karmem/benchmark/km/*
   - test_karmem: | 
       cd ~/karmem/cmd/karmem/kmgen
       go test .

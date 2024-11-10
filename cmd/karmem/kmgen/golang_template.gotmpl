@@ -182,7 +182,7 @@
                     x.{{$field.Data.Name}}.Read(viewer.{{$field.Data.Name}}(reader), reader)
                 {{- end}}
                 {{- if $field.Data.Type.IsString}}
-                    __{{$field.Data.Name}}String := viewer.{{$field.Data.Name}}(reader)
+                    __{{$field.Data.Name}}String := viewer.{{$field.Data.Name}}({{- if not $field.Data.Type.IsInline}}reader{{- end}})
                     if x.{{$field.Data.Name}} != __{{$field.Data.Name}}String {
                     __{{$field.Data.Name}}StringCopy := make([]byte, len(__{{$field.Data.Name}}String))
                     copy(__{{$field.Data.Name}}StringCopy, __{{$field.Data.Name}}String)

@@ -8,7 +8,7 @@ different content of the same type. Karmem demonstrates to be ten times faster
 than Google Flatbuffers, with the additional overhead of bounds-checking
 included.
 
-> ⚠️ Karmem still under development, the API is not stable. However, serialization-format itself is unlike to change and
+> ⚠️ Karmem still under development, the API is not stable. However, serialization-format itself is unlikely to change and
 > should remain backward compatible with older versions.
 
 # Contents
